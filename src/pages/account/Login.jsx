@@ -6,10 +6,10 @@ const Login = () => {
     <div className="container mx-auto px-4 py-10">
       <div className="max-w-md mx-auto bg-white rounded-xl border border-gray-200 shadow-md p-6 md:p-8">
         <h1 className="text-2xl font-bold text-textPrimary mb-2 text-center">
-          Đăng nhập thành viên
+          Đăng nhập Pullman Member
         </h1>
         <p className="text-sm text-gray-600 mb-6 text-center">
-          Đăng nhập để quản lý đặt phòng và nhận ưu đãi thành viên.
+          Đăng nhập để quản lý booking Pullman và lưu thông tin lưu trú của bạn.
         </p>
 
         <form className="space-y-4">
@@ -20,7 +20,7 @@ const Login = () => {
             <input
               id="email"
               type="email"
-              placeholder="nhapemail@vidu.com"
+              placeholder="guest@pullman-demo.com"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
           </div>
@@ -70,4 +70,3 @@ const Login = () => {
 };
 
 export default Login;
-

@@ -9,9 +9,10 @@ const Footer = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="font-semibold text-secondary mb-3">Đặt phòng khách sạn</h3>
+            <h3 className="font-semibold text-secondary mb-3">Pullman Hotels</h3>
             <p className="text-sm text-white/90">
-              Hệ thống đặt phòng khách sạn đa chi nhánh toàn Việt Nam. Đặt phòng nhanh, giá tốt.
+              Website đặt phòng cho duy nhất một thương hiệu Pullman, tập trung vào trải nghiệm
+              booking nhanh và cao cấp.
             </p>
           </div>
           <div>
@@ -42,14 +43,14 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-secondary mb-3">Liên hệ</h3>
             <p className="text-sm text-white/90">
-              Hotline: 1900 xxxx
+              Hotline: 1900 Pullman
               <br />
-              Email: support@example.com
+              Email: reservations@pullman-demo.com
             </p>
           </div>
         </div>
         <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm text-white/80">
-          © {currentYear} Đặt phòng khách sạn. Đa chi nhánh toàn Việt Nam.
+          © {currentYear} Pullman Hotels. Premium booking experience.
         </div>
       </div>
     </footer>

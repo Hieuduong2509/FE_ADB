@@ -1,10 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { ROUTES } from "../constants";
 
-/**
- * Trang chi tiết một khách sạn (một chi nhánh).
- * Sau này sẽ load theo hotelId từ API.
- */
 const HotelDetail = () => {
   const { hotelId } = useParams();
 
@@ -20,10 +16,11 @@ const HotelDetail = () => {
         </div>
         <div className="p-6">
           <h1 className="text-2xl font-bold text-textPrimary mb-2">
-            Chi nhánh: {hotelId || "—"}
+            Pullman Location: {hotelId || "—"}
           </h1>
           <p className="text-gray-600 mb-4">
-            Trang chi tiết khách sạn. Sẽ hiển thị thông tin chi nhánh, loại phòng, giá, và nút đặt phòng.
+            Trang chi tiết sẽ hiển thị thông tin khách sạn Pullman, loại phòng, giá theo đêm,
+            tiện ích và nút booking nhanh.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -37,7 +34,8 @@ const HotelDetail = () => {
       </div>
 
       <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-        Các block tiếp theo: danh sách loại phòng, tiện nghi, bản đồ, form đặt phòng.
+        Các block tiếp theo: danh sách loại phòng, tiện nghi, bản đồ, form booking và chính sách
+        riêng cho từng khách sạn Pullman.
       </div>
     </div>
   );

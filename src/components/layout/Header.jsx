@@ -23,10 +23,9 @@ const Header = () => {
             to={ROUTES.HOME}
             className="text-lg font-semibold tracking-wide hover:text-secondary transition-colors"
           >
-            Đặt phòng khách sạn
+            Pullman Hotels
           </Link>
 
-          {/* Desktop nav + auth */}
           <div className="hidden md:flex items-center gap-6">
             <nav className="flex items-center gap-6">
               {navItems.map(({ path, label }) => (
@@ -63,7 +62,6 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile menu button */}
           <button
             type="button"
             className="md:hidden p-2 rounded hover:bg-white/10"
@@ -80,7 +78,6 @@ const Header = () => {
           </button>
         </div>
 
-        {/* Mobile nav */}
         {menuOpen && (
           <nav className="md:hidden py-4 border-t border-white/20">
             <ul className="flex flex-col gap-2">

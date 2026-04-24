@@ -6,10 +6,10 @@ const SignUp = () => {
     <div className="container mx-auto px-4 py-10">
       <div className="max-w-md mx-auto bg-white rounded-xl border border-gray-200 shadow-md p-6 md:p-8">
         <h1 className="text-2xl font-bold text-textPrimary mb-2 text-center">
-          Đăng ký thành viên
+          Đăng ký Pullman Member
         </h1>
         <p className="text-sm text-gray-600 mb-6 text-center">
-          Tạo tài khoản để quản lý đặt phòng dễ dàng và nhận ưu đãi dành riêng cho thành viên.
+          Tạo tài khoản để thử đăng nhập, quản lý booking và lưu thông tin khách lưu trú Pullman.
         </p>
 
         <form className="space-y-4">
@@ -32,7 +32,7 @@ const SignUp = () => {
             <input
               id="email"
               type="email"
-              placeholder="nhapemail@vidu.com"
+              placeholder="guest@pullman-demo.com"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
           </div>
@@ -74,7 +74,7 @@ const SignUp = () => {
           </div>
 
           <div className="text-xs text-gray-500">
-            Bằng việc đăng ký, bạn đồng ý với các điều khoản sử dụng hệ thống đặt phòng.
+            Bằng việc đăng ký, bạn đồng ý với các điều khoản sử dụng hệ thống booking Pullman.
           </div>
 
           <button
@@ -97,4 +97,3 @@ const SignUp = () => {
 };
 
 export default SignUp;
-
