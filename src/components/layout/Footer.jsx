@@ -6,13 +6,13 @@ const Footer = () => {
 
   return (
     <footer className="bg-primary text-textWhite mt-auto">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
             <h3 className="font-semibold text-secondary mb-3">Pullman Hotels</h3>
-            <p className="text-sm text-white/90">
-              Website đặt phòng cho duy nhất một thương hiệu Pullman, tập trung vào trải nghiệm
-              booking nhanh và cao cấp.
+            <p className="text-sm text-white/90 leading-7">
+              Giao diện mới tập trung vào danh sách khách sạn Pullman đang hot, tìm kiếm phòng,
+              xem amenities chi tiết và chọn facilities trước khi booking.
             </p>
           </div>
           <div>
@@ -25,7 +25,12 @@ const Footer = () => {
               </li>
               <li>
                 <Link to={ROUTES.HOTELS} className="hover:text-secondary transition-colors">
-                  Khách sạn
+                  Tìm kiếm
+                </Link>
+              </li>
+              <li>
+                <Link to={ROUTES.BOOKING} className="hover:text-secondary transition-colors">
+                  Booking
                 </Link>
               </li>
               <li>
@@ -42,7 +47,7 @@ const Footer = () => {
           </div>
           <div>
             <h3 className="font-semibold text-secondary mb-3">Liên hệ</h3>
-            <p className="text-sm text-white/90">
+            <p className="text-sm text-white/90 leading-7">
               Hotline: 1900 Pullman
               <br />
               Email: reservations@pullman-demo.com
@@ -50,7 +55,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="border-t border-white/20 mt-8 pt-6 text-center text-sm text-white/80">
-          © {currentYear} Pullman Hotels. Premium booking experience.
+          © {currentYear} Pullman Hotels. Search stays, view room amenities, add booking facilities.
         </div>
       </div>
     </footer>

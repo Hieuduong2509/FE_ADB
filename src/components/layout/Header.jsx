@@ -4,8 +4,8 @@ import { ROUTES } from "../../constants";
 
 const navItems = [
   { path: ROUTES.HOME, label: "Trang chủ" },
-  { path: ROUTES.HOTELS, label: "Khách sạn" },
-  { path: ROUTES.ABOUT, label: "Giới thiệu" },
+  { path: ROUTES.HOTELS, label: "Tìm kiếm" },
+  { path: ROUTES.BOOKING, label: "Booking" },
   { path: ROUTES.CONTACT, label: "Liên hệ" },
 ];
 
@@ -13,15 +13,21 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path === ROUTES.HOTELS) {
+      return location.pathname.startsWith("/khach-san");
+    }
+
+    return location.pathname === path;
+  };
 
   return (
-    <header className="sticky top-0 z-50 bg-primary text-textWhite shadow-md">
+    <header className="sticky top-0 z-50 border-b border-white/40 bg-[rgba(248,244,237,0.88)] text-textPrimary shadow-[0_10px_30px_rgba(31,33,33,0.07)] backdrop-blur">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-14 md:h-16">
+        <div className="flex h-16 items-center justify-between md:h-[74px]">
           <Link
             to={ROUTES.HOME}
-            className="text-lg font-semibold tracking-wide hover:text-secondary transition-colors"
+            className="text-lg font-semibold tracking-[0.22em] text-[#17363f] transition-colors hover:text-accent"
           >
             Pullman Hotels
           </Link>
@@ -34,8 +40,8 @@ const Header = () => {
                   to={path}
                   className={`py-2 px-1 border-b-2 transition-colors ${
                     isActive(path)
-                      ? "border-secondary text-secondary"
-                      : "border-transparent hover:text-secondary"
+                      ? "border-accent text-accent"
+                      : "border-transparent text-gray-600 hover:text-[#17363f]"
                   }`}
                 >
                   {label}
@@ -45,16 +51,16 @@ const Header = () => {
             <div className="flex items-center gap-3">
               <Link
                 to={ROUTES.LOGIN}
-                className={`px-3 py-1.5 rounded-lg text-sm border border-white/40 hover:bg-white/10 transition-colors ${
-                  isActive(ROUTES.LOGIN) ? "bg-white/10" : ""
+                className={`rounded-full border border-[#d8ccb8] px-4 py-2 text-sm transition-colors ${
+                  isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
                 }`}
               >
                 Đăng nhập
               </Link>
               <Link
                 to={ROUTES.SIGN_UP}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium bg-secondary text-primary hover:bg-secondary/90 transition-colors ${
-                  isActive(ROUTES.SIGN_UP) ? "ring-2 ring-secondary/60" : ""
+                className={`rounded-full bg-[#17363f] px-4 py-2 text-sm font-medium text-white transition-colors ${
+                  isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
                 }`}
               >
                 Đăng ký
@@ -64,7 +70,7 @@ const Header = () => {
 
           <button
             type="button"
-            className="md:hidden p-2 rounded hover:bg-white/10"
+            className="rounded-full p-2 transition hover:bg-white md:hidden"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Menu"
           >
@@ -79,7 +85,7 @@ const Header = () => {
         </div>
 
         {menuOpen && (
-          <nav className="md:hidden py-4 border-t border-white/20">
+          <nav className="border-t border-[#e7dcc8] py-4 md:hidden">
             <ul className="flex flex-col gap-2">
               {navItems.map(({ path, label }) => (
                 <li key={path}>
@@ -87,7 +93,7 @@ const Header = () => {
                     to={path}
                     onClick={() => setMenuOpen(false)}
                     className={`block py-2 px-2 rounded ${
-                      isActive(path) ? "bg-secondary/20 text-secondary" : "hover:bg-white/10"
+                      isActive(path) ? "bg-[#faf5ec] text-accent" : "hover:bg-white"
                     }`}
                   >
                     {label}
@@ -98,8 +104,8 @@ const Header = () => {
                 <Link
                   to={ROUTES.LOGIN}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex-1 py-2 px-2 text-center rounded border border-white/40 text-sm ${
-                    isActive(ROUTES.LOGIN) ? "bg-white/10" : "hover:bg-white/10"
+                  className={`flex-1 rounded-full border border-[#d8ccb8] py-2 px-2 text-center text-sm ${
+                    isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
                   }`}
                 >
                   Đăng nhập
@@ -107,8 +113,8 @@ const Header = () => {
                 <Link
                   to={ROUTES.SIGN_UP}
                   onClick={() => setMenuOpen(false)}
-                  className={`flex-1 py-2 px-2 text-center rounded bg-secondary text-primary text-sm font-medium ${
-                    isActive(ROUTES.SIGN_UP) ? "ring-2 ring-secondary/60" : "hover:bg-secondary/90"
+                  className={`flex-1 rounded-full bg-[#17363f] py-2 px-2 text-center text-sm font-medium text-white ${
+                    isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
                   }`}
                 >
                   Đăng ký
