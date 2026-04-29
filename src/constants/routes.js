@@ -11,6 +11,7 @@ export const ROUTES = {
   CONTACT: "/lien-he",
   LOGIN: "/dang-nhap",
   SIGN_UP: "/dang-ky",
+  ADMIN: "/admin/van-hanh",
 };
 
 /** Helper tạo path chi tiết khách sạn */

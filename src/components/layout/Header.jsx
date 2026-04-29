@@ -6,6 +6,7 @@ const navItems = [
   { path: ROUTES.HOME, label: "Trang chủ" },
   { path: ROUTES.HOTELS, label: "Tìm kiếm" },
   { path: ROUTES.BOOKING, label: "Booking" },
+  { path: ROUTES.ADMIN, label: "Admin" },
   { path: ROUTES.CONTACT, label: "Liên hệ" },
 ];
 
@@ -16,6 +17,10 @@ const Header = () => {
   const isActive = (path) => {
     if (path === ROUTES.HOTELS) {
       return location.pathname.startsWith("/khach-san");
+    }
+
+    if (path === ROUTES.ADMIN) {
+      return location.pathname.startsWith("/admin");
     }
 
     return location.pathname === path;

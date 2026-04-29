@@ -1,0 +1,107 @@
+const AmenitiesSection = ({
+  amenityDraft,
+  setAmenityDraft,
+  submitAmenity,
+  editingAmenityId,
+  resetAmenityEditor,
+  amenities,
+  startAmenityEdit,
+  deleteAmenity,
+}) => (
+  <section
+    id="amenities"
+    className="rounded-[32px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
+  >
+    <div className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
+      <div>
+        <div className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+          Amenities catalog
+        </div>
+        <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
+          Chuẩn hóa tiện nghi hiển thị trên từng loại phòng
+        </h2>
+
+        <form onSubmit={submitAmenity} className="mt-6 space-y-4">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Tên amenity</span>
+            <input
+              type="text"
+              value={amenityDraft.name}
+              onChange={(event) =>
+                setAmenityDraft((currentDraft) => ({
+                  ...currentDraft,
+                  name: event.target.value,
+                }))
+              }
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Mô tả</span>
+            <textarea
+              rows="3"
+              value={amenityDraft.description}
+              onChange={(event) =>
+                setAmenityDraft((currentDraft) => ({
+                  ...currentDraft,
+                  description: event.target.value,
+                }))
+              }
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+            />
+          </label>
+
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="submit"
+              className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
+            >
+              {editingAmenityId ? "Lưu amenity" : "Thêm amenity"}
+            </button>
+            {editingAmenityId ? (
+              <button
+                type="button"
+                onClick={resetAmenityEditor}
+                className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
+              >
+                Hủy chỉnh sửa
+              </button>
+            ) : null}
+          </div>
+        </form>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2">
+        {amenities.map((amenity) => (
+          <div
+            key={amenity.id}
+            className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
+          >
+            <div className="text-xs uppercase tracking-[0.18em] text-accent">Amenity item</div>
+            <h3 className="mt-3 text-xl font-semibold text-textPrimary">{amenity.name}</h3>
+            <p className="mt-3 text-sm leading-7 text-gray-600">{amenity.description}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => startAmenityEdit(amenity)}
+                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
+              >
+                Sửa
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteAmenity(amenity.id)}
+                className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
+              >
+                Xóa
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+export default AmenitiesSection;

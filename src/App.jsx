@@ -9,6 +9,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Login from "./pages/account/Login";
 import SignUp from "./pages/account/SignUp";
+import AdminDashboard from "./pages/admin";
 import { ROUTES } from "./constants";
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path={ROUTES.CONTACT} element={<Contact />} />
           <Route path={ROUTES.LOGIN} element={<Login />} />
           <Route path={ROUTES.SIGN_UP} element={<SignUp />} />
+          <Route path={ROUTES.ADMIN} element={<AdminDashboard />} />
         </Route>
       </Routes>
     </div>
