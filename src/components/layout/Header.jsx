@@ -1,18 +1,25 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "../../constants";
-
-const navItems = [
-  { path: ROUTES.HOME, label: "Trang chủ" },
-  { path: ROUTES.HOTELS, label: "Tìm kiếm" },
-  { path: ROUTES.BOOKING, label: "Booking" },
-  { path: ROUTES.ADMIN, label: "Admin" },
-  { path: ROUTES.CONTACT, label: "Liên hệ" },
-];
+import { clearAuthSession, isAdminSession, readAuthSession } from "../../utils/auth";
 
 const Header = () => {
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [session, setSession] = useState(() => readAuthSession());
   const location = useLocation();
+  const isAdmin = isAdminSession(session);
+  const navItems = [
+    { path: ROUTES.HOME, label: "Trang chủ" },
+    { path: ROUTES.HOTELS, label: "Tìm kiếm" },
+    { path: ROUTES.BOOKING, label: "Booking" },
+    ...(isAdmin ? [{ path: ROUTES.ADMIN, label: "Admin" }] : []),
+    { path: ROUTES.CONTACT, label: "Liên hệ" },
+  ];
+
+  useEffect(() => {
+    setSession(readAuthSession());
+  }, [location.pathname]);
 
   const isActive = (path) => {
     if (path === ROUTES.HOTELS) {
@@ -24,6 +31,13 @@ const Header = () => {
     }
 
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    clearAuthSession();
+    setSession(null);
+    setMenuOpen(false);
+    navigate(ROUTES.HOME);
   };
 
   return (
@@ -54,22 +68,39 @@ const Header = () => {
               ))}
             </nav>
             <div className="flex items-center gap-3">
-              <Link
-                to={ROUTES.LOGIN}
-                className={`rounded-full border border-[#d8ccb8] px-4 py-2 text-sm transition-colors ${
-                  isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
-                }`}
-              >
-                Đăng nhập
-              </Link>
-              <Link
-                to={ROUTES.SIGN_UP}
-                className={`rounded-full bg-[#17363f] px-4 py-2 text-sm font-medium text-white transition-colors ${
-                  isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
-                }`}
-              >
-                Đăng ký
-              </Link>
+              {session?.user ? (
+                <>
+                  <div className="rounded-full border border-[#d8ccb8] bg-white px-4 py-2 text-sm text-textPrimary">
+                    Xin chào, {session.user.fullName || session.user.email}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#102d34]"
+                  >
+                    Đăng xuất
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to={ROUTES.LOGIN}
+                    className={`rounded-full border border-[#d8ccb8] px-4 py-2 text-sm transition-colors ${
+                      isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
+                    }`}
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    to={ROUTES.SIGN_UP}
+                    className={`rounded-full bg-[#17363f] px-4 py-2 text-sm font-medium text-white transition-colors ${
+                      isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
+                    }`}
+                  >
+                    Đăng ký
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -105,26 +136,43 @@ const Header = () => {
                   </Link>
                 </li>
               ))}
-              <li className="mt-2 flex gap-2">
-                <Link
-                  to={ROUTES.LOGIN}
-                  onClick={() => setMenuOpen(false)}
-                  className={`flex-1 rounded-full border border-[#d8ccb8] py-2 px-2 text-center text-sm ${
-                    isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
-                  }`}
-                >
-                  Đăng nhập
-                </Link>
-                <Link
-                  to={ROUTES.SIGN_UP}
-                  onClick={() => setMenuOpen(false)}
-                  className={`flex-1 rounded-full bg-[#17363f] py-2 px-2 text-center text-sm font-medium text-white ${
-                    isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
-                  }`}
-                >
-                  Đăng ký
-                </Link>
-              </li>
+              {session?.user ? (
+                <>
+                  <li className="mt-2 rounded-xl border border-[#e7dcc8] bg-white px-3 py-3 text-sm text-textPrimary">
+                    Xin chào, {session.user.fullName || session.user.email}
+                  </li>
+                  <li>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="w-full rounded-full bg-[#17363f] py-2 px-2 text-center text-sm font-medium text-white hover:bg-[#102d34]"
+                    >
+                      Đăng xuất
+                    </button>
+                  </li>
+                </>
+              ) : (
+                <li className="mt-2 flex gap-2">
+                  <Link
+                    to={ROUTES.LOGIN}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex-1 rounded-full border border-[#d8ccb8] py-2 px-2 text-center text-sm ${
+                      isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
+                    }`}
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    to={ROUTES.SIGN_UP}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex-1 rounded-full bg-[#17363f] py-2 px-2 text-center text-sm font-medium text-white ${
+                      isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
+                    }`}
+                  >
+                    Đăng ký
+                  </Link>
+                </li>
+              )}
             </ul>
           </nav>
         )}
