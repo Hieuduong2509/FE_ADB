@@ -2,12 +2,29 @@ import {
   AmenitiesSection,
   FacilitiesSection,
   HolidayRulesSection,
+  HotelsSection,
   PriceControlSection,
   RoomTypesSection,
 } from "./sections";
 
 export const renderAdminSection = (activeSection, workspace) => {
   switch (activeSection) {
+    case "hotels":
+      return (
+        <HotelsSection
+          hotelDraft={workspace.hotelDraft}
+          setHotelDraft={workspace.setHotelDraft}
+          submitHotel={workspace.submitHotel}
+          editingHotelId={workspace.editingHotelId}
+          resetHotelEditor={workspace.resetHotelEditor}
+          hotels={workspace.managerHotels}
+          startHotelEdit={workspace.startHotelEdit}
+          deleteHotel={workspace.deleteHotel}
+          isLoading={workspace.isHotelsLoading}
+          isSubmitting={workspace.isHotelSubmitting}
+          errorMessage={workspace.hotelsError}
+        />
+      );
     case "holiday-rules":
       return (
         <HolidayRulesSection
@@ -26,7 +43,7 @@ export const renderAdminSection = (activeSection, workspace) => {
     case "room-types":
       return (
         <RoomTypesSection
-          hotelOptions={workspace.hotelOptions}
+          hotelOptions={workspace.managerHotels}
           amenities={workspace.amenities}
           facilities={workspace.facilities}
           roomTypeDraft={workspace.roomTypeDraft}
@@ -35,14 +52,18 @@ export const renderAdminSection = (activeSection, workspace) => {
           editingRoomTypeId={workspace.editingRoomTypeId}
           resetRoomTypeEditor={workspace.resetRoomTypeEditor}
           toggleDraftCollectionValue={workspace.toggleDraftCollectionValue}
-          filteredRoomTypes={workspace.filteredRoomTypes}
+          filteredRoomTypes={workspace.filteredManagerRoomTypes}
           startRoomTypeEdit={workspace.startRoomTypeEdit}
           deleteRoomType={workspace.deleteRoomType}
+          isLoading={workspace.isRoomTypesLoading}
+          isSubmitting={workspace.isRoomTypeSubmitting}
+          errorMessage={workspace.roomTypesError}
         />
       );
     case "facilities":
       return (
         <FacilitiesSection
+          hotelOptions={workspace.managerHotels}
           facilityDraft={workspace.facilityDraft}
           setFacilityDraft={workspace.setFacilityDraft}
           submitFacility={workspace.submitFacility}
@@ -51,11 +72,15 @@ export const renderAdminSection = (activeSection, workspace) => {
           facilities={workspace.facilities}
           startFacilityEdit={workspace.startFacilityEdit}
           deleteFacility={workspace.deleteFacility}
+          isLoading={workspace.isFacilitiesLoading}
+          isSubmitting={workspace.isFacilitySubmitting}
+          errorMessage={workspace.facilitiesError}
         />
       );
     case "amenities":
       return (
         <AmenitiesSection
+          roomTypeOptions={workspace.managerRoomTypes}
           amenityDraft={workspace.amenityDraft}
           setAmenityDraft={workspace.setAmenityDraft}
           submitAmenity={workspace.submitAmenity}
@@ -64,6 +89,9 @@ export const renderAdminSection = (activeSection, workspace) => {
           amenities={workspace.amenities}
           startAmenityEdit={workspace.startAmenityEdit}
           deleteAmenity={workspace.deleteAmenity}
+          isLoading={workspace.isAmenitiesLoading}
+          isSubmitting={workspace.isAmenitySubmitting}
+          errorMessage={workspace.amenitiesError}
         />
       );
     case "price-control":

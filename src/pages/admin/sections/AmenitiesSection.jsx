@@ -1,4 +1,5 @@
 const AmenitiesSection = ({
+  roomTypeOptions,
   amenityDraft,
   setAmenityDraft,
   submitAmenity,
@@ -7,6 +8,9 @@ const AmenitiesSection = ({
   amenities,
   startAmenityEdit,
   deleteAmenity,
+  isLoading,
+  isSubmitting,
+  errorMessage,
 }) => (
   <section
     id="amenities"
@@ -18,10 +22,32 @@ const AmenitiesSection = ({
           Amenities catalog
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Chuẩn hóa tiện nghi hiển thị trên từng loại phòng
+          Quản lý tiện nghi theo room type từ API admin
         </h2>
 
         <form onSubmit={submitAmenity} className="mt-6 space-y-4">
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Room type</span>
+            <select
+              value={amenityDraft.roomTypeId}
+              onChange={(event) =>
+                setAmenityDraft((currentDraft) => ({
+                  ...currentDraft,
+                  roomTypeId: event.target.value,
+                }))
+              }
+              disabled={!roomTypeOptions.length || isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {!roomTypeOptions.length ? <option value="">Chưa có room type</option> : null}
+              {roomTypeOptions.map((roomType) => (
+                <option key={roomType.id} value={roomType.id}>
+                  {roomType.name} · {roomType.hotelName}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-gray-600">Tên amenity</span>
             <input
@@ -33,7 +59,8 @@ const AmenitiesSection = ({
                   name: event.target.value,
                 }))
               }
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </label>
 
@@ -48,22 +75,35 @@ const AmenitiesSection = ({
                   description: event.target.value,
                 }))
               }
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+              disabled={isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </label>
+
+          {errorMessage ? (
+            <div className="rounded-2xl border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
+              {errorMessage}
+            </div>
+          ) : null}
 
           <div className="flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
+              disabled={isSubmitting || !roomTypeOptions.length}
+              className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {editingAmenityId ? "Lưu amenity" : "Thêm amenity"}
+              {isSubmitting
+                ? "Đang lưu..."
+                : editingAmenityId
+                  ? "Lưu amenity"
+                  : "Thêm amenity"}
             </button>
             {editingAmenityId ? (
               <button
                 type="button"
                 onClick={resetAmenityEditor}
-                className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
+                disabled={isSubmitting}
+                className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Hủy chỉnh sửa
               </button>
@@ -73,26 +113,45 @@ const AmenitiesSection = ({
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
+        {isLoading ? (
+          <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600 md:col-span-2">
+            Đang tải danh sách tiện nghi...
+          </div>
+        ) : null}
+
+        {!isLoading && !amenities.length ? (
+          <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600 md:col-span-2">
+            Chưa có tiện nghi nào trong hệ thống.
+          </div>
+        ) : null}
+
         {amenities.map((amenity) => (
           <div
             key={amenity.id}
             className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
           >
-            <div className="text-xs uppercase tracking-[0.18em] text-accent">Amenity item</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-accent">
+              {amenity.hotelName}
+            </div>
             <h3 className="mt-3 text-xl font-semibold text-textPrimary">{amenity.name}</h3>
-            <p className="mt-3 text-sm leading-7 text-gray-600">{amenity.description}</p>
+            <p className="mt-3 text-sm leading-7 text-gray-600">{amenity.roomTypeName}</p>
+            {amenity.description ? (
+              <p className="mt-3 text-sm leading-7 text-gray-500">{amenity.description}</p>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => startAmenityEdit(amenity)}
-                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
+                disabled={isSubmitting}
+                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Sửa
               </button>
               <button
                 type="button"
                 onClick={() => deleteAmenity(amenity.id)}
-                className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
+                disabled={isSubmitting}
+                className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Xóa
               </button>

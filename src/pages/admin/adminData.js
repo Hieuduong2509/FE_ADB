@@ -7,6 +7,7 @@ export const hotelOptions = pullmanHotels.map((hotel) => ({
 }));
 
 export const sectionLinks = [
+  { id: "hotels", label: "Hotels" },
   { id: "price-control", label: "Giá phòng" },
   { id: "holiday-rules", label: "Ngày lễ" },
   { id: "room-types", label: "Loại phòng" },
@@ -105,27 +106,31 @@ export const buildSeasonalRules = () => [
 ];
 
 export const createRoomTypeDraft = () => ({
-  hotelId: hotelOptions[0]?.id || "",
-  category: "Deluxe",
+  hotelId: "",
   name: "",
-  intro: "",
   basePrice: 2500000,
-  capacity: 2,
-  size: "42m²",
-  bed: "1 giường King",
-  view: "Thành phố",
+  servicesText: "",
   amenities: [],
   facilities: [],
 });
 
 export const createFacilityDraft = () => ({
+  hotelId: "",
   name: "",
   price: 250000,
-  tag: "Dining",
+  pricingType: "per_use",
+});
+
+export const createHotelDraft = () => ({
+  name: "",
+  cityAddress: "",
+  starRating: 5,
+  timeZone: "Asia/Ho_Chi_Minh",
   description: "",
 });
 
 export const createAmenityDraft = () => ({
+  roomTypeId: "",
   name: "",
   description: "",
 });

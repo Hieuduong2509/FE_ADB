@@ -1,43 +1,161 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  buildAmenities,
-  buildFacilities,
   buildRoomTypes,
   buildSeasonalRules,
   createAmenityDraft,
   createFacilityDraft,
+  createHotelDraft,
   createRoomTypeDraft,
   createRuleDraft,
   hotelOptions,
   slugify,
 } from "./adminData";
+import {
+  createAdminAmenityApi,
+  createAdminFacilityApi,
+  createAdminHotelApi,
+  createAdminRoomTypeApi,
+  deleteAdminAmenityApi,
+  deleteAdminFacilityApi,
+  deleteAdminHotelApi,
+  deleteAdminRoomTypeApi,
+  getAdminAmenitiesApi,
+  getAdminFacilitiesApi,
+  getAdminHotelsApi,
+  getAdminRoomTypesApi,
+  readAuthSession,
+  updateAdminAmenityApi,
+  updateAdminFacilityApi,
+  updateAdminHotelApi,
+  updateAdminRoomTypeApi,
+} from "../../utils/auth";
+
+const getErrorMessage = (error, fallbackMessage) => error?.message || fallbackMessage;
+
+const formatHotelOption = (hotel) => ({
+  id: hotel.id,
+  name: hotel.name,
+  city: hotel.cityAddress || "",
+  cityAddress: hotel.cityAddress || "",
+  starRating: Number(hotel.starRating) || 0,
+  description: hotel.description || "",
+  timeZone: hotel.timeZone || "UTC",
+});
+
+const formatRoomTypeOption = (roomType, hotelsById) => ({
+  id: roomType.roomTypeId,
+  roomTypeId: roomType.roomTypeId,
+  hotelId: roomType.hotelId,
+  hotelName: hotelsById.get(roomType.hotelId)?.name || "Khách sạn chưa xác định",
+  name: roomType.name,
+  basePrice: Number(roomType.basePrice) || 0,
+  servicesText: roomType.servicesText || roomType.services || "",
+  facilities: Array.isArray(roomType.facilities) ? roomType.facilities : [],
+  facilityIds: Array.isArray(roomType.facilityIds)
+    ? roomType.facilityIds
+    : Array.isArray(roomType.facilities)
+      ? roomType.facilities.map((facility) => facility.id)
+      : [],
+  amenities: Array.isArray(roomType.amenities) ? roomType.amenities : [],
+  amenityNames: Array.isArray(roomType.amenityNames)
+    ? roomType.amenityNames
+    : Array.isArray(roomType.amenities)
+      ? roomType.amenities.map((amenity) => amenity.name)
+      : [],
+  category: "",
+  intro: roomType.servicesText || roomType.services || "",
+  capacity: "",
+  size: "",
+  bed: "",
+  view: "",
+});
+
+const formatFacilityRecord = (facility, hotelsById) => ({
+  id: facility.id,
+  hotelId: facility.hotelId,
+  hotelName: hotelsById.get(facility.hotelId)?.name || "Khách sạn chưa xác định",
+  name: facility.name,
+  price: Number(facility.price) || 0,
+  pricingType: facility.pricingType || "per_use",
+});
+
+const formatAmenityRecord = (amenity, roomTypesById) => {
+  const roomType = roomTypesById.get(amenity.roomTypeId);
+
+  return {
+    id: amenity.id,
+    roomTypeId: amenity.roomTypeId,
+    roomTypeName: roomType?.name || "Room type chưa xác định",
+    hotelId: roomType?.hotelId || "",
+    hotelName: roomType?.hotelName || "Khách sạn chưa xác định",
+    name: amenity.name,
+    description: amenity.description || "",
+  };
+};
+
+const getAdminAccessToken = () => {
+  const session = readAuthSession();
+  return session?.accessToken || "";
+};
 
 export const useAdminWorkspace = () => {
   const [roomTypes, setRoomTypes] = useState(buildRoomTypes);
-  const [facilities, setFacilities] = useState(buildFacilities);
-  const [amenities, setAmenities] = useState(buildAmenities);
+  const [facilities, setFacilities] = useState([]);
+  const [amenities, setAmenities] = useState([]);
   const [seasonalRules, setSeasonalRules] = useState(buildSeasonalRules);
+
+  const [managerHotels, setManagerHotels] = useState([]);
+  const [managerRoomTypes, setManagerRoomTypes] = useState([]);
+  const [hasLoadedManagerCatalogs, setHasLoadedManagerCatalogs] = useState(false);
 
   const [selectedHotelId, setSelectedHotelId] = useState(hotelOptions[0]?.id || "");
 
+  const [hotelDraft, setHotelDraft] = useState(createHotelDraft);
+  const [editingHotelId, setEditingHotelId] = useState(null);
+  const [isHotelsLoading, setIsHotelsLoading] = useState(true);
+  const [isHotelSubmitting, setIsHotelSubmitting] = useState(false);
+  const [hotelsError, setHotelsError] = useState("");
+
   const [roomTypeDraft, setRoomTypeDraft] = useState(createRoomTypeDraft);
   const [editingRoomTypeId, setEditingRoomTypeId] = useState(null);
+  const [isRoomTypesLoading, setIsRoomTypesLoading] = useState(true);
+  const [isRoomTypeSubmitting, setIsRoomTypeSubmitting] = useState(false);
+  const [roomTypesError, setRoomTypesError] = useState("");
 
   const [facilityDraft, setFacilityDraft] = useState(createFacilityDraft);
   const [editingFacilityId, setEditingFacilityId] = useState(null);
+  const [isFacilitiesLoading, setIsFacilitiesLoading] = useState(true);
+  const [isFacilitySubmitting, setIsFacilitySubmitting] = useState(false);
+  const [facilitiesError, setFacilitiesError] = useState("");
 
   const [amenityDraft, setAmenityDraft] = useState(createAmenityDraft);
   const [editingAmenityId, setEditingAmenityId] = useState(null);
+  const [isAmenitiesLoading, setIsAmenitiesLoading] = useState(true);
+  const [isAmenitySubmitting, setIsAmenitySubmitting] = useState(false);
+  const [amenitiesError, setAmenitiesError] = useState("");
 
   const [ruleDraft, setRuleDraft] = useState(createRuleDraft);
   const [editingRuleId, setEditingRuleId] = useState(null);
 
+  const activeHotelOptions = managerHotels.length ? managerHotels : hotelOptions;
+
   const filteredRoomTypes = roomTypes.filter(
-    (roomType) => !selectedHotelId || roomType.hotelId === selectedHotelId,
+    (roomType) => !selectedHotelId || String(roomType.hotelId) === String(selectedHotelId),
+  );
+  const hasManagerSelectedHotel = managerHotels.some(
+    (hotel) => String(hotel.id) === String(selectedHotelId),
+  );
+  const filteredManagerRoomTypes = managerRoomTypes.filter(
+    (roomType) =>
+      !selectedHotelId ||
+      !hasManagerSelectedHotel ||
+      String(roomType.hotelId) === String(selectedHotelId),
   );
 
   const selectedHotel =
-    hotelOptions.find((hotel) => hotel.id === selectedHotelId) || hotelOptions[0] || null;
+    activeHotelOptions.find((hotel) => String(hotel.id) === String(selectedHotelId)) ||
+    activeHotelOptions[0] ||
+    null;
 
   const highestHolidayUplift = seasonalRules.reduce(
     (maxValue, rule) => Math.max(maxValue, Number(rule.percent) || 0),
@@ -46,7 +164,7 @@ export const useAdminWorkspace = () => {
 
   const getHolidayPercentForRoomType = (roomType) =>
     seasonalRules.reduce((bestMatch, rule) => {
-      const sameHotel = rule.hotelId === roomType.hotelId;
+      const sameHotel = String(rule.hotelId) === String(roomType.hotelId);
       const sameCategory = rule.appliesTo === "all" || rule.appliesTo === roomType.category;
 
       if (!sameHotel || !sameCategory) {
@@ -56,78 +174,325 @@ export const useAdminWorkspace = () => {
       return Math.max(bestMatch, Number(rule.percent) || 0);
     }, 0);
 
+  const refreshHotels = useCallback(async () => {
+    setIsHotelsLoading(true);
+
+    try {
+      const hotelsResponse = await getAdminHotelsApi();
+      const nextHotels = Array.isArray(hotelsResponse)
+        ? hotelsResponse.map((hotel) => formatHotelOption(hotel))
+        : [];
+
+      setManagerHotels(nextHotels);
+      setHotelsError("");
+      setSelectedHotelId((currentValue) => {
+        if (nextHotels.some((hotel) => String(hotel.id) === String(currentValue))) {
+          return currentValue;
+        }
+        return nextHotels[0]?.id || "";
+      });
+      setFacilityDraft((currentDraft) => ({
+        ...currentDraft,
+        hotelId:
+          nextHotels.some((hotel) => String(hotel.id) === String(currentDraft.hotelId))
+            ? currentDraft.hotelId
+            : nextHotels[0]?.id || "",
+      }));
+      setRoomTypeDraft((currentDraft) => ({
+        ...currentDraft,
+        hotelId:
+          nextHotels.some((hotel) => String(hotel.id) === String(currentDraft.hotelId))
+            ? currentDraft.hotelId
+            : nextHotels[0]?.id || "",
+      }));
+    } catch (error) {
+      const message = getErrorMessage(error, "Không tải được danh mục khách sạn.");
+      setHotelsError(message);
+      setRoomTypesError(message);
+      setFacilitiesError(message);
+      setAmenitiesError(message);
+      setManagerHotels([]);
+    } finally {
+      setIsHotelsLoading(false);
+      setHasLoadedManagerCatalogs(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshHotels();
+  }, [refreshHotels]);
+
+  const refreshRoomTypes = useCallback(async () => {
+    const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
+    setIsRoomTypesLoading(true);
+
+    try {
+      const response = await getAdminRoomTypesApi();
+      const nextRoomTypes = Array.isArray(response)
+        ? response.map((roomType) => formatRoomTypeOption(roomType, hotelsById))
+        : [];
+
+      setManagerRoomTypes(nextRoomTypes);
+      setRoomTypesError("");
+      setAmenityDraft((currentDraft) => ({
+        ...currentDraft,
+        roomTypeId: currentDraft.roomTypeId || nextRoomTypes[0]?.id || "",
+      }));
+    } catch (error) {
+      setRoomTypesError(getErrorMessage(error, "Không tải được danh sách loại phòng."));
+      setManagerRoomTypes([]);
+    } finally {
+      setIsRoomTypesLoading(false);
+    }
+  }, [managerHotels]);
+
+  const refreshFacilities = useCallback(async () => {
+    const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
+    setIsFacilitiesLoading(true);
+
+    try {
+      const response = await getAdminFacilitiesApi();
+      const nextFacilities = Array.isArray(response)
+        ? response.map((facility) => formatFacilityRecord(facility, hotelsById))
+        : [];
+
+      setFacilities(nextFacilities);
+      setFacilitiesError("");
+    } catch (error) {
+      setFacilitiesError(getErrorMessage(error, "Không tải được danh sách dịch vụ."));
+    } finally {
+      setIsFacilitiesLoading(false);
+    }
+  }, [managerHotels]);
+
+  const refreshAmenities = useCallback(async () => {
+    const roomTypesById = new Map(managerRoomTypes.map((roomType) => [roomType.id, roomType]));
+    setIsAmenitiesLoading(true);
+
+    try {
+      const response = await getAdminAmenitiesApi();
+      const nextAmenities = Array.isArray(response)
+        ? response.map((amenity) => formatAmenityRecord(amenity, roomTypesById))
+        : [];
+
+      setAmenities(nextAmenities);
+      setAmenitiesError("");
+    } catch (error) {
+      setAmenitiesError(getErrorMessage(error, "Không tải được danh sách tiện nghi."));
+    } finally {
+      setIsAmenitiesLoading(false);
+    }
+  }, [managerRoomTypes]);
+
+  useEffect(() => {
+    if (!hasLoadedManagerCatalogs) {
+      return;
+    }
+
+    if (!managerHotels.length) {
+      setManagerRoomTypes([]);
+      setFacilities([]);
+      setIsRoomTypesLoading(false);
+      setIsFacilitiesLoading(false);
+      return;
+    }
+
+    void refreshRoomTypes();
+    void refreshFacilities();
+  }, [hasLoadedManagerCatalogs, managerHotels, refreshFacilities, refreshRoomTypes]);
+
+  useEffect(() => {
+    if (!hasLoadedManagerCatalogs) {
+      return;
+    }
+
+    if (!managerRoomTypes.length) {
+      setAmenities([]);
+      setIsAmenitiesLoading(false);
+      return;
+    }
+
+    void refreshAmenities();
+  }, [hasLoadedManagerCatalogs, managerRoomTypes, refreshAmenities]);
+
+  const resetHotelEditor = () => {
+    setEditingHotelId(null);
+    setHotelDraft(createHotelDraft());
+  };
+
+  const startHotelEdit = (hotel) => {
+    setEditingHotelId(hotel.id);
+    setHotelDraft({
+      name: hotel.name,
+      cityAddress: hotel.cityAddress || hotel.city || "",
+      starRating: hotel.starRating,
+      timeZone: hotel.timeZone || "UTC",
+      description: hotel.description || "",
+    });
+  };
+
+  const submitHotel = async (event) => {
+    event.preventDefault();
+
+    const normalized = {
+      hotel_name: hotelDraft.name.trim(),
+      city_address: hotelDraft.cityAddress.trim(),
+      star_rating: Number(hotelDraft.starRating) || 0,
+      timezone: hotelDraft.timeZone.trim() || "UTC",
+      description: hotelDraft.description.trim() || null,
+    };
+
+    if (!normalized.hotel_name || !normalized.city_address || !normalized.star_rating) {
+      setHotelsError("Vui lòng nhập tên khách sạn, địa chỉ và star rating.");
+      return;
+    }
+
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setHotelsError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    setIsHotelSubmitting(true);
+
+    try {
+      const hotel = editingHotelId
+        ? await updateAdminHotelApi(editingHotelId, normalized, accessToken)
+        : await createAdminHotelApi(normalized, accessToken);
+
+      await refreshHotels();
+      setSelectedHotelId(hotel?.id || "");
+      resetHotelEditor();
+    } catch (error) {
+      setHotelsError(getErrorMessage(error, "Không lưu được khách sạn."));
+    } finally {
+      setIsHotelSubmitting(false);
+    }
+  };
+
+  const deleteHotel = async (hotelId) => {
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setHotelsError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    setIsHotelSubmitting(true);
+
+    try {
+      await deleteAdminHotelApi(hotelId, accessToken);
+      await refreshHotels();
+
+      if (editingHotelId === hotelId) {
+        resetHotelEditor();
+      }
+    } catch (error) {
+      setHotelsError(getErrorMessage(error, "Không xóa được khách sạn."));
+    } finally {
+      setIsHotelSubmitting(false);
+    }
+  };
+
   const resetRoomTypeEditor = () => {
     setEditingRoomTypeId(null);
-    setRoomTypeDraft(createRoomTypeDraft());
+    setRoomTypeDraft({
+      ...createRoomTypeDraft(),
+      hotelId: managerHotels[0]?.id || "",
+    });
   };
 
   const startRoomTypeEdit = (roomType) => {
     setEditingRoomTypeId(roomType.id);
     setRoomTypeDraft({
       hotelId: roomType.hotelId,
-      category: roomType.category,
       name: roomType.name,
-      intro: roomType.intro,
       basePrice: roomType.basePrice,
-      capacity: roomType.capacity,
-      size: roomType.size,
-      bed: roomType.bed,
-      view: roomType.view,
-      amenities: [...roomType.amenities],
-      facilities: [...roomType.facilities],
+      servicesText: roomType.servicesText || "",
+      amenities: [...(roomType.amenityNames || [])],
+      facilities: [...(roomType.facilityIds || [])],
     });
   };
 
-  const submitRoomType = (event) => {
+  const submitRoomType = async (event) => {
     event.preventDefault();
 
-    const hotelMeta = hotelOptions.find((hotel) => hotel.id === roomTypeDraft.hotelId);
     const normalized = {
       hotelId: roomTypeDraft.hotelId,
-      hotelName: hotelMeta?.name || "",
-      city: hotelMeta?.city || "",
-      category: roomTypeDraft.category.trim(),
       name: roomTypeDraft.name.trim(),
-      intro: roomTypeDraft.intro.trim(),
       basePrice: Number(roomTypeDraft.basePrice) || 0,
-      capacity: Number(roomTypeDraft.capacity) || 1,
-      size: roomTypeDraft.size.trim(),
-      bed: roomTypeDraft.bed.trim(),
-      view: roomTypeDraft.view.trim(),
+      servicesText: roomTypeDraft.servicesText.trim(),
       amenities: roomTypeDraft.amenities,
       facilities: roomTypeDraft.facilities,
     };
 
-    if (!normalized.hotelId || !normalized.category || !normalized.name) {
+    if (!normalized.hotelId || !normalized.name) {
+      setRoomTypesError("Vui lòng chọn khách sạn và nhập tên loại phòng.");
       return;
     }
 
-    if (editingRoomTypeId) {
-      setRoomTypes((currentRoomTypes) =>
-        currentRoomTypes.map((roomType) =>
-          roomType.id === editingRoomTypeId ? { ...roomType, ...normalized } : roomType,
-        ),
-      );
-    } else {
-      setRoomTypes((currentRoomTypes) => [
-        {
-          id: `${normalized.hotelId}-${slugify(normalized.name)}-${currentRoomTypes.length + 1}`,
-          ...normalized,
-        },
-        ...currentRoomTypes,
-      ]);
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setRoomTypesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
     }
 
-    resetRoomTypeEditor();
+    setIsRoomTypeSubmitting(true);
+
+    try {
+      const selectedAmenities = normalized.amenities
+        .map((amenityName) => amenities.find((amenity) => amenity.name === amenityName))
+        .filter(Boolean)
+        .map((amenity) => ({
+          name: amenity.name,
+          description: amenity.description || "",
+        }));
+
+      const payload = {
+        hotel_id: Number(normalized.hotelId),
+        room_type_name: normalized.name,
+        room_type_base_price: normalized.basePrice,
+        room_type_services: normalized.servicesText || null,
+        facility_ids: normalized.facilities.map((facilityId) => Number(facilityId)),
+        amenities: selectedAmenities,
+      };
+
+      if (editingRoomTypeId) {
+        await updateAdminRoomTypeApi(editingRoomTypeId, payload, accessToken);
+      } else {
+        await createAdminRoomTypeApi(payload, accessToken);
+      }
+
+      await refreshRoomTypes();
+      await refreshAmenities();
+      resetRoomTypeEditor();
+    } catch (error) {
+      setRoomTypesError(getErrorMessage(error, "Không lưu được loại phòng."));
+    } finally {
+      setIsRoomTypeSubmitting(false);
+    }
   };
 
-  const deleteRoomType = (roomTypeId) => {
-    setRoomTypes((currentRoomTypes) =>
-      currentRoomTypes.filter((roomType) => roomType.id !== roomTypeId),
-    );
+  const deleteRoomType = async (roomTypeId) => {
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setRoomTypesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
+    }
 
-    if (editingRoomTypeId === roomTypeId) {
-      resetRoomTypeEditor();
+    setIsRoomTypeSubmitting(true);
+
+    try {
+      await deleteAdminRoomTypeApi(roomTypeId, accessToken);
+      await refreshRoomTypes();
+      await refreshAmenities();
+
+      if (editingRoomTypeId === roomTypeId) {
+        resetRoomTypeEditor();
+      }
+    } catch (error) {
+      setRoomTypesError(getErrorMessage(error, "Không xóa được loại phòng."));
+    } finally {
+      setIsRoomTypeSubmitting(false);
     }
   };
 
@@ -144,7 +509,7 @@ export const useAdminWorkspace = () => {
   };
 
   const updateRoomTypePrice = (roomTypeId, nextValue) => {
-    setRoomTypes((currentRoomTypes) =>
+    setManagerRoomTypes((currentRoomTypes) =>
       currentRoomTypes.map((roomType) =>
         roomType.id === roomTypeId
           ? { ...roomType, basePrice: Number(nextValue) || 0 }
@@ -155,102 +520,151 @@ export const useAdminWorkspace = () => {
 
   const resetFacilityEditor = () => {
     setEditingFacilityId(null);
-    setFacilityDraft(createFacilityDraft());
+    setFacilityDraft({
+      ...createFacilityDraft(),
+      hotelId: managerHotels[0]?.id || "",
+    });
   };
 
   const startFacilityEdit = (facility) => {
     setEditingFacilityId(facility.id);
     setFacilityDraft({
+      hotelId: facility.hotelId,
       name: facility.name,
       price: facility.price,
-      tag: facility.tag,
-      description: facility.description,
+      pricingType: facility.pricingType,
     });
   };
 
-  const submitFacility = (event) => {
+  const submitFacility = async (event) => {
     event.preventDefault();
 
     const normalized = {
+      hotelId: facilityDraft.hotelId,
       name: facilityDraft.name.trim(),
       price: Number(facilityDraft.price) || 0,
-      tag: facilityDraft.tag.trim(),
-      description: facilityDraft.description.trim(),
+      pricingType: String(facilityDraft.pricingType || "per_use").trim(),
     };
 
-    if (!normalized.name) {
+    if (!normalized.hotelId || !normalized.name) {
+      setFacilitiesError("Vui lòng chọn khách sạn và nhập tên dịch vụ.");
       return;
     }
 
-    if (editingFacilityId) {
-      setFacilities((currentFacilities) =>
-        currentFacilities.map((facility) =>
-          facility.id === editingFacilityId ? { ...facility, ...normalized } : facility,
-        ),
-      );
-    } else {
-      setFacilities((currentFacilities) => [
-        {
-          id: `${slugify(normalized.name)}-${currentFacilities.length + 1}`,
-          ...normalized,
-        },
-        ...currentFacilities,
-      ]);
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setFacilitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
     }
 
-    resetFacilityEditor();
+    setIsFacilitySubmitting(true);
+
+    try {
+      const payload = {
+        hotel_id: normalized.hotelId,
+        service_name: normalized.name,
+        service_price: normalized.price,
+        pricing_type: normalized.pricingType,
+      };
+
+      if (editingFacilityId) {
+        await updateAdminFacilityApi(editingFacilityId, payload, accessToken);
+      } else {
+        await createAdminFacilityApi(payload, accessToken);
+      }
+
+      await refreshFacilities();
+      resetFacilityEditor();
+    } catch (error) {
+      setFacilitiesError(getErrorMessage(error, "Không lưu được dịch vụ."));
+    } finally {
+      setIsFacilitySubmitting(false);
+    }
   };
 
-  const deleteFacility = (facilityId) => {
-    setFacilities((currentFacilities) =>
-      currentFacilities.filter((facility) => facility.id !== facilityId),
-    );
+  const deleteFacility = async (facilityId) => {
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setFacilitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
+    }
 
-    setRoomTypes((currentRoomTypes) =>
-      currentRoomTypes.map((roomType) => ({
-        ...roomType,
-        facilities: roomType.facilities.filter((facility) => facility !== facilityId),
-      })),
-    );
+    setIsFacilitySubmitting(true);
 
-    if (editingFacilityId === facilityId) {
-      resetFacilityEditor();
+    try {
+      await deleteAdminFacilityApi(facilityId, accessToken);
+      await refreshFacilities();
+      await refreshRoomTypes();
+
+      setRoomTypes((currentRoomTypes) =>
+        currentRoomTypes.map((roomType) => ({
+          ...roomType,
+          facilities: roomType.facilities.filter((facility) => facility !== facilityId),
+        })),
+      );
+
+      if (editingFacilityId === facilityId) {
+        resetFacilityEditor();
+      }
+    } catch (error) {
+      setFacilitiesError(getErrorMessage(error, "Không xóa được dịch vụ."));
+    } finally {
+      setIsFacilitySubmitting(false);
     }
   };
 
   const resetAmenityEditor = () => {
     setEditingAmenityId(null);
-    setAmenityDraft(createAmenityDraft());
+    setAmenityDraft({
+      ...createAmenityDraft(),
+      roomTypeId: managerRoomTypes[0]?.id || "",
+    });
   };
 
   const startAmenityEdit = (amenity) => {
     setEditingAmenityId(amenity.id);
     setAmenityDraft({
+      roomTypeId: amenity.roomTypeId,
       name: amenity.name,
-      description: amenity.description,
+      description: amenity.description || "",
     });
   };
 
-  const submitAmenity = (event) => {
+  const submitAmenity = async (event) => {
     event.preventDefault();
 
     const normalized = {
+      roomTypeId: amenityDraft.roomTypeId,
       name: amenityDraft.name.trim(),
-      description: amenityDraft.description.trim() || "Amenity hiển thị trên room card.",
+      description: amenityDraft.description.trim(),
     };
 
-    if (!normalized.name) {
+    if (!normalized.roomTypeId || !normalized.name) {
+      setAmenitiesError("Vui lòng chọn room type và nhập tên tiện nghi.");
       return;
     }
 
-    if (editingAmenityId) {
-      const previousAmenity = amenities.find((amenity) => amenity.id === editingAmenityId);
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setAmenitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
+    }
 
-      setAmenities((currentAmenities) =>
-        currentAmenities.map((amenity) =>
-          amenity.id === editingAmenityId ? { ...amenity, ...normalized } : amenity,
-        ),
-      );
+    setIsAmenitySubmitting(true);
+
+    try {
+      const previousAmenity = amenities.find((amenity) => amenity.id === editingAmenityId);
+      const payload = {
+        room_type_id: normalized.roomTypeId,
+        amenity_name: normalized.name,
+        amenity_description: normalized.description || null,
+      };
+
+      if (editingAmenityId) {
+        await updateAdminAmenityApi(editingAmenityId, payload, accessToken);
+      } else {
+        await createAdminAmenityApi(payload, accessToken);
+      }
 
       if (previousAmenity && previousAmenity.name !== normalized.name) {
         setRoomTypes((currentRoomTypes) =>
@@ -262,34 +676,49 @@ export const useAdminWorkspace = () => {
           })),
         );
       }
-    } else {
-      setAmenities((currentAmenities) => [
-        {
-          id: `${slugify(normalized.name)}-${currentAmenities.length + 1}`,
-          ...normalized,
-        },
-        ...currentAmenities,
-      ]);
-    }
 
-    resetAmenityEditor();
+      await refreshAmenities();
+      resetAmenityEditor();
+    } catch (error) {
+      setAmenitiesError(getErrorMessage(error, "Không lưu được tiện nghi."));
+    } finally {
+      setIsAmenitySubmitting(false);
+    }
   };
 
-  const deleteAmenity = (amenityId) => {
-    const amenityToDelete = amenities.find((amenity) => amenity.id === amenityId);
-    setAmenities((currentAmenities) => currentAmenities.filter((amenity) => amenity.id !== amenityId));
-
-    if (amenityToDelete) {
-      setRoomTypes((currentRoomTypes) =>
-        currentRoomTypes.map((roomType) => ({
-          ...roomType,
-          amenities: roomType.amenities.filter((amenityName) => amenityName !== amenityToDelete.name),
-        })),
-      );
+  const deleteAmenity = async (amenityId) => {
+    const accessToken = getAdminAccessToken();
+    if (!accessToken) {
+      setAmenitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+      return;
     }
 
-    if (editingAmenityId === amenityId) {
-      resetAmenityEditor();
+    setIsAmenitySubmitting(true);
+
+    try {
+      const amenityToDelete = amenities.find((amenity) => amenity.id === amenityId);
+      await deleteAdminAmenityApi(amenityId, accessToken);
+      await refreshAmenities();
+      await refreshRoomTypes();
+
+      if (amenityToDelete) {
+        setRoomTypes((currentRoomTypes) =>
+          currentRoomTypes.map((roomType) => ({
+            ...roomType,
+            amenities: roomType.amenities.filter(
+              (amenityName) => amenityName !== amenityToDelete.name,
+            ),
+          })),
+        );
+      }
+
+      if (editingAmenityId === amenityId) {
+        resetAmenityEditor();
+      }
+    } catch (error) {
+      setAmenitiesError(getErrorMessage(error, "Không xóa được tiện nghi."));
+    } finally {
+      setIsAmenitySubmitting(false);
     }
   };
 
@@ -354,17 +783,30 @@ export const useAdminWorkspace = () => {
   };
 
   return {
-    hotelOptions,
+    hotelOptions: activeHotelOptions,
     roomTypes,
     facilities,
     amenities,
     seasonalRules,
+    managerHotels,
+    managerRoomTypes,
     selectedHotelId,
     setSelectedHotelId,
     filteredRoomTypes,
+    filteredManagerRoomTypes,
     selectedHotel,
     highestHolidayUplift,
     getHolidayPercentForRoomType,
+    hotelDraft,
+    setHotelDraft,
+    editingHotelId,
+    startHotelEdit,
+    submitHotel,
+    deleteHotel,
+    resetHotelEditor,
+    isHotelsLoading,
+    isHotelSubmitting,
+    hotelsError,
     roomTypeDraft,
     setRoomTypeDraft,
     editingRoomTypeId,
@@ -374,6 +816,9 @@ export const useAdminWorkspace = () => {
     toggleDraftCollectionValue,
     updateRoomTypePrice,
     resetRoomTypeEditor,
+    isRoomTypesLoading,
+    isRoomTypeSubmitting,
+    roomTypesError,
     facilityDraft,
     setFacilityDraft,
     editingFacilityId,
@@ -381,6 +826,9 @@ export const useAdminWorkspace = () => {
     submitFacility,
     deleteFacility,
     resetFacilityEditor,
+    isFacilitiesLoading,
+    isFacilitySubmitting,
+    facilitiesError,
     amenityDraft,
     setAmenityDraft,
     editingAmenityId,
@@ -388,6 +836,9 @@ export const useAdminWorkspace = () => {
     submitAmenity,
     deleteAmenity,
     resetAmenityEditor,
+    isAmenitiesLoading,
+    isAmenitySubmitting,
+    amenitiesError,
     ruleDraft,
     setRuleDraft,
     editingRuleId,

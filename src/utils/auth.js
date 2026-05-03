@@ -29,6 +29,11 @@ const requestJson = async (path, options = {}) => {
   return payload?.data ?? null;
 };
 
+const withAuthHeaders = (accessToken, headers = {}) => ({
+  ...headers,
+  ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+});
+
 export const registerClientApi = async (formData) =>
   requestJson("/api/client/auth/register", {
     method: "POST",
@@ -46,6 +51,94 @@ export const getClientProfileApi = async (accessToken) =>
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
+  });
+
+export const getAdminHotelsApi = async () => requestJson("/api/admin/hotels?limit=100");
+
+export const createAdminHotelApi = async (payload, accessToken) =>
+  requestJson("/api/admin/hotels", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const updateAdminHotelApi = async (id, payload, accessToken) =>
+  requestJson(`/api/admin/hotels/${id}`, {
+    method: "PUT",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminHotelApi = async (id, accessToken) =>
+  requestJson(`/api/admin/hotels/${id}`, {
+    method: "DELETE",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const getAdminRoomTypesApi = async () => requestJson("/api/admin/room-type?limit=100");
+
+export const createAdminRoomTypeApi = async (payload, accessToken) =>
+  requestJson("/api/admin/room-type", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const updateAdminRoomTypeApi = async (id, payload, accessToken) =>
+  requestJson(`/api/admin/room-type/${id}`, {
+    method: "PUT",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminRoomTypeApi = async (id, accessToken) =>
+  requestJson(`/api/admin/room-type/${id}`, {
+    method: "DELETE",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const getAdminFacilitiesApi = async () => requestJson("/api/admin/facilities?limit=100");
+
+export const createAdminFacilityApi = async (payload, accessToken) =>
+  requestJson("/api/admin/facilities", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const updateAdminFacilityApi = async (id, payload, accessToken) =>
+  requestJson(`/api/admin/facilities/${id}`, {
+    method: "PUT",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminFacilityApi = async (id, accessToken) =>
+  requestJson(`/api/admin/facilities/${id}`, {
+    method: "DELETE",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const getAdminAmenitiesApi = async () => requestJson("/api/admin/amenities?limit=100");
+
+export const createAdminAmenityApi = async (payload, accessToken) =>
+  requestJson("/api/admin/amenities", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const updateAdminAmenityApi = async (id, payload, accessToken) =>
+  requestJson(`/api/admin/amenities/${id}`, {
+    method: "PUT",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminAmenityApi = async (id, accessToken) =>
+  requestJson(`/api/admin/amenities/${id}`, {
+    method: "DELETE",
+    headers: withAuthHeaders(accessToken),
   });
 
 export const persistAuthSession = (sessionData) => {
