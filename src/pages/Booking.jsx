@@ -1,71 +1,186 @@
-import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ROUTES, getHotelDetailPath } from "../constants";
+import { formatCurrency, formatDateLabel } from "../utils";
 import {
-  bookingFacilities,
-  filterHotels,
-  findHotelById,
-  findRoomById,
-  pullmanHotels,
-} from "../data/pullmanData";
-import { calculateStayNights, formatCurrency, formatDateLabel } from "../utils";
+  createBookingApi,
+  getBookingQuoteApi,
+  getClientHotelDetailApi,
+  readAuthSession,
+} from "../utils/auth";
+import { buildSearchParams, createSearchFiltersFromParams } from "../utils/search";
 
 const Booking = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const searchParamsKey = searchParams.toString();
+  const filters = useMemo(
+    () => createSearchFiltersFromParams(searchParams),
+    [searchParamsKey],
+  );
   const hotelId = searchParams.get("hotelId");
-  const roomId = searchParams.get("roomId");
-  const roomType = searchParams.get("roomType") || "Tất cả";
-  const destination = searchParams.get("destination") || "Tất cả";
-  const guests = searchParams.get("guests") || "2 người";
-  const checkIn = searchParams.get("checkIn") || "";
-  const checkOut = searchParams.get("checkOut") || "";
-
-  const prefilteredHotels = filterHotels({
-    destination,
-    roomType,
-    guests,
-    amenity: "Tất cả",
+  const [hotel, setHotel] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [guestForm, setGuestForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    note: "",
   });
+  const [selectedRoomTypeId, setSelectedRoomTypeId] = useState(searchParams.get("roomTypeId") || "");
+  const [selectedServiceIds, setSelectedServiceIds] = useState([]);
+  const [quote, setQuote] = useState(null);
 
-  const resolvedHotel =
-    findHotelById(hotelId) || prefilteredHotels[0] || pullmanHotels[0];
+  useEffect(() => {
+    const loadHotel = async () => {
+      if (!hotelId) {
+        setHotel(null);
+        setIsLoading(false);
+        setErrorMessage("Thiếu hotelId để bắt đầu booking.");
+        return;
+      }
 
-  const roomFallback =
-    resolvedHotel.rooms.find((room) => room.category === roomType) || resolvedHotel.rooms[0];
+      setIsLoading(true);
+      try {
+        const data = await getClientHotelDetailApi(hotelId, filters);
+        setHotel(data);
+        setSelectedRoomTypeId((current) => current || String(data?.roomTypes?.[0]?.roomTypeId || ""));
+        setErrorMessage("");
+      } catch (error) {
+        setHotel(null);
+        setErrorMessage(error.message || "Không tải được thông tin booking.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const selectedRoom = roomId ? findRoomById(resolvedHotel, roomId) : roomFallback;
-  const [selectedFacilities, setSelectedFacilities] = useState(["buffet-breakfast"]);
+    void loadHotel();
+  }, [filters, hotelId, searchParamsKey]);
 
-  const detailSearchParams = new URLSearchParams({
-    roomId: selectedRoom?.id || "",
-    destination: resolvedHotel.city,
-    roomType: selectedRoom?.category || roomType,
-    guests,
-  });
+  const selectedRoomType =
+    hotel?.roomTypes.find((roomType) => String(roomType.roomTypeId) === String(selectedRoomTypeId)) ||
+    hotel?.roomTypes[0] ||
+    null;
 
-  if (checkIn) {
-    detailSearchParams.set("checkIn", checkIn);
-  }
+  const availableServices = useMemo(() => selectedRoomType?.services || [], [selectedRoomType]);
 
-  if (checkOut) {
-    detailSearchParams.set("checkOut", checkOut);
-  }
+  useEffect(() => {
+    setSelectedServiceIds((currentIds) =>
+      currentIds.filter((serviceId) =>
+        availableServices.some((service) => String(service.id) === String(serviceId)),
+      ),
+    );
+  }, [availableServices]);
 
-  const stayNights = calculateStayNights(checkIn, checkOut);
-  const roomSubtotal = (selectedRoom?.price || 0) * stayNights;
-  const facilitySubtotal = bookingFacilities
-    .filter((facility) => selectedFacilities.includes(facility.id))
-    .reduce((total, facility) => total + facility.price, 0);
-  const taxesAndFees = Math.round((roomSubtotal + facilitySubtotal) * 0.08);
-  const estimatedTotal = roomSubtotal + facilitySubtotal + taxesAndFees;
+  useEffect(() => {
+    const loadQuote = async () => {
+      if (!selectedRoomTypeId) {
+        setQuote(null);
+        return;
+      }
 
-  const toggleFacility = (facilityId) => {
-    setSelectedFacilities((currentFacilities) =>
-      currentFacilities.includes(facilityId)
-        ? currentFacilities.filter((item) => item !== facilityId)
-        : [...currentFacilities, facilityId],
+      try {
+        const data = await getBookingQuoteApi({
+          roomTypeId: Number(selectedRoomTypeId),
+          checkIn: filters.checkIn,
+          checkOut: filters.checkOut,
+          guests: filters.guests,
+          serviceIds: selectedServiceIds.map((item) => Number(item)),
+        });
+        setQuote(data);
+        setErrorMessage("");
+      } catch (error) {
+        setQuote(null);
+        setErrorMessage(error.message || "Không tính được báo giá booking.");
+      }
+    };
+
+    void loadQuote();
+  }, [filters.checkIn, filters.checkOut, filters.guests, selectedRoomTypeId, selectedServiceIds]);
+
+  const toggleService = (serviceId) => {
+    setSelectedServiceIds((currentIds) =>
+      currentIds.includes(serviceId)
+        ? currentIds.filter((id) => id !== serviceId)
+        : [...currentIds, serviceId],
     );
   };
+
+  const handleGuestFieldChange = (field) => (event) => {
+    setGuestForm((currentForm) => ({
+      ...currentForm,
+      [field]: event.target.value,
+    }));
+  };
+
+  const handleCreateBooking = async () => {
+    const session = readAuthSession();
+    if (!session?.accessToken) {
+      setErrorMessage("Vui lòng đăng nhập trước khi xác nhận booking.");
+      navigate(ROUTES.LOGIN);
+      return;
+    }
+
+    if (!quote) {
+      setErrorMessage("Báo giá booking chưa sẵn sàng.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const booking = await createBookingApi(
+        {
+          roomTypeId: Number(selectedRoomTypeId),
+          checkIn: filters.checkIn,
+          checkOut: filters.checkOut,
+          guests: filters.guests,
+          serviceIds: selectedServiceIds.map((item) => Number(item)),
+          countParent: Number(String(filters.guests).match(/\d+/)?.[0] || 1),
+          countChild: 0,
+          ...guestForm,
+        },
+        session.accessToken,
+      );
+
+      navigate(
+        `${ROUTES.BOOKING_CONFIRM}?${buildSearchParams({
+          bookingId: booking.id,
+          hotelName: quote.hotelName,
+          roomTypeName: quote.roomTypeName,
+          totalAmount: quote.totalAmount,
+          checkIn: quote.checkIn,
+          checkOut: quote.checkOut,
+        }).toString()}`,
+      );
+    } catch (error) {
+      setErrorMessage(error.message || "Không tạo được booking.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-10">
+        <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center">
+          Đang tải booking...
+        </div>
+      </div>
+    );
+  }
+
+  if (!hotel || !selectedRoomType) {
+    return (
+      <div className="container mx-auto px-4 py-10">
+        <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center">
+          <h1 className="text-2xl font-semibold text-textPrimary">Không thể mở booking</h1>
+          <p className="mt-3 text-sm text-gray-600">{errorMessage}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-10">
@@ -73,22 +188,21 @@ const Booking = () => {
         <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#f8deb0]">
-              Booking design
+              Real booking
             </p>
             <h1 className="mt-3 font-serif text-3xl md:text-5xl">
-              Trang booking cho phép chọn thêm facilities trước khi nối API thật.
+              Booking đang lấy giá thực từ room type, seasonal pricing và special date pricing.
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/78 md:text-base">
-              Flow hiện tại giữ đúng mối quan hệ giữa khách sạn, loại phòng, ngày lưu trú và dịch vụ
-              cộng thêm để sau này bạn gắn backend vào mà không phải làm lại UI.
+              Khi bạn đổi loại phòng hoặc thêm dịch vụ, báo giá sẽ được gọi lại từ backend.
             </p>
           </div>
 
           <div className="rounded-[26px] border border-white/12 bg-white/10 p-5 backdrop-blur">
             <div className="text-xs uppercase tracking-[0.2em] text-white/60">Tạm tính</div>
-            <div className="mt-2 text-3xl font-semibold">{formatCurrency(estimatedTotal)}</div>
+            <div className="mt-2 text-3xl font-semibold">{formatCurrency(quote?.totalAmount || 0)}</div>
             <div className="mt-2 text-sm text-white/72">
-              {stayNights} đêm · {guests}
+              {quote?.stayNights || 0} đêm · {filters.guests}
             </div>
           </div>
         </div>
@@ -102,10 +216,15 @@ const Booking = () => {
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
                   Thông tin lưu trú
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-textPrimary">{resolvedHotel.name}</h2>
+                <h2 className="mt-2 text-2xl font-semibold text-textPrimary">{hotel.name}</h2>
               </div>
               <Link
-                to={`${getHotelDetailPath(resolvedHotel.id)}?${detailSearchParams.toString()}`}
+                to={`${getHotelDetailPath(hotel.id)}?${buildSearchParams({
+                  ...filters,
+                  hotelId: hotel.id,
+                  roomType: selectedRoomType.name,
+                  roomTypeId: selectedRoomType.roomTypeId,
+                }).toString()}`}
                 className="rounded-full border border-[#d9ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
               >
                 Xem lại chi tiết phòng
@@ -114,47 +233,84 @@ const Booking = () => {
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-[24px] bg-[#faf5ec] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Phòng đã chọn</div>
-                <div className="mt-2 text-xl font-semibold text-textPrimary">{selectedRoom?.name}</div>
-                <div className="mt-2 text-sm text-gray-600">{selectedRoom?.intro}</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Loại phòng đã chọn</div>
+                <div className="mt-2 text-xl font-semibold text-textPrimary">{selectedRoomType.name}</div>
+                <div className="mt-2 text-sm text-gray-600">{selectedRoomType.servicesText}</div>
               </div>
               <div className="rounded-[24px] bg-[#17363f] p-4 text-white">
-                <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Giá / đêm</div>
-                <div className="mt-2 text-xl font-semibold">{formatCurrency(selectedRoom?.price || 0)}</div>
-                <div className="mt-2 text-sm text-white/70">{selectedRoom?.category}</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Giá trung bình / đêm</div>
+                <div className="mt-2 text-xl font-semibold">
+                  {formatCurrency(quote?.nightlyRates?.[0]?.rate || selectedRoomType.averageNightlyRate)}
+                </div>
+                <div className="mt-2 text-sm text-white/70">{selectedRoomType.availableRoomCount} phòng còn</div>
               </div>
               <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-4">
                 <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Ngày ở</div>
                 <div className="mt-2 text-lg font-semibold text-textPrimary">
-                  {formatDateLabel(checkIn)} → {formatDateLabel(checkOut)}
+                  {formatDateLabel(filters.checkIn)} → {formatDateLabel(filters.checkOut)}
                 </div>
-                <div className="mt-2 text-sm text-gray-600">{stayNights} đêm lưu trú</div>
+                <div className="mt-2 text-sm text-gray-600">{quote?.stayNights || 0} đêm lưu trú</div>
               </div>
               <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-4">
                 <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Số khách</div>
-                <div className="mt-2 text-lg font-semibold text-textPrimary">{guests}</div>
-                <div className="mt-2 text-sm text-gray-600">
-                  {selectedRoom?.size} · {selectedRoom?.bed}
-                </div>
+                <div className="mt-2 text-lg font-semibold text-textPrimary">{filters.guests}</div>
+                <div className="mt-2 text-sm text-gray-600">{hotel.cityAddress}</div>
               </div>
             </div>
           </section>
 
           <section className="rounded-[30px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-              Chọn thêm facilities
+              Chọn loại phòng
             </p>
-            <h2 className="mt-2 text-2xl font-semibold text-textPrimary">
-              Dịch vụ cộng thêm trong bước booking
-            </h2>
+            <div className="mt-5 grid gap-4">
+              {hotel.roomTypes.map((roomType) => {
+                const isSelected = String(roomType.roomTypeId) === String(selectedRoomTypeId);
+
+                return (
+                  <button
+                    key={roomType.roomTypeId}
+                    type="button"
+                    onClick={() => setSelectedRoomTypeId(String(roomType.roomTypeId))}
+                    className={`rounded-[24px] border p-5 text-left transition ${
+                      isSelected
+                        ? "border-[#17363f] bg-[#17363f] text-white shadow-[0_12px_30px_rgba(23,54,63,0.16)]"
+                        : "border-[#ece2d3] bg-[#fffcf7] hover:border-[#d8c6ac]"
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <div className={`text-xs uppercase tracking-[0.2em] ${isSelected ? "text-[#f8deb0]" : "text-accent"}`}>
+                          {roomType.availableRoomCount} phòng còn
+                        </div>
+                        <h3 className="mt-2 text-xl font-semibold">{roomType.name}</h3>
+                        <p className={`mt-3 text-sm leading-7 ${isSelected ? "text-white/78" : "text-gray-600"}`}>
+                          {roomType.servicesText}
+                        </p>
+                      </div>
+                      <div className="min-w-[160px]">
+                        <div className="text-sm opacity-80">Tổng kỳ nghỉ</div>
+                        <div className="mt-2 text-2xl font-semibold">{formatCurrency(roomType.stayTotal)}</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          <section className="rounded-[30px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+              Chọn thêm dịch vụ
+            </p>
 
             <div className="mt-5 grid gap-4">
-              {bookingFacilities.map((facility) => {
-                const isSelected = selectedFacilities.includes(facility.id);
+              {availableServices.map((service) => {
+                const isSelected = selectedServiceIds.includes(String(service.id));
 
                 return (
                   <label
-                    key={facility.id}
+                    key={service.id}
                     className={`flex cursor-pointer gap-4 rounded-[24px] border p-5 transition ${
                       isSelected
                         ? "border-[#17363f] bg-[#17363f] text-white shadow-[0_12px_30px_rgba(23,54,63,0.16)]"
@@ -164,7 +320,7 @@ const Booking = () => {
                     <input
                       type="checkbox"
                       checked={isSelected}
-                      onChange={() => toggleFacility(facility.id)}
+                      onChange={() => toggleService(String(service.id))}
                       className="mt-1 h-4 w-4 rounded border-gray-300 accent-[#17363f]"
                     />
                     <div className="flex-1">
@@ -175,15 +331,12 @@ const Booking = () => {
                               isSelected ? "text-[#f8deb0]" : "text-accent"
                             }`}
                           >
-                            {facility.tag}
+                            {service.pricingType}
                           </div>
-                          <h3 className="mt-2 text-xl font-semibold">{facility.title}</h3>
+                          <h3 className="mt-2 text-xl font-semibold">{service.name}</h3>
                         </div>
-                        <div className="text-lg font-semibold">{formatCurrency(facility.price)}</div>
+                        <div className="text-lg font-semibold">{formatCurrency(service.price)}</div>
                       </div>
-                      <p className={`mt-3 text-sm leading-7 ${isSelected ? "text-white/78" : "text-gray-600"}`}>
-                        {facility.description}
-                      </p>
                     </div>
                   </label>
                 );
@@ -200,6 +353,8 @@ const Booking = () => {
                 <span className="mb-2 block text-sm font-medium text-gray-600">Họ và tên</span>
                 <input
                   type="text"
+                  value={guestForm.fullName}
+                  onChange={handleGuestFieldChange("fullName")}
                   placeholder="Nguyễn Văn A"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
@@ -208,6 +363,8 @@ const Booking = () => {
                 <span className="mb-2 block text-sm font-medium text-gray-600">Email</span>
                 <input
                   type="email"
+                  value={guestForm.email}
+                  onChange={handleGuestFieldChange("email")}
                   placeholder="guest@email.com"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
@@ -216,6 +373,8 @@ const Booking = () => {
                 <span className="mb-2 block text-sm font-medium text-gray-600">Số điện thoại</span>
                 <input
                   type="tel"
+                  value={guestForm.phone}
+                  onChange={handleGuestFieldChange("phone")}
                   placeholder="09xx xxx xxx"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
@@ -224,6 +383,8 @@ const Booking = () => {
                 <span className="mb-2 block text-sm font-medium text-gray-600">Ghi chú</span>
                 <input
                   type="text"
+                  value={guestForm.note}
+                  onChange={handleGuestFieldChange("note")}
                   placeholder="Ví dụ: nhận phòng muộn"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
@@ -240,52 +401,55 @@ const Booking = () => {
 
           <div className="mt-6 rounded-[24px] bg-[#17363f] p-5 text-white">
             <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Khách sạn</div>
-            <div className="mt-2 text-xl font-semibold">{resolvedHotel.name}</div>
-            <div className="mt-2 text-sm text-white/72">{resolvedHotel.address}</div>
+            <div className="mt-2 text-xl font-semibold">{hotel.name}</div>
+            <div className="mt-2 text-sm text-white/72">{hotel.cityAddress}</div>
           </div>
+
+          {errorMessage ? (
+            <div className="mt-6 rounded-[20px] border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
+              {errorMessage}
+            </div>
+          ) : null}
 
           <div className="mt-6 space-y-4">
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>
-                {selectedRoom?.name} x {stayNights} đêm
-              </span>
-              <span className="font-semibold text-textPrimary">{formatCurrency(roomSubtotal)}</span>
+              <span>{quote?.roomTypeName}</span>
+              <span className="font-semibold text-textPrimary">{formatCurrency(quote?.roomTotal || 0)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Facilities đã chọn</span>
-              <span className="font-semibold text-textPrimary">
-                {formatCurrency(facilitySubtotal)}
-              </span>
+              <span>Dịch vụ đã chọn</span>
+              <span className="font-semibold text-textPrimary">{formatCurrency(quote?.serviceTotal || 0)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
               <span>Thuế và phí ước tính</span>
-              <span className="font-semibold text-textPrimary">
-                {formatCurrency(taxesAndFees)}
-              </span>
+              <span className="font-semibold text-textPrimary">{formatCurrency(quote?.taxesAndFees || 0)}</span>
             </div>
           </div>
 
           <div className="mt-6 rounded-[24px] bg-[#faf5ec] p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Tổng cộng</div>
             <div className="mt-2 text-3xl font-semibold text-textPrimary">
-              {formatCurrency(estimatedTotal)}
+              {formatCurrency(quote?.totalAmount || 0)}
             </div>
-            <div className="mt-2 text-sm text-gray-600">Chưa submit API, chỉ tính theo mock data UI.</div>
+            <div className="mt-2 text-sm text-gray-600">Báo giá này đang được trả trực tiếp từ backend.</div>
           </div>
 
           <div className="mt-6 space-y-3">
-            {selectedFacilities.length > 0 ? (
-              bookingFacilities
-                .filter((facility) => selectedFacilities.includes(facility.id))
-                .map((facility) => (
-                  <div
-                    key={facility.id}
-                    className="rounded-[20px] border border-[#ece2d3] bg-[#fffcf7] px-4 py-3"
-                  >
-                    <div className="text-sm font-semibold text-textPrimary">{facility.title}</div>
-                    <div className="mt-1 text-sm text-gray-500">{facility.tag}</div>
+            {(quote?.services || []).length > 0 ? (
+              quote.services.map((service) => (
+                <div
+                  key={service.id}
+                  className="rounded-[20px] border border-[#ece2d3] bg-[#fffcf7] px-4 py-3"
+                >
+                  <div className="text-sm font-semibold text-textPrimary">{service.name}</div>
+                  <div className="mt-1 text-sm text-gray-500">
+                    {service.pricingType} x {service.quantity}
                   </div>
-                ))
+                  <div className="mt-2 text-sm font-semibold text-textPrimary">
+                    {formatCurrency(service.total)}
+                  </div>
+                </div>
+              ))
             ) : (
               <div className="rounded-[20px] border border-dashed border-[#d9ccb8] px-4 py-4 text-sm text-gray-500">
                 Chưa chọn dịch vụ cộng thêm.
@@ -294,14 +458,16 @@ const Booking = () => {
           </div>
 
           <div className="mt-6 flex flex-col gap-3">
-            <Link
-              to={ROUTES.BOOKING_CONFIRM}
-              className="rounded-2xl bg-[#17363f] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#102d34]"
+            <button
+              type="button"
+              onClick={handleCreateBooking}
+              disabled={isSubmitting || !quote}
+              className="rounded-2xl bg-[#17363f] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Tiếp tục xác nhận
-            </Link>
+              {isSubmitting ? "Đang tạo booking..." : "Tiếp tục xác nhận"}
+            </button>
             <Link
-              to={ROUTES.HOTELS}
+              to={`${ROUTES.HOTELS}?${buildSearchParams(filters).toString()}`}
               className="rounded-2xl border border-[#d9ccb8] px-5 py-3 text-center text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
             >
               Quay lại tìm kiếm

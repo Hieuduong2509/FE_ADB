@@ -12,6 +12,7 @@ import {
 } from "./adminData";
 import {
   createAdminAmenityApi,
+  getAdminCountriesApi,
   createAdminFacilityApi,
   createAdminHotelApi,
   createAdminRoomTypeApi,
@@ -34,12 +35,19 @@ const getErrorMessage = (error, fallbackMessage) => error?.message || fallbackMe
 
 const formatHotelOption = (hotel) => ({
   id: hotel.id,
+  countryId: hotel.countryId || "",
   name: hotel.name,
   city: hotel.cityAddress || "",
   cityAddress: hotel.cityAddress || "",
   starRating: Number(hotel.starRating) || 0,
   description: hotel.description || "",
   timeZone: hotel.timeZone || "UTC",
+});
+
+const formatCountryOption = (country) => ({
+  id: country.country_id,
+  code: country.country_code || "",
+  name: country.country_name || "",
 });
 
 const formatRoomTypeOption = (roomType, hotelsById) => ({
@@ -105,6 +113,7 @@ export const useAdminWorkspace = () => {
   const [seasonalRules, setSeasonalRules] = useState(buildSeasonalRules);
 
   const [managerHotels, setManagerHotels] = useState([]);
+  const [countryOptions, setCountryOptions] = useState([]);
   const [managerRoomTypes, setManagerRoomTypes] = useState([]);
   const [hasLoadedManagerCatalogs, setHasLoadedManagerCatalogs] = useState(false);
 
@@ -218,9 +227,32 @@ export const useAdminWorkspace = () => {
     }
   }, []);
 
+  const refreshCountries = useCallback(async () => {
+    try {
+      const countriesResponse = await getAdminCountriesApi();
+      const nextCountries = Array.isArray(countriesResponse)
+        ? countriesResponse.map((country) => formatCountryOption(country))
+        : [];
+
+      setCountryOptions(nextCountries);
+      setHotelDraft((currentDraft) => ({
+        ...currentDraft,
+        countryId:
+          currentDraft.countryId &&
+          nextCountries.some((country) => String(country.id) === String(currentDraft.countryId))
+            ? currentDraft.countryId
+            : nextCountries[0]?.id || "",
+      }));
+    } catch (error) {
+      setHotelsError(getErrorMessage(error, "Không tải được danh sách quốc gia."));
+      setCountryOptions([]);
+    }
+  }, []);
+
   useEffect(() => {
     void refreshHotels();
-  }, [refreshHotels]);
+    void refreshCountries();
+  }, [refreshCountries, refreshHotels]);
 
   const refreshRoomTypes = useCallback(async () => {
     const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
@@ -323,6 +355,7 @@ export const useAdminWorkspace = () => {
   const startHotelEdit = (hotel) => {
     setEditingHotelId(hotel.id);
     setHotelDraft({
+      countryId: hotel.countryId || "",
       name: hotel.name,
       cityAddress: hotel.cityAddress || hotel.city || "",
       starRating: hotel.starRating,
@@ -335,6 +368,7 @@ export const useAdminWorkspace = () => {
     event.preventDefault();
 
     const normalized = {
+      country_id: Number(hotelDraft.countryId) || 0,
       hotel_name: hotelDraft.name.trim(),
       city_address: hotelDraft.cityAddress.trim(),
       star_rating: Number(hotelDraft.starRating) || 0,
@@ -342,8 +376,13 @@ export const useAdminWorkspace = () => {
       description: hotelDraft.description.trim() || null,
     };
 
-    if (!normalized.hotel_name || !normalized.city_address || !normalized.star_rating) {
-      setHotelsError("Vui lòng nhập tên khách sạn, địa chỉ và star rating.");
+    if (
+      !normalized.country_id ||
+      !normalized.hotel_name ||
+      !normalized.city_address ||
+      !normalized.star_rating
+    ) {
+      setHotelsError("Vui lòng chọn quốc gia, nhập tên khách sạn, địa chỉ và star rating.");
       return;
     }
 
@@ -784,6 +823,7 @@ export const useAdminWorkspace = () => {
 
   return {
     hotelOptions: activeHotelOptions,
+    countryOptions,
     roomTypes,
     facilities,
     amenities,

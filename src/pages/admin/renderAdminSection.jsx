@@ -12,6 +12,7 @@ export const renderAdminSection = (activeSection, workspace) => {
     case "hotels":
       return (
         <HotelsSection
+          countryOptions={workspace.countryOptions}
           hotelDraft={workspace.hotelDraft}
           setHotelDraft={workspace.setHotelDraft}
           submitHotel={workspace.submitHotel}

@@ -1,60 +1,69 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ROUTES, getHotelDetailPath } from "../constants";
-import { getTrendingHotels } from "../data/pullmanData";
 import { formatCurrency } from "../utils";
-
-const experienceNotes = [
-  "Tập trung vào riêng hệ thống Pullman để cảm giác duyệt phòng liền mạch hơn.",
-  "Mỗi khách sạn đều có room spotlight rõ ràng để dẫn người dùng sang bước xem phòng.",
-  "Giữ flow query string đơn giản để sau này nối API và state management dễ hơn.",
-];
+import { getClientHotelsApi } from "../utils/auth";
+import {
+  buildSearchParams,
+  createDefaultSearchFilters,
+  validateStayDates,
+} from "../utils/search";
 
 const staySignals = [
-  { value: "03", label: "chi nhánh Pullman đang được làm UI" },
-  { value: "09+", label: "hạng phòng mẫu để test luồng tìm kiếm" },
-  { value: "06", label: "dịch vụ cộng thêm sẵn sàng cho bước booking" },
+  { value: "API", label: "dữ liệu hotel và room type lấy từ backend" },
+  { value: "LIVE", label: "giá booking tính theo seasonal và specific date pricing" },
+  { value: "REAL", label: "dịch vụ cộng thêm bám theo dữ liệu DB" },
 ];
 
 const Home = () => {
   const navigate = useNavigate();
-  const trendingHotels = getTrendingHotels();
-  const spotlightHotels = trendingHotels.slice(0, 3);
+  const [searchForm, setSearchForm] = useState(() => createDefaultSearchFilters());
+  const [searchError, setSearchError] = useState("");
+  const [hotels, setHotels] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const today = new Date();
-  const defaultCheckIn = today.toISOString().split("T")[0];
-  const nextDay = new Date(today);
-  nextDay.setDate(today.getDate() + 1);
-  const defaultCheckOut = nextDay.toISOString().split("T")[0];
+  useEffect(() => {
+    const loadHotels = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getClientHotelsApi(createDefaultSearchFilters());
+        setHotels(Array.isArray(data) ? data : []);
+      } catch {
+        setHotels([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [searchForm, setSearchForm] = useState({
-    destination: spotlightHotels[0]?.city || "Đà Nẵng",
-    checkIn: defaultCheckIn,
-    checkOut: defaultCheckOut,
-    guests: "2 người",
-    roomType: "Deluxe",
-  });
+    void loadHotels();
+  }, []);
+
+  const spotlightHotels = hotels.slice(0, 3);
+  const destinationOptions = ["Tất cả", ...new Set(hotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
+  const roomTypeOptions = [
+    "Tất cả",
+    ...new Set(hotels.flatMap((hotel) => hotel.matchedRoomTypes?.map((roomType) => roomType.name) || [])),
+  ];
+  const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
 
   const handleFieldChange = (field) => (event) => {
     setSearchForm((currentForm) => ({
       ...currentForm,
       [field]: event.target.value,
     }));
+    setSearchError("");
   };
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
 
-    const nextSearchParams = new URLSearchParams({
-      destination: searchForm.destination,
-      checkIn: searchForm.checkIn,
-      checkOut: searchForm.checkOut,
-      guests: searchForm.guests,
-      roomType: searchForm.roomType,
-      amenity: "Tất cả",
-    });
+    const nextError = validateStayDates(searchForm.checkIn, searchForm.checkOut);
+    if (nextError) {
+      setSearchError(nextError);
+      return;
+    }
 
-    navigate(`${ROUTES.HOTELS}?${nextSearchParams.toString()}`);
+    navigate(`${ROUTES.HOTELS}?${buildSearchParams(searchForm).toString()}`);
   };
 
   return (
@@ -66,15 +75,14 @@ const Home = () => {
         <div className="container mx-auto grid gap-10 px-4 py-12 md:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16 lg:py-20">
           <div className="text-white">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs uppercase tracking-[0.32em] text-[#f8e2b4] backdrop-blur">
-              Pullman curated stays
+              Real booking catalog
             </div>
             <h1 className="mt-6 max-w-3xl font-serif text-4xl leading-tight md:text-5xl lg:text-6xl">
-              Trang chủ mới tập trung vào những khách sạn Pullman đang hot thay vì một danh sách
-              chung chung.
+              Trang chủ giờ lấy khách sạn, loại phòng và giá từ backend thay vì mock data.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/78 md:text-lg">
-              Từ đây người dùng có thể nhìn ngay các khách sạn nổi bật, kiểm tra nhanh nhu cầu lưu
-              trú và chuyển thẳng sang trang tìm kiếm có bộ lọc phòng.
+              Người dùng có thể đi từ tìm kiếm đến booking với cùng một nguồn dữ liệu thật, cùng
+              logic giá theo ngày lưu trú.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -83,12 +91,6 @@ const Home = () => {
                 className="rounded-full bg-[#f8deb0] px-6 py-3 text-sm font-semibold text-[#133039] transition hover:-translate-y-0.5 hover:bg-[#fde8c4]"
               >
                 Mở trang tìm kiếm
-              </Link>
-              <Link
-                to={ROUTES.BOOKING}
-                className="rounded-full border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:bg-white/10"
-              >
-                Xem layout booking
               </Link>
             </div>
 
@@ -121,7 +123,7 @@ const Home = () => {
               <div className="rounded-3xl bg-[#17363f] px-4 py-3 text-white">
                 <div className="text-xs uppercase tracking-[0.2em] text-[#f4d7a2]">Đang hot</div>
                 <div className="mt-1 text-lg font-semibold">
-                  {spotlightHotels[0]?.name || "Pullman Hotels"}
+                  {spotlightHotels[0]?.name || "Hotel Booking"}
                 </div>
               </div>
             </div>
@@ -134,9 +136,9 @@ const Home = () => {
                   onChange={handleFieldChange("destination")}
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
                 >
-                  {trendingHotels.map((hotel) => (
-                    <option key={hotel.id} value={hotel.city}>
-                      {hotel.city}
+                  {destinationOptions.map((destination) => (
+                    <option key={destination} value={destination}>
+                      {destination}
                     </option>
                   ))}
                 </select>
@@ -149,11 +151,11 @@ const Home = () => {
                   onChange={handleFieldChange("roomType")}
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
                 >
-                  <option>Superior</option>
-                  <option>Deluxe</option>
-                  <option>Executive</option>
-                  <option>Suite</option>
-                  <option>Family</option>
+                  {roomTypeOptions.map((roomType) => (
+                    <option key={roomType} value={roomType}>
+                      {roomType}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -185,10 +187,11 @@ const Home = () => {
                     onChange={handleFieldChange("guests")}
                     className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
                   >
-                    <option>1 người</option>
-                    <option>2 người</option>
-                    <option>3 người</option>
-                    <option>4 người</option>
+                    {guestOptions.map((guestOption) => (
+                      <option key={guestOption} value={guestOption}>
+                        {guestOption}
+                      </option>
+                    ))}
                   </select>
                   <button
                     type="submit"
@@ -200,10 +203,11 @@ const Home = () => {
               </label>
             </div>
 
-            <div className="mt-6 rounded-[24px] bg-[#f3ebdc] p-4 text-sm leading-6 text-gray-700">
-              Trang này chỉ mới dựng UI nhưng đã giữ đúng flow dữ liệu để sau đó bạn có thể nối API
-              thật cho bước tìm kiếm, chọn phòng và đặt dịch vụ.
-            </div>
+            {searchError ? (
+              <div className="mt-4 rounded-[22px] border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
+                {searchError}
+              </div>
+            ) : null}
           </form>
         </div>
       </section>
@@ -212,10 +216,10 @@ const Home = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.26em] text-accent">
-              Hot Pullman now
+              Spotlight Hotels
             </p>
             <h2 className="mt-3 font-serif text-3xl text-textPrimary md:text-4xl">
-              Danh sách khách sạn Pullman đang được đẩy mạnh trên trang chủ.
+              Danh sách khách sạn đang có giá và room type thật từ database.
             </h2>
           </div>
           <Link
@@ -227,108 +231,89 @@ const Home = () => {
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-3">
-          {spotlightHotels.map((hotel) => (
-            <article
-              key={hotel.id}
-              className="overflow-hidden rounded-[30px] border border-[#e5dbc9] bg-white shadow-[0_18px_48px_rgba(27,37,37,0.08)]"
-            >
-              <div className="relative h-64 bg-[linear-gradient(160deg,_#1d4247_0%,_#335b56_44%,_#d5b37b_100%)] p-6 text-white">
-                <div className="flex items-start justify-between gap-3">
-                  <span className="rounded-full bg-white/12 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#f8deb0]">
-                    {hotel.badge}
-                  </span>
-                  <span className="rounded-full border border-white/15 bg-black/10 px-3 py-1 text-xs">
-                    {hotel.trend}
-                  </span>
-                </div>
-                <div className="mt-16 max-w-xs">
-                  <p className="text-sm uppercase tracking-[0.24em] text-white/70">
-                    {hotel.city} · {hotel.area}
-                  </p>
-                  <h3 className="mt-3 text-3xl font-semibold leading-tight">{hotel.name}</h3>
-                </div>
-              </div>
+          {isLoading ? (
+            <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center xl:col-span-3">
+              Đang tải khách sạn...
+            </div>
+          ) : null}
 
-              <div className="space-y-5 p-6">
-                <p className="text-sm leading-6 text-gray-600">{hotel.tagline}</p>
-
-                <div className="flex flex-wrap gap-2">
-                  {hotel.highlights.map((highlight) => (
-                    <span
-                      key={highlight}
-                      className="rounded-full bg-[#f6efe2] px-3 py-1 text-xs font-medium text-[#17363f]"
-                    >
-                      {highlight}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[22px] bg-[#f8f4ed] p-4">
-                    <div className="text-xs uppercase tracking-[0.18em] text-gray-400">
-                      Giá từ / đêm
-                    </div>
-                    <div className="mt-2 text-2xl font-semibold text-textPrimary">
-                      {formatCurrency(hotel.priceFrom)}
-                    </div>
-                  </div>
-                  <div className="rounded-[22px] bg-[#17363f] p-4 text-white">
-                    <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">
-                      Rating
-                    </div>
-                    <div className="mt-2 text-2xl font-semibold">{hotel.rating}/5</div>
-                    <div className="mt-1 text-sm text-white/70">{hotel.reviewCount} lượt review</div>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    to={`${getHotelDetailPath(hotel.id)}?roomId=${hotel.rooms[0].id}&guests=2%20ng%C6%B0%E1%BB%9Di`}
-                    className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
-                  >
-                    Xem phòng hot
-                  </Link>
-                  <Link
-                    to={`${ROUTES.HOTELS}?destination=${encodeURIComponent(hotel.city)}&roomType=T%E1%BA%A5t%20c%E1%BA%A3&guests=2%20ng%C6%B0%E1%BB%9Di&amenity=T%E1%BA%A5t%20c%E1%BA%A3`}
-                    className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
-                  >
-                    Tìm trong khách sạn này
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="container mx-auto px-4 pb-16">
-        <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="rounded-[32px] bg-[#17363f] p-8 text-white shadow-[0_18px_48px_rgba(27,37,37,0.12)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#f8deb0]">
-              Design direction
-            </p>
-            <h2 className="mt-3 font-serif text-3xl">
-              UI được xoay về cảm giác premium resort và business stay của Pullman.
-            </h2>
-            <p className="mt-4 text-sm leading-7 text-white/76">
-              Thay vì các khối placeholder rời rạc, trang chủ giờ có hero mạnh hơn, card khách sạn
-              rõ thứ bậc và CTA dẫn đúng sang trang tìm kiếm hoặc xem chi tiết phòng.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {experienceNotes.map((note) => (
-              <div
-                key={note}
-                className="rounded-[28px] border border-[#e5dbc9] bg-white p-6 shadow-[0_12px_36px_rgba(34,27,18,0.06)]"
+          {!isLoading &&
+            spotlightHotels.map((hotel) => (
+              <article
+                key={hotel.id}
+                className="overflow-hidden rounded-[30px] border border-[#e5dbc9] bg-white shadow-[0_18px_48px_rgba(27,37,37,0.08)]"
               >
-                <div className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-                  Note
+                <div className="relative h-64 bg-[linear-gradient(160deg,_#1d4247_0%,_#335b56_44%,_#d5b37b_100%)] p-6 text-white">
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="rounded-full bg-white/12 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#f8deb0]">
+                      {hotel.countryName || "Destination"}
+                    </span>
+                    <span className="rounded-full border border-white/15 bg-black/10 px-3 py-1 text-xs">
+                      {hotel.starRating} sao
+                    </span>
+                  </div>
+                  <div className="mt-16 max-w-xs">
+                    <p className="text-sm uppercase tracking-[0.24em] text-white/70">
+                      {hotel.cityAddress}
+                    </p>
+                    <h3 className="mt-3 text-3xl font-semibold leading-tight">{hotel.name}</h3>
+                  </div>
                 </div>
-                <p className="mt-4 text-sm leading-7 text-gray-700">{note}</p>
-              </div>
+
+                <div className="space-y-5 p-6">
+                  <p className="text-sm leading-6 text-gray-600">
+                    {hotel.description || "Khách sạn hiện đã được đồng bộ từ backend."}
+                  </p>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-[22px] bg-[#f8f4ed] p-4">
+                      <div className="text-xs uppercase tracking-[0.18em] text-gray-400">
+                        Giá trung bình / đêm
+                      </div>
+                      <div className="mt-2 text-2xl font-semibold text-textPrimary">
+                        {formatCurrency(hotel.priceFrom)}
+                      </div>
+                    </div>
+                    <div className="rounded-[22px] bg-[#17363f] p-4 text-white">
+                      <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">
+                        Room types phù hợp
+                      </div>
+                      <div className="mt-2 text-2xl font-semibold">
+                        {hotel.matchedRoomTypes.length}
+                      </div>
+                      <div className="mt-1 text-sm text-white/70">
+                        Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3">
+                    {hotel.matchedRoomTypes[0] ? (
+                      <Link
+                        to={`${getHotelDetailPath(hotel.id)}?${buildSearchParams({
+                          ...createDefaultSearchFilters(),
+                          destination: hotel.cityAddress,
+                          roomType: hotel.matchedRoomTypes[0].name,
+                          roomTypeId: hotel.matchedRoomTypes[0].roomTypeId,
+                        }).toString()}`}
+                        className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
+                      >
+                        Xem loại phòng
+                      </Link>
+                    ) : null}
+                    <Link
+                      to={`${ROUTES.HOTELS}?${buildSearchParams({
+                        ...createDefaultSearchFilters(),
+                        destination: hotel.cityAddress,
+                      }).toString()}`}
+                      className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
+                    >
+                      Tìm trong khách sạn này
+                    </Link>
+                  </div>
+                </div>
+              </article>
             ))}
-          </div>
         </div>
       </section>
     </div>

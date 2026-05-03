@@ -122,6 +122,7 @@ export const createFacilityDraft = () => ({
 });
 
 export const createHotelDraft = () => ({
+  countryId: "",
   name: "",
   cityAddress: "",
   starRating: 5,

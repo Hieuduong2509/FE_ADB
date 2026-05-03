@@ -236,6 +236,7 @@ export const bookingFacilities = [
     description: "Xe riêng đón hoặc tiễn sân bay, phù hợp khách công tác và chuyến bay sớm.",
     price: 420000,
     tag: "Transport",
+    pricingType: "per_stay",
   },
   {
     id: "buffet-breakfast",
@@ -243,6 +244,7 @@ export const bookingFacilities = [
     description: "Bổ sung buffet sáng signature cho toàn bộ kỳ nghỉ.",
     price: 320000,
     tag: "Dining",
+    pricingType: "per_guest_per_night",
   },
   {
     id: "spa-package",
@@ -250,6 +252,7 @@ export const bookingFacilities = [
     description: "01 suất massage 60 phút tại spa trong khách sạn.",
     price: 690000,
     tag: "Wellness",
+    pricingType: "per_guest",
   },
   {
     id: "late-checkout",
@@ -257,6 +260,7 @@ export const bookingFacilities = [
     description: "Gia hạn check-out đến 16:00 nếu còn phòng.",
     price: 280000,
     tag: "Flex stay",
+    pricingType: "per_stay",
   },
   {
     id: "executive-lounge",
@@ -264,6 +268,7 @@ export const bookingFacilities = [
     description: "Bổ sung lounge access cho hạng phòng chưa bao gồm quyền lợi này.",
     price: 550000,
     tag: "Upgrade",
+    pricingType: "per_night",
   },
   {
     id: "meeting-room",
@@ -271,6 +276,7 @@ export const bookingFacilities = [
     description: "Phù hợp khách doanh nhân cần không gian họp riêng trong khách sạn.",
     price: 850000,
     tag: "Business",
+    pricingType: "per_stay",
   },
 ];
 
@@ -292,7 +298,7 @@ export const amenityOptions = [
 
 export const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
 
-const getGuestCount = (guestLabel) => {
+export const getGuestCount = (guestLabel) => {
   const match = guestLabel?.match(/\d+/);
 
   return match ? Number(match[0]) : 2;
@@ -318,18 +324,22 @@ export const filterHotels = ({
   return pullmanHotels
     .filter((hotel) => destination === "Tất cả" || hotel.city === destination)
     .map((hotel) => {
-      const matchedRooms = hotel.rooms.filter((room) => {
+      const matchedRooms = hotel.rooms
+        .filter((room) => {
         const matchesRoomType = roomType === "Tất cả" || room.category === roomType;
         const matchesGuests = room.capacity >= requestedGuests;
         const matchesAmenity = amenity === "Tất cả" || room.amenities.includes(amenity);
 
         return matchesRoomType && matchesGuests && matchesAmenity;
-      });
+        })
+        .sort((firstRoom, secondRoom) => firstRoom.price - secondRoom.price);
 
       return {
         ...hotel,
         matchedRooms,
+        priceFrom: matchedRooms[0]?.price || hotel.priceFrom,
       };
     })
+    .sort((firstHotel, secondHotel) => firstHotel.priceFrom - secondHotel.priceFrom)
     .filter((hotel) => hotel.matchedRooms.length > 0);
 };

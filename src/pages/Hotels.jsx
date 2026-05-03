@@ -1,65 +1,99 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { getHotelDetailPath } from "../constants";
-import {
-  amenityOptions,
-  destinationOptions,
-  filterHotels,
-  guestOptions,
-  roomTypeOptions,
-} from "../data/pullmanData";
+import { ROUTES, getHotelDetailPath } from "../constants";
 import { formatCurrency } from "../utils";
-
-const getInitialFilters = (searchParams) => ({
-  destination: searchParams.get("destination") || "Tất cả",
-  checkIn: searchParams.get("checkIn") || "",
-  checkOut: searchParams.get("checkOut") || "",
-  guests: searchParams.get("guests") || "2 người",
-  roomType: searchParams.get("roomType") || "Tất cả",
-  amenity: searchParams.get("amenity") || "Tất cả",
-});
+import { getClientHotelsApi } from "../utils/auth";
+import {
+  buildSearchParams,
+  createDefaultSearchFilters,
+  createSearchFiltersFromParams,
+  validateStayDates,
+} from "../utils/search";
 
 const Hotels = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [filters, setFilters] = useState(getInitialFilters(searchParams));
+  const [filters, setFilters] = useState(() => createSearchFiltersFromParams(searchParams));
+  const [searchError, setSearchError] = useState("");
+  const [hotels, setHotels] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [catalogHotels, setCatalogHotels] = useState([]);
 
-  const filteredHotels = filterHotels(filters);
+  useEffect(() => {
+    setFilters(createSearchFiltersFromParams(searchParams));
+  }, [searchParams]);
+
+  useEffect(() => {
+    const loadCatalog = async () => {
+      try {
+        const data = await getClientHotelsApi(createDefaultSearchFilters());
+        setCatalogHotels(Array.isArray(data) ? data : []);
+      } catch {
+        setCatalogHotels([]);
+      }
+    };
+
+    void loadCatalog();
+  }, []);
+
+  useEffect(() => {
+    const loadHotels = async () => {
+      setIsLoading(true);
+      try {
+        const data = await getClientHotelsApi(filters);
+        setHotels(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setSearchError(error.message || "Không tải được khách sạn.");
+        setHotels([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void loadHotels();
+  }, [filters]);
+
+  const destinationOptions = ["Tất cả", ...new Set(catalogHotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
+  const roomTypeOptions = [
+    "Tất cả",
+    ...new Set(catalogHotels.flatMap((hotel) => hotel.matchedRoomTypes?.map((roomType) => roomType.name) || [])),
+  ];
+  const amenityOptions = [
+    "Tất cả",
+    ...new Set(
+      catalogHotels.flatMap(
+        (hotel) =>
+          hotel.matchedRoomTypes?.flatMap((roomType) => roomType.amenities || []) || [],
+      ),
+    ),
+  ];
+  const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
 
   const handleFieldChange = (field) => (event) => {
     setFilters((currentFilters) => ({
       ...currentFilters,
       [field]: event.target.value,
     }));
+    setSearchError("");
   };
 
   const syncFiltersToUrl = (nextFilters) => {
-    const nextSearchParams = new URLSearchParams();
-
-    Object.entries(nextFilters).forEach(([key, value]) => {
-      if (value) {
-        nextSearchParams.set(key, value);
-      }
-    });
-
-    setSearchParams(nextSearchParams);
+    setSearchParams(buildSearchParams(nextFilters));
   };
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
+    const nextError = validateStayDates(filters.checkIn, filters.checkOut);
+    if (nextError) {
+      setSearchError(nextError);
+      return;
+    }
     syncFiltersToUrl(filters);
   };
 
   const handleReset = () => {
-    const clearedFilters = {
-      destination: "Tất cả",
-      checkIn: "",
-      checkOut: "",
-      guests: "2 người",
-      roomType: "Tất cả",
-      amenity: "Tất cả",
-    };
-
+    const clearedFilters = createDefaultSearchFilters();
     setFilters(clearedFilters);
+    setSearchError("");
     syncFiltersToUrl(clearedFilters);
   };
 
@@ -72,11 +106,11 @@ const Hotels = () => {
               Search stays
             </p>
             <h1 className="mt-3 font-serif text-3xl md:text-5xl">
-              Trang tìm kiếm mới hiển thị đúng khách sạn có loại phòng người dùng đang tìm.
+              Kết quả giờ được lấy trực tiếp từ database và lọc theo room type còn trống.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/76 md:text-base">
-              Bộ lọc hiện chưa gọi API nhưng đã mô phỏng đủ các trường quan trọng để chuyển tiếp
-              sang xem chi tiết phòng và bước booking.
+              Mỗi khách sạn sẽ hiển thị đúng những loại phòng còn khả dụng trong khoảng ngày ở mà
+              người dùng chọn.
             </p>
           </div>
 
@@ -91,7 +125,7 @@ const Hotels = () => {
             </div>
             <div>
               <div className="text-xs uppercase tracking-[0.18em] text-white/60">Kết quả</div>
-              <div className="mt-2 text-xl font-semibold">{filteredHotels.length} khách sạn</div>
+              <div className="mt-2 text-xl font-semibold">{hotels.length} khách sạn</div>
             </div>
           </div>
         </div>
@@ -201,6 +235,12 @@ const Hotels = () => {
             </label>
           </div>
 
+          {searchError ? (
+            <div className="mt-4 rounded-[22px] border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
+              {searchError}
+            </div>
+          ) : null}
+
           <button
             type="submit"
             className="mt-6 w-full rounded-2xl bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
@@ -210,8 +250,14 @@ const Hotels = () => {
         </form>
 
         <div className="space-y-5">
-          {filteredHotels.length > 0 ? (
-            filteredHotels.map((hotel) => (
+          {isLoading ? (
+            <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center shadow-[0_12px_28px_rgba(34,27,18,0.05)]">
+              Đang tải kết quả tìm kiếm...
+            </div>
+          ) : null}
+
+          {!isLoading && hotels.length > 0 ? (
+            hotels.map((hotel) => (
               <article
                 key={hotel.id}
                 className="overflow-hidden rounded-[30px] border border-[#e4dac8] bg-white shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
@@ -220,107 +266,87 @@ const Hotels = () => {
                   <div className="h-full min-h-[260px] bg-[linear-gradient(160deg,_#17363f_0%,_#2d5b59_48%,_#dbc18d_100%)] p-6 text-white">
                     <div className="flex items-center justify-between gap-3">
                       <span className="rounded-full bg-white/12 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#f8deb0]">
-                        {hotel.badge}
+                        {hotel.countryName}
                       </span>
                       <span className="rounded-full border border-white/15 px-3 py-1 text-xs">
-                        {hotel.trend}
+                        {hotel.starRating} sao
                       </span>
                     </div>
                     <p className="mt-10 text-sm uppercase tracking-[0.22em] text-white/68">
-                      {hotel.city} · {hotel.area}
+                      {hotel.cityAddress}
                     </p>
                     <h2 className="mt-3 text-3xl font-semibold leading-tight">{hotel.name}</h2>
                     <p className="mt-4 text-sm leading-7 text-white/76">{hotel.description}</p>
-                    <div className="mt-6 flex flex-wrap gap-2">
-                      {hotel.highlights.map((highlight) => (
-                        <span
-                          key={highlight}
-                          className="rounded-full border border-white/12 bg-black/10 px-3 py-1 text-xs"
-                        >
-                          {highlight}
-                        </span>
-                      ))}
-                    </div>
                   </div>
 
                   <div className="p-6">
                     <div className="flex flex-wrap items-end justify-between gap-4">
                       <div>
                         <div className="text-xs uppercase tracking-[0.2em] text-gray-400">
-                          Có {hotel.matchedRooms.length} phòng phù hợp
+                          Có {hotel.matchedRoomTypes.length} loại phòng phù hợp
                         </div>
                         <div className="mt-2 text-2xl font-semibold text-textPrimary">
                           Giá từ {formatCurrency(hotel.priceFrom)}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
-                          Rating {hotel.rating}/5 · {hotel.reviewCount} lượt review
+                          Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
                         </div>
                       </div>
                       <div className="rounded-[22px] bg-[#f7f1e6] px-4 py-3 text-sm text-gray-700">
-                        {filters.checkIn || "Chưa chọn ngày"} {filters.checkOut ? `→ ${filters.checkOut}` : ""}
+                        {filters.checkIn} → {filters.checkOut}
                       </div>
                     </div>
 
                     <div className="mt-6 space-y-4">
-                      {hotel.matchedRooms.map((room) => {
-                        const detailSearchParams = new URLSearchParams({
-                          roomId: room.id,
-                          guests: filters.guests,
-                          roomType: room.category,
-                          destination: hotel.city,
+                      {hotel.matchedRoomTypes.map((roomType) => {
+                        const detailSearchParams = buildSearchParams({
+                          ...filters,
+                          destination: hotel.cityAddress,
+                          roomType: roomType.name,
+                          roomTypeId: roomType.roomTypeId,
                         });
-
-                        if (filters.checkIn) {
-                          detailSearchParams.set("checkIn", filters.checkIn);
-                        }
-
-                        if (filters.checkOut) {
-                          detailSearchParams.set("checkOut", filters.checkOut);
-                        }
+                        const bookingSearchParams = buildSearchParams({
+                          ...filters,
+                          hotelId: hotel.id,
+                          roomType: roomType.name,
+                          roomTypeId: roomType.roomTypeId,
+                        });
 
                         return (
                           <div
-                            key={room.id}
+                            key={roomType.roomTypeId}
                             className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5"
                           >
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
                                 <div className="text-xs uppercase tracking-[0.18em] text-accent">
-                                  {room.category}
+                                  {roomType.availableRoomCount} phòng còn trống
                                 </div>
                                 <h3 className="mt-2 text-xl font-semibold text-textPrimary">
-                                  {room.name}
+                                  {roomType.name}
                                 </h3>
-                                <p className="mt-2 text-sm leading-7 text-gray-600">{room.intro}</p>
+                                <p className="mt-2 text-sm leading-7 text-gray-600">
+                                  {roomType.servicesText || "Room type đang dùng dữ liệu thật từ DB."}
+                                </p>
                               </div>
 
                               <div className="rounded-[22px] bg-[#17363f] px-4 py-3 text-white md:min-w-[180px]">
                                 <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">
-                                  Giá / đêm
+                                  Trung bình / đêm
                                 </div>
                                 <div className="mt-2 text-2xl font-semibold">
-                                  {formatCurrency(room.price)}
+                                  {formatCurrency(roomType.averageNightlyRate)}
                                 </div>
                               </div>
                             </div>
 
                             <div className="mt-4 flex flex-wrap gap-2">
-                              {[room.size, room.bed, `${room.capacity} khách`, room.view]
-                                .filter(Boolean)
-                                .map((item) => (
-                                  <span
-                                    key={item}
-                                    className="rounded-full bg-[#f3ebdc] px-3 py-1 text-xs font-medium text-[#17363f]"
-                                  >
-                                    {item}
-                                  </span>
-                                ))}
-                            </div>
-
-                            <div className="mt-4 flex flex-wrap gap-2">
-                              {room.amenities.slice(0, 4).map((amenity) => (
-                                <span key={amenity} className="text-sm text-gray-600">
-                                  • {amenity}
+                              {roomType.amenities.slice(0, 4).map((amenity) => (
+                                <span
+                                  key={amenity}
+                                  className="rounded-full bg-[#f3ebdc] px-3 py-1 text-xs font-medium text-[#17363f]"
+                                >
+                                  {amenity}
                                 </span>
                               ))}
                             </div>
@@ -330,7 +356,13 @@ const Hotels = () => {
                                 to={`${getHotelDetailPath(hotel.id)}?${detailSearchParams.toString()}`}
                                 className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
                               >
-                                Xem phòng
+                                Xem chi tiết
+                              </Link>
+                              <Link
+                                to={`${ROUTES.BOOKING}?${bookingSearchParams.toString()}`}
+                                className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
+                              >
+                                Chọn phòng này
                               </Link>
                             </div>
                           </div>
@@ -341,15 +373,16 @@ const Hotels = () => {
                 </div>
               </article>
             ))
-          ) : (
+          ) : null}
+
+          {!isLoading && !hotels.length ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center shadow-[0_12px_28px_rgba(34,27,18,0.05)]">
               <h2 className="text-2xl font-semibold text-textPrimary">Chưa có kết quả phù hợp</h2>
               <p className="mt-3 text-sm leading-7 text-gray-600">
-                Hãy thử đổi loại phòng, giảm yêu cầu tiện nghi hoặc mở rộng điểm đến để xem thêm
-                khách sạn Pullman.
+                Hãy thử đổi điểm đến, loại phòng hoặc tiện nghi để xem thêm khách sạn.
               </p>
             </div>
-          )}
+          ) : null}
         </div>
       </section>
     </div>

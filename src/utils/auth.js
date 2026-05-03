@@ -53,7 +53,28 @@ export const getClientProfileApi = async (accessToken) =>
     },
   });
 
+export const getClientHotelsApi = async (filters) =>
+  requestJson(`/api/client/hotels?${new URLSearchParams(filters).toString()}`);
+
+export const getClientHotelDetailApi = async (hotelId, filters) =>
+  requestJson(`/api/client/hotels/${hotelId}?${new URLSearchParams(filters).toString()}`);
+
+export const getBookingQuoteApi = async (payload) =>
+  requestJson("/api/booking/quote", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const createBookingApi = async (payload, accessToken) =>
+  requestJson("/api/booking", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
 export const getAdminHotelsApi = async () => requestJson("/api/admin/hotels?limit=100");
+
+export const getAdminCountriesApi = async () => requestJson("/api/admin/country?limit=100");
 
 export const createAdminHotelApi = async (payload, accessToken) =>
   requestJson("/api/admin/hotels", {
