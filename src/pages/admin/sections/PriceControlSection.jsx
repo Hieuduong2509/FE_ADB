@@ -3,6 +3,9 @@ import { formatCurrency } from "../../../utils";
 const PriceControlSection = ({
   filteredRoomTypes,
   getHolidayPercentForRoomType,
+  getPricingPreviewForRoomType,
+  pricePreviewDraft,
+  setPricePreviewDraft,
   updateRoomTypePrice,
   startRoomTypeEdit,
 }) => (
@@ -16,23 +19,56 @@ const PriceControlSection = ({
           Giá loại phòng
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Chỉnh base price ngay trên từng room type
+          Chỉnh base price và xem preview giá bán thực
         </h2>
       </div>
       <div className="rounded-[24px] bg-[#17363f] px-5 py-4 text-white">
         <div className="text-xs uppercase tracking-[0.18em] text-[#f6ddb0]">
-          Giá dự báo cao điểm
+          Pricing engine preview
         </div>
         <div className="mt-2 text-lg font-semibold">
-          Dùng mức uplift đang active để preview selling price
+          `Đơn ngày` override `dải ngày`, còn lại fallback về base price
         </div>
       </div>
+    </div>
+
+    <div className="mt-6 grid gap-4 rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5 md:grid-cols-2">
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-gray-600">Preview check-in</span>
+        <input
+          type="date"
+          value={pricePreviewDraft.checkIn}
+          onChange={(event) =>
+            setPricePreviewDraft((currentDraft) => ({
+              ...currentDraft,
+              checkIn: event.target.value,
+            }))
+          }
+          className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+        />
+      </label>
+
+      <label className="block">
+        <span className="mb-2 block text-sm font-medium text-gray-600">Preview check-out</span>
+        <input
+          type="date"
+          value={pricePreviewDraft.checkOut}
+          onChange={(event) =>
+            setPricePreviewDraft((currentDraft) => ({
+              ...currentDraft,
+              checkOut: event.target.value,
+            }))
+          }
+          className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+        />
+      </label>
     </div>
 
     <div className="mt-6 grid gap-4 xl:grid-cols-2">
       {filteredRoomTypes.map((roomType) => {
         const holidayPercent = getHolidayPercentForRoomType(roomType);
-        const sellingPrice = Math.round(roomType.basePrice * (1 + holidayPercent / 100));
+        const pricingPreview = getPricingPreviewForRoomType(roomType);
+        const sellingPrice = pricingPreview.averageNightlyRate;
 
         return (
           <div
@@ -75,14 +111,40 @@ const PriceControlSection = ({
 
               <div className="rounded-[24px] bg-[#17363f] p-4 text-white">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#f6ddb0]">
-                  Holiday preview
+                  Pricing preview
                 </div>
                 <div className="mt-3 text-3xl font-semibold">{holidayPercent}%</div>
                 <div className="mt-2 text-sm text-white/74">
-                  Giá sau uplift: {formatCurrency(sellingPrice)}
+                  Giá trung bình: {formatCurrency(sellingPrice)}
+                </div>
+                <div className="mt-2 text-sm text-white/74">
+                  Tổng {pricingPreview.nights} đêm: {formatCurrency(pricingPreview.total)}
+                </div>
+                <div className="mt-2 text-xs text-[#f6ddb0]">
+                  {pricingPreview.hasSpecificDate
+                    ? "Có ngày đơn override."
+                    : pricingPreview.hasSeasonal
+                      ? "Đang áp dải ngày."
+                      : "Đang dùng base price."}
                 </div>
               </div>
             </div>
+
+            {pricingPreview.nightlyRates.length ? (
+              <div className="mt-4 rounded-[22px] bg-[#f7efe2] p-4">
+                <div className="text-xs uppercase tracking-[0.18em] text-accent">Nightly breakdown</div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {pricingPreview.nightlyRates.map((night) => (
+                    <div
+                      key={`${roomType.id}-${night.date}`}
+                      className="rounded-full bg-white px-3 py-2 text-sm text-textPrimary"
+                    >
+                      {night.date} · {formatCurrency(night.rate)} · {night.source}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </div>
         );
       })}

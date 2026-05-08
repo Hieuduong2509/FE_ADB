@@ -1,5 +1,5 @@
 const AmenitiesSection = ({
-  roomTypeOptions,
+  hotelOptions,
   amenityDraft,
   setAmenityDraft,
   submitAmenity,
@@ -22,27 +22,27 @@ const AmenitiesSection = ({
           Amenities catalog
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Quản lý tiện nghi theo room type từ API admin
+          Quản lý catalog tiện nghi theo khách sạn
         </h2>
 
         <form onSubmit={submitAmenity} className="mt-6 space-y-4">
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Room type</span>
+            <span className="mb-2 block text-sm font-medium text-gray-600">Khách sạn</span>
             <select
-              value={amenityDraft.roomTypeId}
+              value={amenityDraft.hotelId}
               onChange={(event) =>
                 setAmenityDraft((currentDraft) => ({
                   ...currentDraft,
-                  roomTypeId: event.target.value,
+                  hotelId: event.target.value,
                 }))
               }
-              disabled={!roomTypeOptions.length || isSubmitting}
+              disabled={!hotelOptions.length || isSubmitting}
               className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {!roomTypeOptions.length ? <option value="">Chưa có room type</option> : null}
-              {roomTypeOptions.map((roomType) => (
-                <option key={roomType.id} value={roomType.id}>
-                  {roomType.name} · {roomType.hotelName}
+              {!hotelOptions.length ? <option value="">Chưa có khách sạn</option> : null}
+              {hotelOptions.map((hotel) => (
+                <option key={hotel.id} value={hotel.id}>
+                  {hotel.name}
                 </option>
               ))}
             </select>
@@ -89,7 +89,7 @@ const AmenitiesSection = ({
           <div className="flex flex-wrap gap-3">
             <button
               type="submit"
-              disabled={isSubmitting || !roomTypeOptions.length}
+              disabled={isSubmitting || !hotelOptions.length}
               className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting
@@ -134,7 +134,6 @@ const AmenitiesSection = ({
               {amenity.hotelName}
             </div>
             <h3 className="mt-3 text-xl font-semibold text-textPrimary">{amenity.name}</h3>
-            <p className="mt-3 text-sm leading-7 text-gray-600">{amenity.roomTypeName}</p>
             {amenity.description ? (
               <p className="mt-3 text-sm leading-7 text-gray-500">{amenity.description}</p>
             ) : null}

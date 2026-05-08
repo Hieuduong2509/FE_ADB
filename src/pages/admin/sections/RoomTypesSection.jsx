@@ -20,6 +20,9 @@ const RoomTypesSection = ({
   const availableFacilities = facilities.filter(
     (facility) => String(facility.hotelId) === String(roomTypeDraft.hotelId),
   );
+  const availableAmenities = amenities.filter(
+    (amenity) => String(amenity.hotelId) === String(roomTypeDraft.hotelId),
+  );
 
   return (
     <section
@@ -44,6 +47,7 @@ const RoomTypesSection = ({
                   setRoomTypeDraft((currentDraft) => ({
                     ...currentDraft,
                     hotelId: event.target.value,
+                    amenities: [],
                     facilities: [],
                   }))
                 }
@@ -115,13 +119,13 @@ const RoomTypesSection = ({
               <div>
                 <div className="text-sm font-medium text-gray-600">Gắn amenities</div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {amenities.map((amenity) => {
-                    const selected = roomTypeDraft.amenities.includes(amenity.name);
+                  {availableAmenities.map((amenity) => {
+                    const selected = roomTypeDraft.amenities.includes(amenity.id);
                     return (
                       <button
                         key={amenity.id}
                         type="button"
-                        onClick={() => toggleDraftCollectionValue("amenities", amenity.name)}
+                        onClick={() => toggleDraftCollectionValue("amenities", amenity.id)}
                         disabled={isSubmitting}
                         className={`rounded-full px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${
                           selected
@@ -134,6 +138,11 @@ const RoomTypesSection = ({
                     );
                   })}
                 </div>
+                {!availableAmenities.length ? (
+                  <div className="mt-3 text-sm text-gray-500">
+                    Khách sạn này chưa có amenity nào để gắn.
+                  </div>
+                ) : null}
               </div>
 
               <div>

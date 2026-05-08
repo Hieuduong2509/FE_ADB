@@ -22,7 +22,8 @@ const AdminHero = ({ roomTypesCount, highestHolidayUplift, facilitiesCount }) =>
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-white/78 md:text-lg">
             Luồng này ưu tiên thao tác vận hành: chỉnh base price, cộng phần trăm dịp cao điểm,
-            thêm loại phòng mới và gắn facilities, amenities trực tiếp lên từng room type.
+            thêm loại phòng mới, quản lý amenities theo khách sạn và gắn catalog đó vào từng
+            room type.
           </p>
         </div>
 

@@ -45,6 +45,7 @@ const Home = () => {
     ...new Set(hotels.flatMap((hotel) => hotel.matchedRoomTypes?.map((roomType) => roomType.name) || [])),
   ];
   const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
+  const starOptions = ["", "5", "4", "3"];
 
   const handleFieldChange = (field) => (event) => {
     setSearchForm((currentForm) => ({
@@ -129,6 +130,19 @@ const Home = () => {
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <label className="block md:col-span-2">
+                <span className="mb-2 block text-sm font-medium text-gray-600">
+                  Tìm theo tên hotel / thành phố
+                </span>
+                <input
+                  type="text"
+                  value={searchForm.search}
+                  onChange={handleFieldChange("search")}
+                  placeholder="Ví dụ: Da Nang, Pullman, biển..."
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
+                />
+              </label>
+
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-gray-600">Điểm đến</span>
                 <select
@@ -200,6 +214,36 @@ const Home = () => {
                     Tìm khách sạn
                   </button>
                 </div>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Giá tối thiểu / đêm</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={searchForm.minPrice}
+                  onChange={handleFieldChange("minPrice")}
+                  placeholder="1000000"
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Hạng sao tối thiểu</span>
+                <select
+                  value={searchForm.stars}
+                  onChange={handleFieldChange("stars")}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
+                >
+                  <option value="">Tất cả</option>
+                  {starOptions
+                    .filter(Boolean)
+                    .map((star) => (
+                      <option key={star} value={star}>
+                        {star} sao trở lên
+                      </option>
+                    ))}
+                </select>
               </label>
             </div>
 
@@ -278,14 +322,17 @@ const Home = () => {
                       <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">
                         Room types phù hợp
                       </div>
-                      <div className="mt-2 text-2xl font-semibold">
-                        {hotel.matchedRoomTypes.length}
-                      </div>
-                      <div className="mt-1 text-sm text-white/70">
-                        Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
-                      </div>
+                    <div className="mt-2 text-2xl font-semibold">
+                      {hotel.matchedRoomTypes.length}
+                    </div>
+                    <div className="mt-1 text-sm text-white/70">
+                      Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
+                    </div>
+                    <div className="mt-1 text-sm text-white/70">
+                      Còn {hotel.availableRoomCountTotal || 0} phòng
                     </div>
                   </div>
+                </div>
 
                   <div className="flex flex-wrap gap-3">
                     {hotel.matchedRoomTypes[0] ? (

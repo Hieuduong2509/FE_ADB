@@ -66,7 +66,22 @@ const Hotels = () => {
       ),
     ),
   ];
+  const serviceOptions = [
+    "Tất cả",
+    ...new Set(
+      catalogHotels.flatMap(
+        (hotel) =>
+          hotel.matchedRoomTypes?.flatMap((roomType) => roomType.services?.map((service) => service.name) || []) || [],
+      ),
+    ),
+  ];
   const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
+  const starOptions = ["", "5", "4", "3"];
+  const sortOptions = [
+    { value: "price_asc", label: "Giá tăng dần" },
+    { value: "price_desc", label: "Giá giảm dần" },
+    { value: "rating_desc", label: "Hạng sao cao trước" },
+  ];
 
   const handleFieldChange = (field) => (event) => {
     setFilters((currentFilters) => ({
@@ -116,12 +131,12 @@ const Hotels = () => {
 
           <div className="grid gap-4 rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur md:grid-cols-3">
             <div>
-              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Điểm đến</div>
-              <div className="mt-2 text-xl font-semibold">{filters.destination}</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Từ khóa</div>
+              <div className="mt-2 text-xl font-semibold">{filters.search || "Không có"}</div>
             </div>
             <div>
-              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Số khách</div>
-              <div className="mt-2 text-xl font-semibold">{filters.guests}</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Điểm đến</div>
+              <div className="mt-2 text-xl font-semibold">{filters.destination}</div>
             </div>
             <div>
               <div className="text-xs uppercase tracking-[0.18em] text-white/60">Kết quả</div>
@@ -153,6 +168,19 @@ const Hotels = () => {
           </div>
 
           <div className="mt-6 space-y-4">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">
+                Tên hotel / thành phố / room type
+              </span>
+              <input
+                type="text"
+                value={filters.search}
+                onChange={handleFieldChange("search")}
+                placeholder="Ví dụ: Pullman, Hà Nội, Suite..."
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+              />
+            </label>
+
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-gray-600">Điểm đến</span>
               <select
@@ -204,6 +232,50 @@ const Hotels = () => {
               </select>
             </label>
 
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Giá tối thiểu / đêm</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={filters.minPrice}
+                  onChange={handleFieldChange("minPrice")}
+                  placeholder="1000000"
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Giá tối đa / đêm</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={filters.maxPrice}
+                  onChange={handleFieldChange("maxPrice")}
+                  placeholder="5000000"
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                />
+              </label>
+            </div>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Hạng sao tối thiểu</span>
+              <select
+                value={filters.stars}
+                onChange={handleFieldChange("stars")}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+              >
+                <option value="">Tất cả</option>
+                {starOptions
+                  .filter(Boolean)
+                  .map((option) => (
+                    <option key={option} value={option}>
+                      {option} sao trở lên
+                    </option>
+                  ))}
+              </select>
+            </label>
+
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-gray-600">Loại phòng</span>
               <select
@@ -233,6 +305,36 @@ const Hotels = () => {
                 ))}
               </select>
             </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Dịch vụ mong muốn</span>
+              <select
+                value={filters.service}
+                onChange={handleFieldChange("service")}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+              >
+                {serviceOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Sắp xếp</span>
+              <select
+                value={filters.sortBy}
+                onChange={handleFieldChange("sortBy")}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+              >
+                {sortOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
 
           {searchError ? (
@@ -250,6 +352,34 @@ const Hotels = () => {
         </form>
 
         <div className="space-y-5">
+          <div className="rounded-[24px] border border-[#e5dbc9] bg-white px-5 py-4 shadow-[0_12px_30px_rgba(34,27,18,0.05)]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <div className="text-xs uppercase tracking-[0.2em] text-accent">Elastic-style search</div>
+                <div className="mt-2 text-lg font-semibold text-textPrimary">
+                  {hotels.length} khách sạn khả dụng trong {filters.checkIn} → {filters.checkOut}
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {filters.search ? (
+                  <span className="rounded-full bg-[#f3ebdc] px-3 py-2 text-xs font-medium text-[#17363f]">
+                    {filters.search}
+                  </span>
+                ) : null}
+                {filters.stars ? (
+                  <span className="rounded-full bg-[#f3ebdc] px-3 py-2 text-xs font-medium text-[#17363f]">
+                    {filters.stars}+ sao
+                  </span>
+                ) : null}
+                {filters.minPrice || filters.maxPrice ? (
+                  <span className="rounded-full bg-[#f3ebdc] px-3 py-2 text-xs font-medium text-[#17363f]">
+                    {filters.minPrice || 0} - {filters.maxPrice || "max"} / đêm
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
           {isLoading ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center shadow-[0_12px_28px_rgba(34,27,18,0.05)]">
               Đang tải kết quả tìm kiếm...
@@ -290,6 +420,9 @@ const Hotels = () => {
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
                           Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
+                        </div>
+                        <div className="mt-1 text-sm text-gray-500">
+                          Còn tổng {hotel.availableRoomCountTotal || 0} phòng khả dụng
                         </div>
                       </div>
                       <div className="rounded-[22px] bg-[#f7f1e6] px-4 py-3 text-sm text-gray-700">

@@ -7,9 +7,11 @@ export const hotelOptions = pullmanHotels.map((hotel) => ({
 }));
 
 export const sectionLinks = [
+  { id: "countries", label: "Countries" },
+  { id: "search-index", label: "Search Index" },
   { id: "hotels", label: "Hotels" },
   { id: "price-control", label: "Giá phòng" },
-  { id: "holiday-rules", label: "Ngày lễ" },
+  { id: "holiday-rules", label: "Pricing" },
   { id: "room-types", label: "Loại phòng" },
   { id: "facilities", label: "Facilities" },
   { id: "amenities", label: "Amenities" },
@@ -130,8 +132,13 @@ export const createHotelDraft = () => ({
   description: "",
 });
 
+export const createCountryDraft = () => ({
+  code: "",
+  name: "",
+});
+
 export const createAmenityDraft = () => ({
-  roomTypeId: "",
+  hotelId: "",
   name: "",
   description: "",
 });
@@ -144,4 +151,31 @@ export const createRuleDraft = () => ({
   startDate: "2026-12-24",
   endDate: "2026-12-26",
   note: "",
+});
+
+export const createPricingDraft = () => ({
+  type: "single_day",
+  hotelId: hotelOptions[0]?.id || "",
+  roomTypeId: "",
+  startDate: "",
+  endDate: "",
+  specificDate: "",
+  multiplier: 1.1,
+  specificRate: 2500000,
+  specificNote: "",
+});
+
+export const createSearchIndexDraft = () => ({
+  horizonDays: 180,
+  search: "",
+  checkIn: "2026-06-01",
+  checkOut: "2026-06-02",
+  guests: "2 người",
+  roomType: "Tất cả",
+  amenity: "Tất cả",
+  service: "Tất cả",
+  minPrice: "",
+  maxPrice: "",
+  stars: "",
+  sortBy: "price_asc",
 });

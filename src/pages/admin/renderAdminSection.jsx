@@ -1,14 +1,46 @@
 import {
   AmenitiesSection,
+  CountriesSection,
   FacilitiesSection,
   HolidayRulesSection,
   HotelsSection,
   PriceControlSection,
   RoomTypesSection,
+  SearchIndexSection,
 } from "./sections";
 
 export const renderAdminSection = (activeSection, workspace) => {
   switch (activeSection) {
+    case "countries":
+      return (
+        <CountriesSection
+          countryDraft={workspace.countryDraft}
+          setCountryDraft={workspace.setCountryDraft}
+          submitCountry={workspace.submitCountry}
+          editingCountryId={workspace.editingCountryId}
+          resetCountryEditor={workspace.resetCountryEditor}
+          countries={workspace.countryOptions}
+          startCountryEdit={workspace.startCountryEdit}
+          deleteCountry={workspace.deleteCountry}
+          isLoading={workspace.isCountriesLoading}
+          isSubmitting={workspace.isCountrySubmitting}
+          errorMessage={workspace.countriesError}
+        />
+      );
+    case "search-index":
+      return (
+        <SearchIndexSection
+          searchIndexStatus={workspace.searchIndexStatus}
+          searchIndexDraft={workspace.searchIndexDraft}
+          setSearchIndexDraft={workspace.setSearchIndexDraft}
+          rebuildSearchIndex={workspace.rebuildSearchIndex}
+          testSearchIndexQuery={workspace.testSearchIndexQuery}
+          searchIndexResults={workspace.searchIndexResults}
+          isSearchIndexLoading={workspace.isSearchIndexLoading}
+          isSearchIndexSubmitting={workspace.isSearchIndexSubmitting}
+          searchIndexError={workspace.searchIndexError}
+        />
+      );
     case "hotels":
       return (
         <HotelsSection
@@ -29,16 +61,21 @@ export const renderAdminSection = (activeSection, workspace) => {
     case "holiday-rules":
       return (
         <HolidayRulesSection
-          ruleDraft={workspace.ruleDraft}
-          setRuleDraft={workspace.setRuleDraft}
-          submitRule={workspace.submitRule}
-          editingRuleId={workspace.editingRuleId}
-          resetRuleEditor={workspace.resetRuleEditor}
-          seasonalRules={workspace.seasonalRules}
-          startRuleEdit={workspace.startRuleEdit}
-          deleteRule={workspace.deleteRule}
+          pricingDraft={workspace.pricingDraft}
+          setPricingDraft={workspace.setPricingDraft}
+          submitPricing={workspace.submitPricing}
+          editingPricingId={workspace.editingPricingId}
+          editingPricingType={workspace.editingPricingType}
+          resetPricingEditor={workspace.resetPricingEditor}
+          seasonalRules={workspace.filteredSeasonalRules}
+          specificDatePricing={workspace.filteredSpecificDatePricing}
+          startPricingEdit={workspace.startPricingEdit}
+          deletePricing={workspace.deletePricing}
           hotelOptions={workspace.hotelOptions}
-          roomTypes={workspace.roomTypes}
+          roomTypes={workspace.managerRoomTypes}
+          isLoading={workspace.isPricingLoading}
+          isSubmitting={workspace.isPricingSubmitting}
+          errorMessage={workspace.pricingError}
         />
       );
     case "room-types":
@@ -81,13 +118,13 @@ export const renderAdminSection = (activeSection, workspace) => {
     case "amenities":
       return (
         <AmenitiesSection
-          roomTypeOptions={workspace.managerRoomTypes}
+          hotelOptions={workspace.managerHotels}
           amenityDraft={workspace.amenityDraft}
           setAmenityDraft={workspace.setAmenityDraft}
           submitAmenity={workspace.submitAmenity}
           editingAmenityId={workspace.editingAmenityId}
           resetAmenityEditor={workspace.resetAmenityEditor}
-          amenities={workspace.amenities}
+          amenities={workspace.filteredAmenities}
           startAmenityEdit={workspace.startAmenityEdit}
           deleteAmenity={workspace.deleteAmenity}
           isLoading={workspace.isAmenitiesLoading}
@@ -101,6 +138,9 @@ export const renderAdminSection = (activeSection, workspace) => {
         <PriceControlSection
           filteredRoomTypes={workspace.filteredRoomTypes}
           getHolidayPercentForRoomType={workspace.getHolidayPercentForRoomType}
+          getPricingPreviewForRoomType={workspace.getPricingPreviewForRoomType}
+          pricePreviewDraft={workspace.pricePreviewDraft}
+          setPricePreviewDraft={workspace.setPricePreviewDraft}
           updateRoomTypePrice={workspace.updateRoomTypePrice}
           startRoomTypeEdit={workspace.startRoomTypeEdit}
         />

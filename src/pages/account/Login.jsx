@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { clearAuthSession, loginClientApi, persistAuthSession } from "../../utils/auth";
+import { clearAuthSession, loginAdminApi, loginClientApi, persistAuthSession } from "../../utils/auth";
 import { ROUTES } from "../../constants";
 
 const Login = () => {
@@ -25,7 +25,23 @@ const Login = () => {
     setIsSubmitting(true);
 
     try {
-      const authData = await loginClientApi(formData);
+      let authData = null;
+
+      try {
+        authData = await loginAdminApi(formData);
+      } catch (adminError) {
+        const shouldFallbackToClient =
+          adminError?.status === 401 ||
+          adminError?.code === "ROLE_NOT_ADMIN" ||
+          adminError?.code === "INVALID_CREDENTIALS";
+
+        if (!shouldFallbackToClient) {
+          throw adminError;
+        }
+
+        authData = await loginClientApi(formData);
+      }
+
       clearAuthSession();
       persistAuthSession(authData);
       navigate(authData?.user?.role === "admin" ? ROUTES.ADMIN : ROUTES.HOME);

@@ -1,22 +1,25 @@
+import { formatCurrency } from "../../../utils";
+
 const HolidayRulesSection = ({
-  ruleDraft,
-  setRuleDraft,
-  submitRule,
-  editingRuleId,
-  resetRuleEditor,
+  pricingDraft,
+  setPricingDraft,
+  submitPricing,
+  editingPricingId,
+  editingPricingType,
+  resetPricingEditor,
   seasonalRules,
-  startRuleEdit,
-  deleteRule,
+  specificDatePricing,
+  startPricingEdit,
+  deletePricing,
   hotelOptions,
   roomTypes,
+  isLoading,
+  isSubmitting,
+  errorMessage,
 }) => {
-  const availableCategories = [
-    ...new Set(
-      roomTypes
-        .filter((roomType) => roomType.hotelId === ruleDraft.hotelId)
-        .map((roomType) => roomType.category),
-    ),
-  ];
+  const availableRoomTypes = roomTypes.filter(
+    (roomType) => String(roomType.hotelId) === String(pricingDraft.hotelId),
+  );
 
   return (
     <section
@@ -26,33 +29,52 @@ const HolidayRulesSection = ({
       <div className="grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         <div>
           <div className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-            Holiday uplift
+            Pricing rules
           </div>
           <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-            Tạo rule tăng phần trăm cho ngày lễ
+            Tạo pricing theo đơn ngày hoặc dải ngày
           </h2>
+          <p className="mt-3 text-sm text-gray-600">
+            Đơn ngày dùng `specific date pricing` để chốt giá cố định cho một room type. Dải ngày
+            dùng `seasonal pricing` để áp multiplier cho toàn hotel.
+          </p>
 
-          <form onSubmit={submitRule} className="mt-6 space-y-4">
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Tên chiến dịch</span>
-              <input
-                type="text"
-                value={ruleDraft.name}
-                onChange={(event) =>
-                  setRuleDraft((currentDraft) => ({ ...currentDraft, name: event.target.value }))
-                }
-                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                placeholder="Ví dụ: Giỗ tổ Hùng Vương"
-              />
-            </label>
-
+          <form onSubmit={submitPricing} className="mt-6 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Loại pricing</span>
+                <select
+                  value={pricingDraft.type}
+                  onChange={(event) =>
+                    setPricingDraft((currentDraft) => ({
+                      ...currentDraft,
+                      type: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                >
+                  <option value="single_day">Đơn ngày</option>
+                  <option value="date_range">Dải ngày</option>
+                </select>
+              </label>
+
               <label className="block">
                 <span className="mb-2 block text-sm font-medium text-gray-600">Khách sạn</span>
                 <select
-                  value={ruleDraft.hotelId}
+                  value={pricingDraft.hotelId}
                   onChange={(event) =>
-                    setRuleDraft((currentDraft) => ({ ...currentDraft, hotelId: event.target.value }))
+                    setPricingDraft((currentDraft) => {
+                      const nextHotelId = event.target.value;
+                      const nextRoomTypes = roomTypes.filter(
+                        (roomType) => String(roomType.hotelId) === String(nextHotelId),
+                      );
+
+                      return {
+                        ...currentDraft,
+                        hotelId: nextHotelId,
+                        roomTypeId: nextRoomTypes[0]?.id || "",
+                      };
+                    })
                   }
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 >
@@ -63,97 +85,171 @@ const HolidayRulesSection = ({
                   ))}
                 </select>
               </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Áp dụng cho</span>
-                <select
-                  value={ruleDraft.appliesTo}
-                  onChange={(event) =>
-                    setRuleDraft((currentDraft) => ({ ...currentDraft, appliesTo: event.target.value }))
-                  }
-                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                >
-                  <option value="all">Tất cả room type</option>
-                  {availableCategories.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Ngày bắt đầu</span>
-                <input
-                  type="date"
-                  value={ruleDraft.startDate}
-                  onChange={(event) =>
-                    setRuleDraft((currentDraft) => ({
-                      ...currentDraft,
-                      startDate: event.target.value,
-                    }))
-                  }
-                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                />
-              </label>
-
-              <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Ngày kết thúc</span>
-                <input
-                  type="date"
-                  value={ruleDraft.endDate}
-                  onChange={(event) =>
-                    setRuleDraft((currentDraft) => ({
-                      ...currentDraft,
-                      endDate: event.target.value,
-                    }))
-                  }
-                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                />
-              </label>
             </div>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Phần trăm tăng giá</span>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                value={ruleDraft.percent}
-                onChange={(event) =>
-                  setRuleDraft((currentDraft) => ({
-                    ...currentDraft,
-                    percent: event.target.value,
-                  }))
-                }
-                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-              />
-            </label>
+            {pricingDraft.type === "single_day" ? (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-600">Room type</span>
+                    <select
+                      value={pricingDraft.roomTypeId}
+                      onChange={(event) =>
+                        setPricingDraft((currentDraft) => ({
+                          ...currentDraft,
+                          roomTypeId: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    >
+                      {availableRoomTypes.map((roomType) => (
+                        <option key={roomType.id} value={roomType.id}>
+                          {roomType.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Ghi chú</span>
-              <textarea
-                rows="3"
-                value={ruleDraft.note}
-                onChange={(event) =>
-                  setRuleDraft((currentDraft) => ({ ...currentDraft, note: event.target.value }))
-                }
-                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                placeholder="Mục tiêu của rule giá này"
-              />
-            </label>
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-600">
+                      Ngày áp dụng
+                    </span>
+                    <input
+                      type="date"
+                      value={pricingDraft.specificDate}
+                      onChange={(event) =>
+                        setPricingDraft((currentDraft) => ({
+                          ...currentDraft,
+                          specificDate: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    />
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-600">
+                    Giá cố định trong ngày
+                  </span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={pricingDraft.specificRate}
+                    onChange={(event) =>
+                      setPricingDraft((currentDraft) => ({
+                        ...currentDraft,
+                        specificRate: event.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                  />
+                  <div className="mt-2 text-sm text-gray-500">
+                    Selling price: {formatCurrency(pricingDraft.specificRate || 0)}
+                  </div>
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-600">Ghi chú</span>
+                  <textarea
+                    rows="3"
+                    value={pricingDraft.specificNote}
+                    onChange={(event) =>
+                      setPricingDraft((currentDraft) => ({
+                        ...currentDraft,
+                        specificNote: event.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    placeholder="Ví dụ: đêm countdown, concert, lễ lớn"
+                  />
+                </label>
+              </>
+            ) : (
+              <>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-600">
+                      Ngày bắt đầu
+                    </span>
+                    <input
+                      type="date"
+                      value={pricingDraft.startDate}
+                      onChange={(event) =>
+                        setPricingDraft((currentDraft) => ({
+                          ...currentDraft,
+                          startDate: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-600">
+                      Ngày kết thúc
+                    </span>
+                    <input
+                      type="date"
+                      value={pricingDraft.endDate}
+                      onChange={(event) =>
+                        setPricingDraft((currentDraft) => ({
+                          ...currentDraft,
+                          endDate: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    />
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-gray-600">Multiplier</span>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={pricingDraft.multiplier}
+                    onChange={(event) =>
+                      setPricingDraft((currentDraft) => ({
+                        ...currentDraft,
+                        multiplier: event.target.value,
+                      }))
+                    }
+                    className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                  />
+                  <div className="mt-2 text-sm text-gray-500">
+                    Tăng khoảng {Math.max(0, (Number(pricingDraft.multiplier) - 1) * 100).toFixed(0)}%
+                    so với base price.
+                  </div>
+                </label>
+              </>
+            )}
+
+            {errorMessage ? (
+              <div className="rounded-2xl border border-[#f0c8c0] bg-[#fff3f0] px-4 py-3 text-sm text-[#9f4738]">
+                {errorMessage}
+              </div>
+            ) : null}
 
             <div className="flex flex-wrap gap-3">
               <button
                 type="submit"
-                className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
+                disabled={isSubmitting}
+                className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {editingRuleId ? "Lưu holiday rule" : "Thêm holiday rule"}
+                {editingPricingId
+                  ? editingPricingType === "single_day"
+                    ? "Lưu đơn ngày"
+                    : "Lưu dải ngày"
+                  : pricingDraft.type === "single_day"
+                    ? "Tạo đơn ngày"
+                    : "Tạo dải ngày"}
               </button>
-              {editingRuleId ? (
+              {editingPricingId ? (
                 <button
                   type="button"
-                  onClick={resetRuleEditor}
+                  onClick={resetPricingEditor}
                   className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
                 >
                   Hủy chỉnh sửa
@@ -163,52 +259,125 @@ const HolidayRulesSection = ({
           </form>
         </div>
 
-        <div className="space-y-4">
-          {seasonalRules.map((rule) => (
-            <div
-              key={rule.id}
-              className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-accent">
-                    {hotelOptions.find((hotel) => hotel.id === rule.hotelId)?.name}
-                  </div>
-                  <h3 className="mt-2 text-2xl font-semibold text-textPrimary">{rule.name}</h3>
-                </div>
-                <div className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-semibold text-white">
-                  +{rule.percent}%
-                </div>
-              </div>
-
-              <div className="mt-4 grid gap-3 text-sm text-gray-600 md:grid-cols-3">
-                <div className="rounded-2xl bg-[#f7efe2] px-4 py-3">
-                  Áp dụng: {rule.appliesTo === "all" ? "Tất cả room type" : rule.appliesTo}
-                </div>
-                <div className="rounded-2xl bg-[#f7efe2] px-4 py-3">
-                  {rule.startDate} → {rule.endDate}
-                </div>
-                <div className="rounded-2xl bg-[#f7efe2] px-4 py-3">{rule.note}</div>
-              </div>
-
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={() => startRuleEdit(rule)}
-                  className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
-                >
-                  Sửa
-                </button>
-                <button
-                  type="button"
-                  onClick={() => deleteRule(rule.id)}
-                  className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
-                >
-                  Xóa
-                </button>
-              </div>
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xl font-semibold text-textPrimary">Dải ngày</h3>
+              <div className="text-sm text-gray-500">{seasonalRules.length} rule</div>
             </div>
-          ))}
+            <div className="mt-4 space-y-4">
+              {isLoading ? (
+                <div className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5 text-sm text-gray-500">
+                  Đang tải seasonal pricing...
+                </div>
+              ) : seasonalRules.length ? (
+                seasonalRules.map((rule) => (
+                  <div
+                    key={`seasonal-${rule.id}`}
+                    className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.2em] text-accent">
+                          {rule.hotelName}
+                        </div>
+                        <h4 className="mt-2 text-xl font-semibold text-textPrimary">
+                          {rule.startDate} → {rule.endDate}
+                        </h4>
+                      </div>
+                      <div className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-semibold text-white">
+                        x{rule.multiplier}
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => startPricingEdit(rule)}
+                        className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deletePricing(rule.id, rule.type)}
+                        className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-[28px] border border-dashed border-[#e3d6c1] bg-[#fffaf1] p-5 text-sm text-gray-500">
+                  Chưa có dải ngày nào cho khách sạn đang chọn.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="text-xl font-semibold text-textPrimary">Đơn ngày</h3>
+              <div className="text-sm text-gray-500">{specificDatePricing.length} rule</div>
+            </div>
+            <div className="mt-4 space-y-4">
+              {isLoading ? (
+                <div className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5 text-sm text-gray-500">
+                  Đang tải specific date pricing...
+                </div>
+              ) : specificDatePricing.length ? (
+                specificDatePricing.map((rule) => (
+                  <div
+                    key={`specific-${rule.id}`}
+                    className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <div className="text-xs uppercase tracking-[0.2em] text-accent">
+                          {rule.hotelName}
+                        </div>
+                        <h4 className="mt-2 text-xl font-semibold text-textPrimary">
+                          {rule.roomTypeName}
+                        </h4>
+                        <div className="mt-2 text-sm text-gray-600">{rule.specificDate}</div>
+                      </div>
+                      <div className="rounded-full bg-[#8b5e34] px-4 py-2 text-sm font-semibold text-white">
+                        {formatCurrency(rule.specificRate)}
+                      </div>
+                    </div>
+
+                    {rule.specificNote ? (
+                      <div className="mt-4 rounded-2xl bg-[#f7efe2] px-4 py-3 text-sm text-gray-600">
+                        {rule.specificNote}
+                      </div>
+                    ) : null}
+
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => startPricingEdit(rule)}
+                        className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deletePricing(rule.id, rule.type)}
+                        className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
+                      >
+                        Xóa
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-[28px] border border-dashed border-[#e3d6c1] bg-[#fffaf1] p-5 text-sm text-gray-500">
+                  Chưa có đơn ngày nào cho khách sạn đang chọn.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -1,6 +1,8 @@
 export { default as AmenitiesSection } from "./AmenitiesSection";
+export { default as CountriesSection } from "./CountriesSection";
 export { default as FacilitiesSection } from "./FacilitiesSection";
 export { default as HolidayRulesSection } from "./HolidayRulesSection";
 export { default as HotelsSection } from "./HotelsSection";
 export { default as PriceControlSection } from "./PriceControlSection";
 export { default as RoomTypesSection } from "./RoomTypesSection";
+export { default as SearchIndexSection } from "./SearchIndexSection";
