@@ -20,6 +20,18 @@ const HolidayRulesSection = ({
   const availableRoomTypes = roomTypes.filter(
     (roomType) => String(roomType.hotelId) === String(pricingDraft.hotelId),
   );
+  const selectedRoomType =
+    availableRoomTypes.find((roomType) => String(roomType.id) === String(pricingDraft.roomTypeId)) ||
+    availableRoomTypes[0] ||
+    null;
+  const basePrice = Number(selectedRoomType?.basePrice || 0);
+  const specificPercent = Number(pricingDraft.specificPercent || 0);
+  const specificChangeAmount = Math.round((basePrice * specificPercent) / 100);
+  const estimatedSpecificRate =
+    pricingDraft.specificDirection === "decrease"
+      ? Math.max(basePrice - specificChangeAmount, 0)
+      : basePrice + specificChangeAmount;
+  const isDecreasePreview = pricingDraft.specificDirection === "decrease";
 
   return (
     <section
@@ -35,8 +47,8 @@ const HolidayRulesSection = ({
             Tạo pricing theo đơn ngày hoặc dải ngày
           </h2>
           <p className="mt-3 text-sm text-gray-600">
-            Đơn ngày dùng `specific date pricing` để chốt giá cố định cho một room type. Dải ngày
-            dùng `seasonal pricing` để áp multiplier cho toàn hotel.
+            Đơn ngày dùng phần trăm tăng hoặc giảm dựa trên base price của room type. Dải ngày
+            dùng seasonal multiplier để áp trên toàn khoảng ngày.
           </p>
 
           <form onSubmit={submitPricing} className="mt-6 space-y-4">
@@ -128,26 +140,74 @@ const HolidayRulesSection = ({
                   </label>
                 </div>
 
-                <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-600">
-                    Giá cố định trong ngày
-                  </span>
-                  <input
-                    type="number"
-                    min="0"
-                    value={pricingDraft.specificRate}
-                    onChange={(event) =>
-                      setPricingDraft((currentDraft) => ({
-                        ...currentDraft,
-                        specificRate: event.target.value,
-                      }))
-                    }
-                    className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                  />
-                  <div className="mt-2 text-sm text-gray-500">
-                    Selling price: {formatCurrency(pricingDraft.specificRate || 0)}
+                <div className="grid gap-4 md:grid-cols-[180px_minmax(0,1fr)]">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-600">Hướng áp giá</span>
+                    <select
+                      value={pricingDraft.specificDirection}
+                      onChange={(event) =>
+                        setPricingDraft((currentDraft) => ({
+                          ...currentDraft,
+                          specificDirection: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    >
+                      <option value="increase">Tăng giá</option>
+                      <option value="decrease">Giảm giá</option>
+                    </select>
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-medium text-gray-600">
+                      Phần trăm thay đổi theo base price
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1000"
+                      step="0.1"
+                      value={pricingDraft.specificPercent}
+                      onChange={(event) =>
+                        setPricingDraft((currentDraft) => ({
+                          ...currentDraft,
+                          specificPercent: event.target.value,
+                        }))
+                      }
+                      className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
+                    />
+                  </label>
+                </div>
+
+                <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-4">
+                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Admin preview</div>
+                  <div className="mt-3 grid gap-3 md:grid-cols-3">
+                    <div className="rounded-[18px] bg-white px-4 py-3">
+                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Base price</div>
+                      <div className="mt-2 text-lg font-semibold text-textPrimary">
+                        {formatCurrency(basePrice)}
+                      </div>
+                    </div>
+                    <div className="rounded-[18px] bg-white px-4 py-3">
+                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Thay đổi</div>
+                      <div
+                        className={`mt-2 text-lg font-semibold ${
+                          isDecreasePreview ? "text-[#1f7a4f]" : "text-[#8b5e34]"
+                        }`}
+                      >
+                        {isDecreasePreview ? "-" : "+"}
+                        {specificPercent}% · {isDecreasePreview ? "-" : "+"}
+                        {formatCurrency(specificChangeAmount)}
+                      </div>
+                    </div>
+                    <div className="rounded-[18px] bg-white px-4 py-3">
+                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Giá sau rule</div>
+                      <div className="mt-2 text-lg font-semibold text-textPrimary">
+                        {formatCurrency(estimatedSpecificRate)}
+                      </div>
+                    </div>
                   </div>
-                </label>
+                </div>
 
                 <label className="block">
                   <span className="mb-2 block text-sm font-medium text-gray-600">Ghi chú</span>
@@ -342,8 +402,27 @@ const HolidayRulesSection = ({
                         </h4>
                         <div className="mt-2 text-sm text-gray-600">{rule.specificDate}</div>
                       </div>
-                      <div className="rounded-full bg-[#8b5e34] px-4 py-2 text-sm font-semibold text-white">
-                        {formatCurrency(rule.specificRate)}
+                      <div
+                        className={`rounded-full px-4 py-2 text-sm font-semibold text-white ${
+                          rule.specificDirection === "decrease" ? "bg-[#2b6c4c]" : "bg-[#8b5e34]"
+                        }`}
+                      >
+                        {rule.specificDirection === "decrease" ? "-" : "+"}
+                        {rule.specificPercent}%
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-3">
+                      <div className="rounded-[18px] bg-white px-4 py-3 text-sm text-gray-700">
+                        Base price: {formatCurrency(rule.basePrice)}
+                      </div>
+                      <div className="rounded-[18px] bg-white px-4 py-3 text-sm text-gray-700">
+                        {rule.specificDirection === "decrease" ? "Giảm" : "Tăng"}:{" "}
+                        {rule.specificDirection === "decrease" ? "-" : "+"}
+                        {formatCurrency(rule.changeAmount)}
+                      </div>
+                      <div className="rounded-[18px] bg-white px-4 py-3 text-sm font-semibold text-textPrimary">
+                        Giá sau rule: {formatCurrency(rule.estimatedRate)}
                       </div>
                     </div>
 

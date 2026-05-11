@@ -30,7 +30,7 @@ const FacilitiesSection = ({
           Facilities manager
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Quản lý dịch vụ booking theo khách sạn từ API admin
+          Quản lý facilities theo schema backend hiện tại
         </h2>
 
         <form onSubmit={submitFacility} className="mt-6 space-y-4">
@@ -55,6 +55,40 @@ const FacilitiesSection = ({
                   </option>
                 ))}
               </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Loại facility</span>
+              <input
+                type="text"
+                value={facilityDraft.facilityType}
+                onChange={(event) =>
+                  setFacilityDraft((currentDraft) => ({
+                    ...currentDraft,
+                    facilityType: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Mã facility</span>
+              <input
+                type="text"
+                value={facilityDraft.code}
+                onChange={(event) =>
+                  setFacilityDraft((currentDraft) => ({
+                    ...currentDraft,
+                    code: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
             </label>
 
             <label className="block">
@@ -86,6 +120,22 @@ const FacilitiesSection = ({
                 setFacilityDraft((currentDraft) => ({
                   ...currentDraft,
                   name: event.target.value,
+                }))
+              }
+              disabled={isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Mô tả</span>
+            <textarea
+              rows="3"
+              value={facilityDraft.description}
+              onChange={(event) =>
+                setFacilityDraft((currentDraft) => ({
+                  ...currentDraft,
+                  description: event.target.value,
                 }))
               }
               disabled={isSubmitting}
@@ -163,15 +213,21 @@ const FacilitiesSection = ({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <div className="rounded-full bg-[#f5ecde] px-3 py-1 text-xs uppercase tracking-[0.18em] text-accent">
-                  {pricingTypeLabels[facility.pricingType] || facility.pricingType}
+                  {facility.facilityType || "service"}
                 </div>
                 <h3 className="mt-3 text-xl font-semibold text-textPrimary">{facility.name}</h3>
                 <div className="mt-2 text-sm text-gray-500">{facility.hotelName}</div>
+                <div className="mt-2 text-sm text-gray-500">
+                  {pricingTypeLabels[facility.pricingType] || facility.pricingType}
+                </div>
               </div>
               <div className="text-lg font-semibold text-textPrimary">
                 {formatCurrency(facility.price)}
               </div>
             </div>
+            {facility.description ? (
+              <p className="mt-3 text-sm leading-7 text-gray-500">{facility.description}</p>
+            ) : null}
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"

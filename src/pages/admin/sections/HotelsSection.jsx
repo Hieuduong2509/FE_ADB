@@ -1,5 +1,4 @@
 const HotelsSection = ({
-  countryOptions,
   hotelDraft,
   setHotelDraft,
   submitHotel,
@@ -26,53 +25,49 @@ const HotelsSection = ({
         </h2>
 
         <form onSubmit={submitHotel} className="mt-6 space-y-4">
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Quốc gia</span>
-            <select
-              value={hotelDraft.countryId}
-              onChange={(event) =>
-                setHotelDraft((currentDraft) => ({
-                  ...currentDraft,
-                  countryId: event.target.value,
-                }))
-              }
-              disabled={isSubmitting || !countryOptions.length}
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <option value="">Chọn quốc gia</option>
-              {countryOptions.map((country) => (
-                <option key={country.id} value={country.id}>
-                  {country.name}
-                  {country.code ? ` (${country.code})` : ""}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Tên khách sạn</span>
-            <input
-              type="text"
-              value={hotelDraft.name}
-              onChange={(event) =>
-                setHotelDraft((currentDraft) => ({ ...currentDraft, name: event.target.value }))
-              }
-              disabled={isSubmitting}
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-              placeholder="Ví dụ: Pullman Hai Phong Grand Hotel"
-            />
-          </label>
-
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Địa chỉ / thành phố</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Mã khách sạn</span>
               <input
                 type="text"
-                value={hotelDraft.cityAddress}
+                value={hotelDraft.code}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({ ...currentDraft, code: event.target.value }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                placeholder="pullman-saigon"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Tên khách sạn</span>
+              <input
+                type="text"
+                value={hotelDraft.name}
                 onChange={(event) =>
                   setHotelDraft((currentDraft) => ({
                     ...currentDraft,
-                    cityAddress: event.target.value,
+                    name: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                placeholder="Ví dụ: Pullman Saigon Centre"
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Brand</span>
+              <input
+                type="text"
+                value={hotelDraft.brand}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({
+                    ...currentDraft,
+                    brand: event.target.value,
                   }))
                 }
                 disabled={isSubmitting}
@@ -80,6 +75,74 @@ const HotelsSection = ({
               />
             </label>
 
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Quốc gia</span>
+              <input
+                type="text"
+                value={hotelDraft.country}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({
+                    ...currentDraft,
+                    country: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Thành phố</span>
+              <input
+                type="text"
+                value={hotelDraft.city}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({
+                    ...currentDraft,
+                    city: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Quận / khu vực</span>
+              <input
+                type="text"
+                value={hotelDraft.district}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({
+                    ...currentDraft,
+                    district: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+          </div>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Địa chỉ</span>
+            <input
+              type="text"
+              value={hotelDraft.address}
+              onChange={(event) =>
+                setHotelDraft((currentDraft) => ({
+                  ...currentDraft,
+                  address: event.target.value,
+                }))
+              }
+              disabled={isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+          </label>
+
+          <div className="grid gap-4 md:grid-cols-3">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-gray-600">Star rating</span>
               <input
@@ -98,39 +161,40 @@ const HotelsSection = ({
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Timezone</span>
+              <input
+                type="text"
+                value={hotelDraft.timeZone}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({
+                    ...currentDraft,
+                    timeZone: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Tổng số phòng</span>
+              <input
+                type="number"
+                min="0"
+                value={hotelDraft.totalRooms}
+                onChange={(event) =>
+                  setHotelDraft((currentDraft) => ({
+                    ...currentDraft,
+                    totalRooms: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
           </div>
-
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Timezone</span>
-            <input
-              type="text"
-              value={hotelDraft.timeZone}
-              onChange={(event) =>
-                setHotelDraft((currentDraft) => ({
-                  ...currentDraft,
-                  timeZone: event.target.value,
-                }))
-              }
-              disabled={isSubmitting}
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-          </label>
-
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Mô tả</span>
-            <textarea
-              rows="4"
-              value={hotelDraft.description}
-              onChange={(event) =>
-                setHotelDraft((currentDraft) => ({
-                  ...currentDraft,
-                  description: event.target.value,
-                }))
-              }
-              disabled={isSubmitting}
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-            />
-          </label>
 
           {errorMessage ? (
             <div className="rounded-2xl border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
@@ -176,11 +240,10 @@ const HotelsSection = ({
         {hotels.map((hotel) => (
           <div key={hotel.id} className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="text-xs uppercase tracking-[0.2em] text-accent">
-                  {countryOptions.find((country) => String(country.id) === String(hotel.countryId))
-                    ?.name || "Chưa gán quốc gia"}
-                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-accent">
+                    {hotel.country || "Chưa có quốc gia"}{hotel.city ? ` · ${hotel.city}` : ""}
+                  </div>
                 <h3 className="mt-2 text-2xl font-semibold text-textPrimary">{hotel.name}</h3>
               </div>
               <div className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-semibold text-white">
@@ -188,12 +251,14 @@ const HotelsSection = ({
               </div>
             </div>
 
-            {hotel.timeZone ? (
-              <div className="mt-4 text-sm text-gray-600">Timezone: {hotel.timeZone}</div>
+            {hotel.address ? (
+              <div className="mt-4 text-sm text-gray-600">{hotel.address}</div>
             ) : null}
 
-            {hotel.description ? (
-              <p className="mt-3 text-sm leading-7 text-gray-600">{hotel.description}</p>
+            {hotel.timeZone ? (
+              <p className="mt-3 text-sm leading-7 text-gray-600">
+                Timezone: {hotel.timeZone} · Rooms: {hotel.totalRooms || 0}
+              </p>
             ) : null}
 
             <div className="mt-4 flex flex-wrap gap-3">

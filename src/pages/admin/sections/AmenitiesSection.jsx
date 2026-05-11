@@ -1,5 +1,4 @@
 const AmenitiesSection = ({
-  hotelOptions,
   amenityDraft,
   setAmenityDraft,
   submitAmenity,
@@ -22,31 +21,44 @@ const AmenitiesSection = ({
           Amenities catalog
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Quản lý catalog tiện nghi theo khách sạn
+          Quản lý catalog amenities toàn hệ thống
         </h2>
 
         <form onSubmit={submitAmenity} className="mt-6 space-y-4">
-          <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Khách sạn</span>
-            <select
-              value={amenityDraft.hotelId}
-              onChange={(event) =>
-                setAmenityDraft((currentDraft) => ({
-                  ...currentDraft,
-                  hotelId: event.target.value,
-                }))
-              }
-              disabled={!hotelOptions.length || isSubmitting}
-              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {!hotelOptions.length ? <option value="">Chưa có khách sạn</option> : null}
-              {hotelOptions.map((hotel) => (
-                <option key={hotel.id} value={hotel.id}>
-                  {hotel.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Mã amenity</span>
+              <input
+                type="text"
+                value={amenityDraft.code}
+                onChange={(event) =>
+                  setAmenityDraft((currentDraft) => ({
+                    ...currentDraft,
+                    code: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Icon</span>
+              <input
+                type="text"
+                value={amenityDraft.icon}
+                onChange={(event) =>
+                  setAmenityDraft((currentDraft) => ({
+                    ...currentDraft,
+                    icon: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                placeholder="wifi, bath, pool"
+              />
+            </label>
+          </div>
 
           <label className="block">
             <span className="mb-2 block text-sm font-medium text-gray-600">Tên amenity</span>
@@ -89,7 +101,7 @@ const AmenitiesSection = ({
           <div className="flex flex-wrap gap-3">
             <button
               type="submit"
-              disabled={isSubmitting || !hotelOptions.length}
+              disabled={isSubmitting}
               className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting
@@ -131,9 +143,10 @@ const AmenitiesSection = ({
             className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
           >
             <div className="text-xs uppercase tracking-[0.18em] text-accent">
-              {amenity.hotelName}
+              {amenity.code || "amenity"}
             </div>
             <h3 className="mt-3 text-xl font-semibold text-textPrimary">{amenity.name}</h3>
+            {amenity.icon ? <div className="mt-2 text-sm text-gray-500">Icon: {amenity.icon}</div> : null}
             {amenity.description ? (
               <p className="mt-3 text-sm leading-7 text-gray-500">{amenity.description}</p>
             ) : null}

@@ -13,6 +13,7 @@ const Header = () => {
     { path: ROUTES.HOME, label: "Trang chủ" },
     { path: ROUTES.HOTELS, label: "Tìm kiếm" },
     { path: ROUTES.BOOKING, label: "Booking" },
+    ...(session?.user && !isAdmin ? [{ path: ROUTES.BOOKING_HISTORY, label: "Lịch sử" }] : []),
     ...(isAdmin ? [{ path: ROUTES.ADMIN, label: "Admin" }] : []),
     { path: ROUTES.CONTACT, label: "Liên hệ" },
   ];
@@ -28,6 +29,10 @@ const Header = () => {
 
     if (path === ROUTES.ADMIN) {
       return location.pathname.startsWith("/admin");
+    }
+
+    if (path === ROUTES.BOOKING_HISTORY) {
+      return location.pathname.startsWith(ROUTES.BOOKING_HISTORY);
     }
 
     return location.pathname === path;

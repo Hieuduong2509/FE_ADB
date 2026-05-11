@@ -11,6 +11,7 @@ export const ROUTES = {
   CONTACT: "/lien-he",
   LOGIN: "/dang-nhap",
   SIGN_UP: "/dang-ky",
+  BOOKING_HISTORY: "/lich-su-dat-phong",
   ADMIN: "/admin/van-hanh",
 };
 

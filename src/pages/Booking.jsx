@@ -83,11 +83,11 @@ const Booking = () => {
 
       try {
         const data = await getBookingQuoteApi({
-          roomTypeId: Number(selectedRoomTypeId),
+          roomTypeId: String(selectedRoomTypeId),
           checkIn: filters.checkIn,
           checkOut: filters.checkOut,
           guests: filters.guests,
-          serviceIds: selectedServiceIds.map((item) => Number(item)),
+          serviceIds: selectedServiceIds.map((item) => String(item)),
         });
         setQuote(data);
         setErrorMessage("");
@@ -132,11 +132,11 @@ const Booking = () => {
     try {
       const booking = await createBookingApi(
         {
-          roomTypeId: Number(selectedRoomTypeId),
+          roomTypeId: String(selectedRoomTypeId),
           checkIn: filters.checkIn,
           checkOut: filters.checkOut,
           guests: filters.guests,
-          serviceIds: selectedServiceIds.map((item) => Number(item)),
+          serviceIds: selectedServiceIds.map((item) => String(item)),
           countParent: Number(String(filters.guests).match(/\d+/)?.[0] || 1),
           countChild: 0,
           ...guestForm,
@@ -240,7 +240,7 @@ const Booking = () => {
               <div className="rounded-[24px] bg-[#17363f] p-4 text-white">
                 <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Giá trung bình / đêm</div>
                 <div className="mt-2 text-xl font-semibold">
-                  {formatCurrency(quote?.nightlyRates?.[0]?.rate || selectedRoomType.averageNightlyRate)}
+                  {formatCurrency(quote?.nightlyBreakdown?.[0]?.rate || selectedRoomType.averageNightlyRate)}
                 </div>
                 <div className="mt-2 text-sm text-white/70">{selectedRoomType.availableRoomCount} phòng còn</div>
               </div>
@@ -417,6 +417,13 @@ const Booking = () => {
               <span className="font-semibold text-textPrimary">{formatCurrency(quote?.roomTotal || 0)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
+              <span>Điều chỉnh bởi pricing rules</span>
+              <span className={`font-semibold ${Number(quote?.pricingAdjustmentTotal || 0) >= 0 ? "text-[#8b5e34]" : "text-[#1f7a4f]"}`}>
+                {Number(quote?.pricingAdjustmentTotal || 0) >= 0 ? "+" : ""}
+                {formatCurrency(quote?.pricingAdjustmentTotal || 0)}
+              </span>
+            </div>
+            <div className="flex items-center justify-between text-sm text-gray-600">
               <span>Dịch vụ đã chọn</span>
               <span className="font-semibold text-textPrimary">{formatCurrency(quote?.serviceTotal || 0)}</span>
             </div>
@@ -433,6 +440,68 @@ const Booking = () => {
             </div>
             <div className="mt-2 text-sm text-gray-600">Báo giá này đang được trả trực tiếp từ backend.</div>
           </div>
+
+          {Array.isArray(quote?.appliedPricingRules) && quote.appliedPricingRules.length ? (
+            <div className="mt-6 rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5">
+              <div className="text-xs uppercase tracking-[0.18em] text-accent">Pricing rules đã áp dụng</div>
+              <div className="mt-4 space-y-3">
+                {quote.appliedPricingRules.map((rule) => (
+                  <div key={rule.ruleId} className="rounded-[18px] bg-white px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-textPrimary">{rule.name}</div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          {rule.actionSummary} · {rule.nightsApplied} đêm
+                        </div>
+                      </div>
+                      <div className={`text-sm font-semibold ${Number(rule.impactAmount || 0) >= 0 ? "text-[#8b5e34]" : "text-[#1f7a4f]"}`}>
+                        {Number(rule.impactAmount || 0) >= 0 ? "+" : ""}
+                        {formatCurrency(rule.impactAmount || 0)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {Array.isArray(quote?.nightlyBreakdown) && quote.nightlyBreakdown.length ? (
+            <div className="mt-6 rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5">
+              <div className="text-xs uppercase tracking-[0.18em] text-accent">Nightly breakdown</div>
+              <div className="mt-4 space-y-3">
+                {quote.nightlyBreakdown.map((night) => (
+                  <div key={night.date} className="rounded-[18px] bg-white px-4 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-semibold text-textPrimary">{night.date}</div>
+                        <div className="mt-1 text-xs text-gray-500">
+                          Base {formatCurrency(night.baseRate || 0)}
+                          {" → "}
+                          Final {formatCurrency(night.adjustedRate || 0)}
+                        </div>
+                      </div>
+                      <div className={`text-sm font-semibold ${Number(night.impactAmount || 0) >= 0 ? "text-[#8b5e34]" : "text-[#1f7a4f]"}`}>
+                        {Number(night.impactAmount || 0) >= 0 ? "+" : ""}
+                        {formatCurrency(night.impactAmount || 0)}
+                      </div>
+                    </div>
+                    {Array.isArray(night.appliedRules) && night.appliedRules.length ? (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {night.appliedRules.map((rule) => (
+                          <div
+                            key={`${night.date}-${rule.ruleId}`}
+                            className="rounded-full bg-[#f5ecde] px-3 py-2 text-xs text-textPrimary"
+                          >
+                            {rule.name} · {rule.actionSummary}
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
 
           <div className="mt-6 space-y-3">
             {(quote?.services || []).length > 0 ? (

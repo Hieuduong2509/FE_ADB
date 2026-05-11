@@ -1,77 +1,148 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  createCountryDraft,
-  createSearchIndexDraft,
-  buildRoomTypes,
   createAmenityDraft,
   createFacilityDraft,
   createHotelDraft,
   createPricingDraft,
   createRoomTypeDraft,
   hotelOptions,
+  slugify,
 } from "./adminData";
 import {
   createAdminAmenityApi,
-  createAdminCountryApi,
-  getAdminCountriesApi,
   createAdminFacilityApi,
   createAdminHotelApi,
-  createAdminSeasonalPricingApi,
-  createAdminSpecificDatePricingApi,
+  createAdminPricingRuleApi,
   createAdminRoomTypeApi,
   deleteAdminAmenityApi,
-  deleteAdminCountryApi,
+  getAdminBookingHistoryApi,
   deleteAdminFacilityApi,
   deleteAdminHotelApi,
-  deleteAdminSeasonalPricingApi,
-  deleteAdminSpecificDatePricingApi,
+  deleteAdminPricingRuleApi,
   deleteAdminRoomTypeApi,
   getAdminAmenitiesApi,
   getAdminFacilitiesApi,
   getAdminHotelsApi,
-  getAdminSeasonalPricingApi,
-  getAdminSearchIndexStatusApi,
-  getAdminSpecificDatePricingApi,
+  getAdminPricingRulesApi,
   getAdminRoomTypesApi,
   readAuthSession,
-  rebuildAdminSearchIndexApi,
-  testAdminSearchIndexQueryApi,
   updateAdminAmenityApi,
-  updateAdminCountryApi,
   updateAdminFacilityApi,
   updateAdminHotelApi,
-  updateAdminSeasonalPricingApi,
-  updateAdminSpecificDatePricingApi,
+  updateAdminPricingRuleApi,
   updateAdminRoomTypeApi,
 } from "../../utils/auth";
 import { getTodayDateValue, getTomorrowDateValue } from "../../utils/search";
 
 const getErrorMessage = (error, fallbackMessage) => error?.message || fallbackMessage;
 
+const ensureCode = (prefix, value) => {
+  const slug = slugify(value);
+  return slug ? `${prefix}-${slug}`.slice(0, 40) : `${prefix}-${Date.now()}`;
+};
+
+const getAdminAccessToken = () => {
+  const session = readAuthSession();
+  return session?.accessToken || "";
+};
+
 const formatHotelOption = (hotel) => ({
   id: hotel.id,
-  countryId: hotel.countryId || "",
-  name: hotel.name,
-  city: hotel.cityAddress || "",
-  cityAddress: hotel.cityAddress || "",
-  starRating: Number(hotel.starRating) || 0,
-  description: hotel.description || "",
-  timeZone: hotel.timeZone || "UTC",
+  code: hotel.code || "",
+  name: hotel.name || "",
+  brand: hotel.brand || "Pullman",
+  country: hotel.country || "",
+  city: hotel.city || "",
+  district: hotel.district || "",
+  address: hotel.address || "",
+  starRating: Number(hotel.star_rating) || 0,
+  timeZone: hotel.timezone || "Asia/Ho_Chi_Minh",
+  totalRooms: Number(hotel.total_rooms) || 0,
+  status: hotel.status || "active",
 });
 
-const formatCountryOption = (country) => ({
-  id: country.id || country.country_id,
-  code: country.code || country.country_code || "",
-  name: country.name || country.country_name || "",
+const formatRoomTypeOption = (roomType, hotelsById) => ({
+  id: roomType.id,
+  hotelId: roomType.hotel_id,
+  hotelName: hotelsById.get(roomType.hotel_id)?.name || "Khách sạn chưa xác định",
+  code: roomType.code || "",
+  name: roomType.name || "",
+  description: roomType.description || "",
+  basePrice: Number(roomType.base_price) || 0,
+  roomSize: Number(roomType.room_size) || 0,
+  maxAdults: Number(roomType.max_adults) || 0,
+  maxChildren: Number(roomType.max_children) || 0,
+  bedType: roomType.bed_type || "",
+  totalInventory: Number(roomType.total_inventory) || 0,
+  amenities: Array.isArray(roomType.amenity_ids) ? roomType.amenity_ids.map(String) : [],
+  facilities: Array.isArray(roomType.facility_ids) ? roomType.facility_ids.map(String) : [],
+  category: roomType.code || "",
+  capacity: Number(roomType.max_adults) + Number(roomType.max_children || 0),
+  size: roomType.room_size ? `${roomType.room_size} m2` : "",
 });
 
-const normalizeDateKey = (dateValue) => {
-  const parsedDate = new Date(dateValue);
-  if (Number.isNaN(parsedDate.getTime())) {
-    return "";
+const formatFacilityRecord = (facility, hotelsById) => ({
+  id: facility.id,
+  hotelId: facility.hotel_id,
+  hotelName: hotelsById.get(facility.hotel_id)?.name || "Khách sạn chưa xác định",
+  code: facility.code || "",
+  name: facility.name || "",
+  description: facility.description || "",
+  facilityType: facility.facility_type || "service",
+  pricingType: facility.price_type || "per_use",
+  price: Number(facility.base_price) || 0,
+  isActive: facility.is_active !== false,
+});
+
+const formatAmenityRecord = (amenity) => ({
+  id: amenity.id,
+  code: amenity.code || "",
+  name: amenity.name || "",
+  icon: amenity.icon || "",
+  description: amenity.description || "",
+  hotelName: "Catalog toàn hệ thống",
+});
+
+const formatPricingRuleRecord = (rule, hotelsById, roomTypesById) => {
+  const roomType = roomTypesById.get(rule.room_type_id);
+  const basePrice = Number(roomType?.basePrice || 0);
+  const increasePercent = Number(rule.actions?.increase_percent || 0);
+  const decreasePercent = Number(rule.actions?.decrease_percent || 0);
+  const legacyFinalRate = Number(rule.actions?.final_rate ?? rule.actions?.fixed_rate ?? 0);
+
+  let specificDirection = decreasePercent > 0 ? "decrease" : "increase";
+  let specificPercent = decreasePercent > 0 ? decreasePercent : increasePercent;
+
+  if (!specificPercent && basePrice > 0 && legacyFinalRate > 0) {
+    const deltaAmount = legacyFinalRate - basePrice;
+    specificDirection = deltaAmount < 0 ? "decrease" : "increase";
+    specificPercent = Math.abs((deltaAmount / basePrice) * 100);
   }
 
-  return parsedDate.toISOString().split("T")[0];
+  const roundedSpecificPercent = Number(specificPercent.toFixed(2));
+  const changeAmount = Math.round((basePrice * roundedSpecificPercent) / 100);
+
+  return {
+  id: rule.id,
+  type: rule.type || "single_day",
+  hotelId: rule.hotel_id,
+  hotelName: hotelsById.get(rule.hotel_id)?.name || "Khách sạn chưa xác định",
+  roomTypeId: rule.room_type_id || "",
+  roomTypeName: roomType?.name || "Room type chưa xác định",
+  basePrice,
+  priority: Number(rule.priority) || 100,
+  active: rule.active !== false,
+  multiplier: Number(rule.actions?.multiplier || 1),
+  specificPercent: roundedSpecificPercent,
+  specificDirection,
+  changeAmount,
+  estimatedRate:
+    specificDirection === "decrease" ? Math.max(basePrice - changeAmount, 0) : basePrice + changeAmount,
+  specificDate: rule.conditions?.date || "",
+  startDate: rule.conditions?.start_date || "",
+  endDate: rule.conditions?.end_date || "",
+  specificNote: rule.note || "",
+  };
 };
 
 const generateStayDates = (checkIn, checkOut) => {
@@ -85,119 +156,25 @@ const generateStayDates = (checkIn, checkOut) => {
   const dates = [];
   const current = new Date(start);
   while (current < end) {
-    dates.push(normalizeDateKey(current));
+    dates.push(current.toISOString().split("T")[0]);
     current.setDate(current.getDate() + 1);
   }
 
   return dates;
 };
 
-const formatRoomTypeOption = (roomType, hotelsById) => ({
-  id: roomType.roomTypeId,
-  roomTypeId: roomType.roomTypeId,
-  hotelId: roomType.hotelId,
-  hotelName: hotelsById.get(roomType.hotelId)?.name || "Khách sạn chưa xác định",
-  name: roomType.name,
-  basePrice: Number(roomType.basePrice) || 0,
-  servicesText: roomType.servicesText || roomType.services || "",
-  facilities: Array.isArray(roomType.facilities) ? roomType.facilities : [],
-  facilityIds: Array.isArray(roomType.facilityIds)
-    ? roomType.facilityIds
-    : Array.isArray(roomType.facilities)
-      ? roomType.facilities.map((facility) => facility.id)
-      : [],
-  amenities: Array.isArray(roomType.amenities) ? roomType.amenities : [],
-  amenityIds: Array.isArray(roomType.amenityIds)
-    ? roomType.amenityIds
-    : Array.isArray(roomType.amenities)
-      ? roomType.amenities.map((amenity) => amenity.id)
-      : [],
-  amenityNames: Array.isArray(roomType.amenityNames)
-    ? roomType.amenityNames
-    : Array.isArray(roomType.amenities)
-      ? roomType.amenities.map((amenity) => amenity.name)
-      : [],
-  category: "",
-  intro: roomType.servicesText || roomType.services || "",
-  capacity: "",
-  size: "",
-  bed: "",
-  view: "",
-});
-
-const formatFacilityRecord = (facility, hotelsById) => ({
-  id: facility.id,
-  hotelId: facility.hotelId,
-  hotelName: hotelsById.get(facility.hotelId)?.name || "Khách sạn chưa xác định",
-  name: facility.name,
-  price: Number(facility.price) || 0,
-  pricingType: facility.pricingType || "per_use",
-});
-
-const formatAmenityRecord = (amenity, hotelsById) => ({
-  id: amenity.id,
-  hotelId: amenity.hotelId,
-  hotelName: hotelsById.get(amenity.hotelId)?.name || "Khách sạn chưa xác định",
-  name: amenity.name,
-  description: amenity.description || "",
-});
-
-const formatSeasonalPricingRecord = (record, hotelsById) => ({
-  id: record.id,
-  type: "date_range",
-  hotelId: record.hotelId,
-  hotelName: record.hotelName || hotelsById.get(record.hotelId)?.name || "Khách sạn chưa xác định",
-  startDate: record.startDate,
-  endDate: record.endDate,
-  multiplier: Number(record.multiplier) || 1,
-});
-
-const formatSpecificDatePricingRecord = (record, roomTypesById, hotelsById) => {
-  const roomType = roomTypesById.get(record.roomTypeId);
-  const hotelId = record.hotelId || roomType?.hotelId || "";
-
-  return {
-    id: record.id,
-    type: "single_day",
-    roomTypeId: record.roomTypeId,
-    roomTypeName: record.roomTypeName || roomType?.name || "Room type chưa xác định",
-    hotelId,
-    hotelName:
-      record.hotelName ||
-      roomType?.hotelName ||
-      hotelsById.get(hotelId)?.name ||
-      "Khách sạn chưa xác định",
-    specificDate: record.specificDate,
-    specificRate: Number(record.specificRate) || 0,
-    specificNote: record.specificNote || "",
-  };
-};
-
-const getAdminAccessToken = () => {
-  const session = readAuthSession();
-  return session?.accessToken || "";
-};
-
 export const useAdminWorkspace = () => {
-  const [roomTypes, setRoomTypes] = useState(buildRoomTypes);
+  const [roomTypes, setRoomTypes] = useState([]);
   const [facilities, setFacilities] = useState([]);
   const [amenities, setAmenities] = useState([]);
   const [seasonalRules, setSeasonalRules] = useState([]);
   const [specificDatePricing, setSpecificDatePricing] = useState([]);
 
   const [managerHotels, setManagerHotels] = useState([]);
-  const [countryOptions, setCountryOptions] = useState([]);
   const [managerRoomTypes, setManagerRoomTypes] = useState([]);
-  const [hasLoadedManagerCatalogs, setHasLoadedManagerCatalogs] = useState(false);
-
   const [selectedHotelId, setSelectedHotelId] = useState(hotelOptions[0]?.id || "");
 
   const [hotelDraft, setHotelDraft] = useState(createHotelDraft);
-  const [countryDraft, setCountryDraft] = useState(createCountryDraft);
-  const [editingCountryId, setEditingCountryId] = useState(null);
-  const [isCountriesLoading, setIsCountriesLoading] = useState(true);
-  const [isCountrySubmitting, setIsCountrySubmitting] = useState(false);
-  const [countriesError, setCountriesError] = useState("");
   const [editingHotelId, setEditingHotelId] = useState(null);
   const [isHotelsLoading, setIsHotelsLoading] = useState(true);
   const [isHotelSubmitting, setIsHotelSubmitting] = useState(false);
@@ -220,46 +197,38 @@ export const useAdminWorkspace = () => {
   const [isAmenitiesLoading, setIsAmenitiesLoading] = useState(true);
   const [isAmenitySubmitting, setIsAmenitySubmitting] = useState(false);
   const [amenitiesError, setAmenitiesError] = useState("");
-
   const [pricingDraft, setPricingDraft] = useState(createPricingDraft);
   const [editingPricingId, setEditingPricingId] = useState(null);
-  const [editingPricingType, setEditingPricingType] = useState(null);
-  const [isPricingLoading, setIsPricingLoading] = useState(true);
-  const [isPricingSubmitting, setIsPricingSubmitting] = useState(false);
-  const [pricingError, setPricingError] = useState("");
+  const [editingPricingType, setEditingPricingType] = useState("");
+  const [isPricingRulesLoading, setIsPricingRulesLoading] = useState(true);
+  const [isPricingRuleSubmitting, setIsPricingRuleSubmitting] = useState(false);
+  const [pricingRulesError, setPricingRulesError] = useState("");
+  const [bookingHistory, setBookingHistory] = useState([]);
+  const [isBookingHistoryLoading, setIsBookingHistoryLoading] = useState(true);
+  const [bookingHistoryError, setBookingHistoryError] = useState("");
+
   const [pricePreviewDraft, setPricePreviewDraft] = useState({
     checkIn: getTodayDateValue(),
     checkOut: getTomorrowDateValue(),
   });
-  const [searchIndexStatus, setSearchIndexStatus] = useState(null);
-  const [searchIndexDraft, setSearchIndexDraft] = useState(createSearchIndexDraft);
-  const [searchIndexResults, setSearchIndexResults] = useState([]);
-  const [isSearchIndexLoading, setIsSearchIndexLoading] = useState(false);
-  const [isSearchIndexSubmitting, setIsSearchIndexSubmitting] = useState(false);
-  const [searchIndexError, setSearchIndexError] = useState("");
 
   const activeHotelOptions = managerHotels.length ? managerHotels : hotelOptions;
 
   const filteredRoomTypes = roomTypes.filter(
     (roomType) => !selectedHotelId || String(roomType.hotelId) === String(selectedHotelId),
   );
-  const hasManagerSelectedHotel = managerHotels.some(
-    (hotel) => String(hotel.id) === String(selectedHotelId),
-  );
   const filteredManagerRoomTypes = managerRoomTypes.filter(
-    (roomType) =>
-      !selectedHotelId ||
-      !hasManagerSelectedHotel ||
-      String(roomType.hotelId) === String(selectedHotelId),
+    (roomType) => !selectedHotelId || String(roomType.hotelId) === String(selectedHotelId),
   );
+  const filteredAmenities = amenities;
   const filteredSeasonalRules = seasonalRules.filter(
     (rule) => !selectedHotelId || String(rule.hotelId) === String(selectedHotelId),
   );
   const filteredSpecificDatePricing = specificDatePricing.filter(
     (rule) => !selectedHotelId || String(rule.hotelId) === String(selectedHotelId),
   );
-  const filteredAmenities = amenities.filter(
-    (amenity) => !selectedHotelId || String(amenity.hotelId) === String(selectedHotelId),
+  const filteredBookingHistory = bookingHistory.filter(
+    (booking) => !selectedHotelId || String(booking.hotel_id) === String(selectedHotelId),
   );
 
   const selectedHotel =
@@ -267,65 +236,18 @@ export const useAdminWorkspace = () => {
     activeHotelOptions[0] ||
     null;
 
-  const highestHolidayUplift = seasonalRules.reduce(
-    (maxValue, rule) => Math.max(maxValue, Math.round((Number(rule.multiplier) - 1) * 100) || 0),
-    0,
-  );
+  const highestHolidayUplift = 0;
 
-  const getHolidayPercentForRoomType = (roomType) =>
-    seasonalRules.reduce((bestMatch, rule) => {
-      if (String(rule.hotelId) !== String(roomType.hotelId)) {
-        return bestMatch;
-      }
-
-      return Math.max(bestMatch, Math.round((Number(rule.multiplier) - 1) * 100) || 0);
-    }, 0);
+  const getHolidayPercentForRoomType = () => 0;
 
   const getPricingPreviewForRoomType = (roomType) => {
     const stayDates = generateStayDates(pricePreviewDraft.checkIn, pricePreviewDraft.checkOut);
     const basePrice = Number(roomType.basePrice) || 0;
-    const seasonalByHotel = seasonalRules
-      .filter((rule) => String(rule.hotelId) === String(roomType.hotelId))
-      .map((rule) => ({
-        startDate: normalizeDateKey(rule.startDate),
-        endDate: normalizeDateKey(rule.endDate),
-        multiplier: Number(rule.multiplier) || 1,
-      }));
-    const specificByRoomType = new Map(
-      specificDatePricing
-        .filter((rule) => String(rule.roomTypeId) === String(roomType.id))
-        .map((rule) => [normalizeDateKey(rule.specificDate), Number(rule.specificRate) || 0]),
-    );
-
-    const nightlyRates = stayDates.map((date) => {
-      const specificRate = specificByRoomType.get(date);
-      if (specificRate) {
-        return {
-          date,
-          rate: specificRate,
-          source: "single_day",
-        };
-      }
-
-      const seasonalRule = seasonalByHotel.find(
-        (rule) => date >= rule.startDate && date <= rule.endDate,
-      );
-
-      if (seasonalRule) {
-        return {
-          date,
-          rate: Math.round(basePrice * seasonalRule.multiplier),
-          source: "date_range",
-        };
-      }
-
-      return {
-        date,
-        rate: basePrice,
-        source: "base",
-      };
-    });
-
+    const nightlyRates = stayDates.map((date) => ({
+      date,
+      rate: basePrice,
+      source: "base",
+    }));
     const total = nightlyRates.reduce((sum, item) => sum + item.rate, 0);
     const averageNightlyRate = nightlyRates.length ? Math.round(total / nightlyRates.length) : basePrice;
 
@@ -334,8 +256,8 @@ export const useAdminWorkspace = () => {
       nightlyRates,
       total,
       averageNightlyRate,
-      hasSpecificDate: nightlyRates.some((item) => item.source === "single_day"),
-      hasSeasonal: nightlyRates.some((item) => item.source === "date_range"),
+      hasSpecificDate: false,
+      hasSeasonal: false,
     };
   };
 
@@ -344,9 +266,7 @@ export const useAdminWorkspace = () => {
 
     try {
       const hotelsResponse = await getAdminHotelsApi();
-      const nextHotels = Array.isArray(hotelsResponse)
-        ? hotelsResponse.map((hotel) => formatHotelOption(hotel))
-        : [];
+      const nextHotels = hotelsResponse.map((hotel) => formatHotelOption(hotel));
 
       setManagerHotels(nextHotels);
       setHotelsError("");
@@ -354,97 +274,44 @@ export const useAdminWorkspace = () => {
         if (nextHotels.some((hotel) => String(hotel.id) === String(currentValue))) {
           return currentValue;
         }
-        return nextHotels[0]?.id || "";
+        return String(nextHotels[0]?.id || "");
       });
-      setFacilityDraft((currentDraft) => ({
-        ...currentDraft,
-        hotelId:
-          nextHotels.some((hotel) => String(hotel.id) === String(currentDraft.hotelId))
-            ? currentDraft.hotelId
-            : nextHotels[0]?.id || "",
-      }));
       setRoomTypeDraft((currentDraft) => ({
         ...currentDraft,
         hotelId:
+          currentDraft.hotelId &&
           nextHotels.some((hotel) => String(hotel.id) === String(currentDraft.hotelId))
             ? currentDraft.hotelId
-            : nextHotels[0]?.id || "",
+            : String(nextHotels[0]?.id || ""),
+      }));
+      setFacilityDraft((currentDraft) => ({
+        ...currentDraft,
+        hotelId:
+          currentDraft.hotelId &&
+          nextHotels.some((hotel) => String(hotel.id) === String(currentDraft.hotelId))
+            ? currentDraft.hotelId
+            : String(nextHotels[0]?.id || ""),
       }));
     } catch (error) {
       const message = getErrorMessage(error, "Không tải được danh mục khách sạn.");
       setHotelsError(message);
-      setRoomTypesError(message);
-      setFacilitiesError(message);
-      setAmenitiesError(message);
       setManagerHotels([]);
     } finally {
       setIsHotelsLoading(false);
-      setHasLoadedManagerCatalogs(true);
-    }
-  }, []);
-
-  const refreshCountries = useCallback(async () => {
-    setIsCountriesLoading(true);
-
-    try {
-      const countriesResponse = await getAdminCountriesApi();
-      const nextCountries = Array.isArray(countriesResponse)
-        ? countriesResponse.map((country) => formatCountryOption(country))
-        : [];
-
-      setCountryOptions(nextCountries);
-      setCountriesError("");
-      setHotelDraft((currentDraft) => ({
-        ...currentDraft,
-        countryId:
-          currentDraft.countryId &&
-          nextCountries.some((country) => String(country.id) === String(currentDraft.countryId))
-            ? currentDraft.countryId
-            : nextCountries[0]?.id || "",
-      }));
-    } catch (error) {
-      const message = getErrorMessage(error, "Không tải được danh sách quốc gia.");
-      setCountriesError(message);
-      setHotelsError(message);
-      setCountryOptions([]);
-    } finally {
-      setIsCountriesLoading(false);
     }
   }, []);
 
   const refreshRoomTypes = useCallback(async () => {
-    const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
     setIsRoomTypesLoading(true);
 
     try {
+      const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
       const response = await getAdminRoomTypesApi();
-      const nextRoomTypes = Array.isArray(response)
-        ? response.map((roomType) => formatRoomTypeOption(roomType, hotelsById))
-        : [];
+      const nextRoomTypes = response.map((roomType) => formatRoomTypeOption(roomType, hotelsById));
 
       setRoomTypes(nextRoomTypes);
       setManagerRoomTypes(nextRoomTypes);
       setRoomTypesError("");
-      setPricingDraft((currentDraft) => {
-        const nextHotelId =
-          currentDraft.hotelId &&
-          nextRoomTypes.some((roomType) => String(roomType.hotelId) === String(currentDraft.hotelId))
-            ? currentDraft.hotelId
-            : managerHotels[0]?.id || "";
-        const availableRoomTypes = nextRoomTypes.filter(
-          (roomType) => String(roomType.hotelId) === String(nextHotelId),
-        );
-
-        return {
-          ...currentDraft,
-          hotelId: nextHotelId,
-          roomTypeId:
-            currentDraft.roomTypeId &&
-            availableRoomTypes.some((roomType) => String(roomType.id) === String(currentDraft.roomTypeId))
-              ? currentDraft.roomTypeId
-              : availableRoomTypes[0]?.id || "",
-        };
-      });
     } catch (error) {
       setRoomTypesError(getErrorMessage(error, "Không tải được danh sách loại phòng."));
       setRoomTypes([]);
@@ -455,362 +322,120 @@ export const useAdminWorkspace = () => {
   }, [managerHotels]);
 
   const refreshFacilities = useCallback(async () => {
-    const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
     setIsFacilitiesLoading(true);
 
     try {
+      const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
       const response = await getAdminFacilitiesApi();
-      const nextFacilities = Array.isArray(response)
-        ? response.map((facility) => formatFacilityRecord(facility, hotelsById))
-        : [];
-
-      setFacilities(nextFacilities);
+      setFacilities(response.map((facility) => formatFacilityRecord(facility, hotelsById)));
       setFacilitiesError("");
     } catch (error) {
-      setFacilitiesError(getErrorMessage(error, "Không tải được danh sách dịch vụ."));
+      setFacilitiesError(getErrorMessage(error, "Không tải được danh sách facilities."));
+      setFacilities([]);
     } finally {
       setIsFacilitiesLoading(false);
     }
   }, [managerHotels]);
 
   const refreshAmenities = useCallback(async () => {
-    const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
     setIsAmenitiesLoading(true);
 
     try {
       const response = await getAdminAmenitiesApi();
-      const nextAmenities = Array.isArray(response)
-        ? response.map((amenity) => formatAmenityRecord(amenity, hotelsById))
-        : [];
-
-      setAmenities(nextAmenities);
+      setAmenities(response.map((amenity) => formatAmenityRecord(amenity)));
       setAmenitiesError("");
     } catch (error) {
-      setAmenitiesError(getErrorMessage(error, "Không tải được danh sách tiện nghi."));
+      setAmenitiesError(getErrorMessage(error, "Không tải được danh sách amenities."));
+      setAmenities([]);
     } finally {
       setIsAmenitiesLoading(false);
     }
-  }, [managerHotels]);
+  }, []);
 
-  const refreshPricing = useCallback(async () => {
-    const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
-    const roomTypesById = new Map(managerRoomTypes.map((roomType) => [roomType.id, roomType]));
-    setIsPricingLoading(true);
+  const refreshPricingRules = useCallback(async () => {
+    setIsPricingRulesLoading(true);
 
     try {
-      const [seasonalResponse, specificResponse] = await Promise.all([
-        getAdminSeasonalPricingApi({ limit: 200 }),
-        getAdminSpecificDatePricingApi({ limit: 200 }),
-      ]);
+      const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
+      const roomTypesById = new Map(managerRoomTypes.map((roomType) => [roomType.id, roomType]));
+      const response = await getAdminPricingRulesApi({ limit: 500 });
+      const mappedRules = response.map((rule) => formatPricingRuleRecord(rule, hotelsById, roomTypesById));
 
-      setSeasonalRules(
-        Array.isArray(seasonalResponse)
-          ? seasonalResponse.map((record) => formatSeasonalPricingRecord(record, hotelsById))
-          : [],
-      );
-      setSpecificDatePricing(
-        Array.isArray(specificResponse)
-          ? specificResponse.map((record) =>
-              formatSpecificDatePricingRecord(record, roomTypesById, hotelsById),
-            )
-          : [],
-      );
-      setPricingError("");
+      setSeasonalRules(mappedRules.filter((rule) => rule.type === "date_range"));
+      setSpecificDatePricing(mappedRules.filter((rule) => rule.type === "single_day"));
+      setPricingRulesError("");
     } catch (error) {
-      setPricingError(getErrorMessage(error, "Không tải được pricing."));
+      setPricingRulesError(getErrorMessage(error, "Không tải được pricing rules."));
       setSeasonalRules([]);
       setSpecificDatePricing([]);
     } finally {
-      setIsPricingLoading(false);
+      setIsPricingRulesLoading(false);
     }
   }, [managerHotels, managerRoomTypes]);
 
-  const refreshSearchIndexStatus = useCallback(async () => {
-    const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setSearchIndexStatus(null);
-      return;
-    }
+  const refreshBookingHistory = useCallback(async () => {
+    setIsBookingHistoryLoading(true);
 
-    setIsSearchIndexLoading(true);
     try {
-      const response = await getAdminSearchIndexStatusApi(accessToken);
-      setSearchIndexStatus(response);
-      setSearchIndexError("");
+      const accessToken = getAdminAccessToken();
+      const response = await getAdminBookingHistoryApi(accessToken, { limit: 200 });
+      setBookingHistory(Array.isArray(response?.items) ? response.items : []);
+      setBookingHistoryError("");
     } catch (error) {
-      setSearchIndexError(getErrorMessage(error, "Không tải được trạng thái search index."));
-      setSearchIndexStatus(null);
+      setBookingHistory([]);
+      setBookingHistoryError(getErrorMessage(error, "Không tải được booking history."));
     } finally {
-      setIsSearchIndexLoading(false);
+      setIsBookingHistoryLoading(false);
     }
   }, []);
 
   useEffect(() => {
     void refreshHotels();
-    void refreshCountries();
-    void refreshSearchIndexStatus();
-  }, [refreshCountries, refreshHotels, refreshSearchIndexStatus]);
+    void refreshAmenities();
+    void refreshBookingHistory();
+  }, [refreshAmenities, refreshBookingHistory, refreshHotels]);
 
   useEffect(() => {
-    if (!hasLoadedManagerCatalogs) {
-      return;
-    }
-
     if (!managerHotels.length) {
+      setRoomTypes([]);
       setManagerRoomTypes([]);
       setFacilities([]);
+      setSeasonalRules([]);
+      setSpecificDatePricing([]);
       setIsRoomTypesLoading(false);
       setIsFacilitiesLoading(false);
+      setIsPricingRulesLoading(false);
       return;
     }
 
     void refreshRoomTypes();
     void refreshFacilities();
-  }, [hasLoadedManagerCatalogs, managerHotels, refreshFacilities, refreshRoomTypes]);
+  }, [managerHotels, refreshFacilities, refreshRoomTypes]);
 
   useEffect(() => {
-    if (!hasLoadedManagerCatalogs) {
-      return;
-    }
-
-    if (!managerHotels.length) {
-      setAmenities([]);
-      setIsAmenitiesLoading(false);
-      return;
-    }
-
-    void refreshAmenities();
-  }, [hasLoadedManagerCatalogs, managerHotels, refreshAmenities]);
-
-  useEffect(() => {
-    if (editingRoomTypeId || !selectedHotelId) {
-      return;
-    }
-
-    setRoomTypeDraft((currentDraft) => {
-      if (String(currentDraft.hotelId) === String(selectedHotelId)) {
-        return currentDraft;
-      }
-
-      return {
-        ...currentDraft,
-        hotelId: selectedHotelId,
-        amenities: [],
-        facilities: [],
-      };
-    });
-  }, [editingRoomTypeId, selectedHotelId]);
-
-  useEffect(() => {
-    if (editingFacilityId || !selectedHotelId) {
-      return;
-    }
-
-    setFacilityDraft((currentDraft) => {
-      if (String(currentDraft.hotelId) === String(selectedHotelId)) {
-        return currentDraft;
-      }
-
-      return {
-        ...currentDraft,
-        hotelId: selectedHotelId,
-      };
-    });
-  }, [editingFacilityId, selectedHotelId]);
-
-  useEffect(() => {
-    if (editingAmenityId || !selectedHotelId) {
-      return;
-    }
-
-    setAmenityDraft((currentDraft) => {
-      if (String(currentDraft.hotelId) === String(selectedHotelId)) {
-        return currentDraft;
-      }
-
-      return {
-        ...currentDraft,
-        hotelId: selectedHotelId,
-      };
-    });
-  }, [editingAmenityId, selectedHotelId]);
-
-  const resetCountryEditor = () => {
-    setEditingCountryId(null);
-    setCountryDraft(createCountryDraft());
-  };
-
-  const startCountryEdit = (country) => {
-    setEditingCountryId(country.id);
-    setCountryDraft({
-      code: country.code || "",
-      name: country.name || "",
-    });
-  };
-
-  const submitCountry = async (event) => {
-    event.preventDefault();
-
-    const normalized = {
-      country_code: String(countryDraft.code || "").trim().toUpperCase(),
-      country_name: String(countryDraft.name || "").trim(),
-    };
-
-    if (!normalized.country_code || !normalized.country_name) {
-      setCountriesError("Vui lòng nhập đầy đủ mã quốc gia và tên quốc gia.");
-      return;
-    }
-
-    const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setCountriesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
-    setIsCountrySubmitting(true);
-
-    try {
-      if (editingCountryId) {
-        await updateAdminCountryApi(editingCountryId, normalized, accessToken);
-      } else {
-        await createAdminCountryApi(normalized, accessToken);
-      }
-
-      await refreshCountries();
-      resetCountryEditor();
-    } catch (error) {
-      setCountriesError(getErrorMessage(error, "Không lưu được quốc gia."));
-    } finally {
-      setIsCountrySubmitting(false);
-    }
-  };
-
-  const deleteCountry = async (countryId) => {
-    const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setCountriesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
-    setIsCountrySubmitting(true);
-
-    try {
-      await deleteAdminCountryApi(countryId, accessToken);
-      await refreshCountries();
-
-      if (editingCountryId === countryId) {
-        resetCountryEditor();
-      }
-    } catch (error) {
-      setCountriesError(getErrorMessage(error, "Không xóa được quốc gia."));
-    } finally {
-      setIsCountrySubmitting(false);
-    }
-  };
-
-  const rebuildSearchIndex = async () => {
-    const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setSearchIndexError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
-    setIsSearchIndexSubmitting(true);
-    try {
-      await rebuildAdminSearchIndexApi(
-        {
-          horizonDays: Number(searchIndexDraft.horizonDays) || 180,
-        },
-        accessToken,
-      );
-      await refreshSearchIndexStatus();
-      setSearchIndexError("");
-    } catch (error) {
-      setSearchIndexError(getErrorMessage(error, "Không rebuild được search index."));
-    } finally {
-      setIsSearchIndexSubmitting(false);
-    }
-  };
-
-  const testSearchIndexQuery = async () => {
-    const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setSearchIndexError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
-    setIsSearchIndexSubmitting(true);
-    setIsSearchIndexLoading(true);
-    try {
-      const response = await testAdminSearchIndexQueryApi(
-        {
-          search: searchIndexDraft.search,
-          checkIn: searchIndexDraft.checkIn,
-          checkOut: searchIndexDraft.checkOut,
-          guests: searchIndexDraft.guests,
-          roomType: searchIndexDraft.roomType,
-          amenity: searchIndexDraft.amenity,
-          service: searchIndexDraft.service,
-          minPrice: searchIndexDraft.minPrice,
-          maxPrice: searchIndexDraft.maxPrice,
-          stars: searchIndexDraft.stars,
-          sortBy: searchIndexDraft.sortBy,
-        },
-        accessToken,
-      );
-      setSearchIndexResults(Array.isArray(response?.hotels) ? response.hotels : []);
-      setSearchIndexError("");
-    } catch (error) {
-      setSearchIndexError(getErrorMessage(error, "Không test được search query."));
-      setSearchIndexResults([]);
-    } finally {
-      setIsSearchIndexSubmitting(false);
-      setIsSearchIndexLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!hasLoadedManagerCatalogs) {
-      return;
-    }
-
     if (!managerHotels.length || !managerRoomTypes.length) {
-      setSeasonalRules([]);
-      setSpecificDatePricing([]);
-      setIsPricingLoading(false);
       return;
     }
 
-    void refreshPricing();
-  }, [hasLoadedManagerCatalogs, managerHotels, managerRoomTypes, refreshPricing]);
+    void refreshPricingRules();
+  }, [managerHotels, managerRoomTypes, refreshPricingRules]);
 
   useEffect(() => {
-    setPricingDraft((currentDraft) => {
-      if (editingPricingId) {
-        return currentDraft;
-      }
+    if (!managerHotels.length) return;
 
-      const nextHotelId = currentDraft.hotelId || selectedHotelId || managerHotels[0]?.id || "";
-      const matchedHotelId =
-        selectedHotelId &&
-        managerHotels.some((hotel) => String(hotel.id) === String(selectedHotelId))
-          ? selectedHotelId
-          : nextHotelId;
-      const availableRoomTypes = managerRoomTypes.filter(
-        (roomType) => String(roomType.hotelId) === String(matchedHotelId),
-      );
+    setPricingDraft((currentDraft) => {
+      const hotelId = currentDraft.hotelId || String(managerHotels[0]?.id || "");
+      const roomTypeId =
+        currentDraft.roomTypeId ||
+        String(managerRoomTypes.find((roomType) => String(roomType.hotelId) === String(hotelId))?.id || "");
 
       return {
         ...currentDraft,
-        hotelId: matchedHotelId,
-        roomTypeId:
-          currentDraft.roomTypeId &&
-          availableRoomTypes.some((roomType) => String(roomType.id) === String(currentDraft.roomTypeId))
-            ? currentDraft.roomTypeId
-            : availableRoomTypes[0]?.id || "",
+        hotelId,
+        roomTypeId,
       };
     });
-  }, [editingPricingId, managerHotels, managerRoomTypes, selectedHotelId]);
+  }, [managerHotels, managerRoomTypes]);
 
   const resetHotelEditor = () => {
     setEditingHotelId(null);
@@ -820,12 +445,17 @@ export const useAdminWorkspace = () => {
   const startHotelEdit = (hotel) => {
     setEditingHotelId(hotel.id);
     setHotelDraft({
-      countryId: hotel.countryId || "",
+      code: hotel.code,
       name: hotel.name,
-      cityAddress: hotel.cityAddress || hotel.city || "",
+      brand: hotel.brand,
+      country: hotel.country,
+      city: hotel.city,
+      district: hotel.district,
+      address: hotel.address,
       starRating: hotel.starRating,
-      timeZone: hotel.timeZone || "UTC",
-      description: hotel.description || "",
+      timeZone: hotel.timeZone,
+      totalRooms: hotel.totalRooms,
+      status: hotel.status,
     });
   };
 
@@ -833,36 +463,33 @@ export const useAdminWorkspace = () => {
     event.preventDefault();
 
     const normalized = {
-      country_id: Number(hotelDraft.countryId) || 0,
-      hotel_name: hotelDraft.name.trim(),
-      city_address: hotelDraft.cityAddress.trim(),
+      code: String(hotelDraft.code || "").trim() || ensureCode("hotel", hotelDraft.name),
+      name: String(hotelDraft.name || "").trim(),
+      brand: String(hotelDraft.brand || "Pullman").trim(),
+      country: String(hotelDraft.country || "").trim(),
+      city: String(hotelDraft.city || "").trim(),
+      district: String(hotelDraft.district || "").trim() || null,
+      address: String(hotelDraft.address || "").trim(),
       star_rating: Number(hotelDraft.starRating) || 0,
-      timezone: hotelDraft.timeZone.trim() || "UTC",
-      description: hotelDraft.description.trim() || null,
+      timezone: String(hotelDraft.timeZone || "Asia/Ho_Chi_Minh").trim(),
+      total_rooms: Number(hotelDraft.totalRooms) || 0,
+      status: String(hotelDraft.status || "active").trim(),
     };
 
-    if (
-      !normalized.country_id ||
-      !normalized.hotel_name ||
-      !normalized.city_address ||
-      !normalized.star_rating
-    ) {
-      setHotelsError("Vui lòng chọn quốc gia, nhập tên khách sạn, địa chỉ và star rating.");
+    if (!normalized.name || !normalized.country || !normalized.city || !normalized.address) {
+      setHotelsError("Vui lòng nhập tên khách sạn, quốc gia, thành phố và địa chỉ.");
       return;
     }
 
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setHotelsError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsHotelSubmitting(true);
 
     try {
-      await (editingHotelId
-        ? await updateAdminHotelApi(editingHotelId, normalized, accessToken)
-        : await createAdminHotelApi(normalized, accessToken));
+      if (editingHotelId) {
+        await updateAdminHotelApi(editingHotelId, normalized, accessToken);
+      } else {
+        await createAdminHotelApi(normalized, accessToken);
+      }
 
       await refreshHotels();
       resetHotelEditor();
@@ -875,11 +502,6 @@ export const useAdminWorkspace = () => {
 
   const deleteHotel = async (hotelId) => {
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setHotelsError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsHotelSubmitting(true);
 
     try {
@@ -897,23 +519,28 @@ export const useAdminWorkspace = () => {
   };
 
   const resetRoomTypeEditor = () => {
-    const defaultHotelId = selectedHotelId || managerHotels[0]?.id || "";
     setEditingRoomTypeId(null);
     setRoomTypeDraft({
       ...createRoomTypeDraft(),
-      hotelId: defaultHotelId,
+      hotelId: String(selectedHotelId || managerHotels[0]?.id || ""),
     });
   };
 
   const startRoomTypeEdit = (roomType) => {
     setEditingRoomTypeId(roomType.id);
     setRoomTypeDraft({
-      hotelId: roomType.hotelId,
+      hotelId: String(roomType.hotelId),
+      code: roomType.code,
       name: roomType.name,
       basePrice: roomType.basePrice,
-      servicesText: roomType.servicesText || "",
-      amenities: [...(roomType.amenityIds || [])],
-      facilities: [...(roomType.facilityIds || [])],
+      description: roomType.description,
+      roomSize: roomType.roomSize,
+      maxAdults: roomType.maxAdults,
+      maxChildren: roomType.maxChildren,
+      bedType: roomType.bedType,
+      totalInventory: roomType.totalInventory,
+      amenities: [...(roomType.amenities || [])],
+      facilities: [...(roomType.facilities || [])],
     });
   };
 
@@ -921,46 +548,41 @@ export const useAdminWorkspace = () => {
     event.preventDefault();
 
     const normalized = {
-      hotelId: roomTypeDraft.hotelId,
-      name: roomTypeDraft.name.trim(),
-      basePrice: Number(roomTypeDraft.basePrice) || 0,
-      servicesText: roomTypeDraft.servicesText.trim(),
-      amenityIds: roomTypeDraft.amenities.map((amenityId) => Number(amenityId)),
-      facilities: roomTypeDraft.facilities,
+      hotel_id: String(roomTypeDraft.hotelId || "").trim(),
+      code: String(roomTypeDraft.code || "").trim() || ensureCode("room", roomTypeDraft.name),
+      name: String(roomTypeDraft.name || "").trim(),
+      description: String(roomTypeDraft.description || "").trim() || null,
+      room_size: Number(roomTypeDraft.roomSize) || 0,
+      max_adults: Number(roomTypeDraft.maxAdults) || 0,
+      max_children: Number(roomTypeDraft.maxChildren) || 0,
+      bed_type: String(roomTypeDraft.bedType || "").trim() || null,
+      smoking_allowed: false,
+      base_price: Number(roomTypeDraft.basePrice) || 0,
+      total_inventory: Number(roomTypeDraft.totalInventory) || 0,
+      amenity_ids: Array.isArray(roomTypeDraft.amenities)
+        ? roomTypeDraft.amenities.map((item) => String(item))
+        : [],
+      facility_ids: Array.isArray(roomTypeDraft.facilities)
+        ? roomTypeDraft.facilities.map((item) => String(item))
+        : [],
     };
 
-    if (!normalized.hotelId || !normalized.name) {
+    if (!normalized.hotel_id || !normalized.name) {
       setRoomTypesError("Vui lòng chọn khách sạn và nhập tên loại phòng.");
       return;
     }
 
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setRoomTypesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsRoomTypeSubmitting(true);
 
     try {
-      const payload = {
-        hotel_id: Number(normalized.hotelId),
-        room_type_name: normalized.name,
-        room_type_base_price: normalized.basePrice,
-        room_type_services: normalized.servicesText || null,
-        facility_ids: normalized.facilities.map((facilityId) => Number(facilityId)),
-        amenity_ids: normalized.amenityIds,
-      };
-
       if (editingRoomTypeId) {
-        await updateAdminRoomTypeApi(editingRoomTypeId, payload, accessToken);
+        await updateAdminRoomTypeApi(editingRoomTypeId, normalized, accessToken);
       } else {
-        await createAdminRoomTypeApi(payload, accessToken);
+        await createAdminRoomTypeApi(normalized, accessToken);
       }
 
-      setSelectedHotelId(String(normalized.hotelId));
       await refreshRoomTypes();
-      await refreshAmenities();
       resetRoomTypeEditor();
     } catch (error) {
       setRoomTypesError(getErrorMessage(error, "Không lưu được loại phòng."));
@@ -971,17 +593,11 @@ export const useAdminWorkspace = () => {
 
   const deleteRoomType = async (roomTypeId) => {
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setRoomTypesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsRoomTypeSubmitting(true);
 
     try {
       await deleteAdminRoomTypeApi(roomTypeId, accessToken);
       await refreshRoomTypes();
-      await refreshAmenities();
 
       if (editingRoomTypeId === roomTypeId) {
         resetRoomTypeEditor();
@@ -991,18 +607,6 @@ export const useAdminWorkspace = () => {
     } finally {
       setIsRoomTypeSubmitting(false);
     }
-  };
-
-  const toggleDraftCollectionValue = (field, value) => {
-    setRoomTypeDraft((currentDraft) => {
-      const hasValue = currentDraft[field].includes(value);
-      return {
-        ...currentDraft,
-        [field]: hasValue
-          ? currentDraft[field].filter((item) => item !== value)
-          : [...currentDraft[field], value],
-      };
-    });
   };
 
   const updateRoomTypePrice = (roomTypeId, nextValue) => {
@@ -1021,17 +625,20 @@ export const useAdminWorkspace = () => {
     setEditingFacilityId(null);
     setFacilityDraft({
       ...createFacilityDraft(),
-      hotelId: managerHotels[0]?.id || "",
+      hotelId: String(selectedHotelId || managerHotels[0]?.id || ""),
     });
   };
 
   const startFacilityEdit = (facility) => {
     setEditingFacilityId(facility.id);
     setFacilityDraft({
-      hotelId: facility.hotelId,
+      hotelId: String(facility.hotelId),
+      code: facility.code,
       name: facility.name,
       price: facility.price,
       pricingType: facility.pricingType,
+      facilityType: facility.facilityType,
+      description: facility.description,
     });
   };
 
@@ -1039,43 +646,35 @@ export const useAdminWorkspace = () => {
     event.preventDefault();
 
     const normalized = {
-      hotelId: facilityDraft.hotelId,
-      name: facilityDraft.name.trim(),
-      price: Number(facilityDraft.price) || 0,
-      pricingType: String(facilityDraft.pricingType || "per_use").trim(),
+      hotel_id: String(facilityDraft.hotelId || "").trim(),
+      code: String(facilityDraft.code || "").trim() || ensureCode("facility", facilityDraft.name),
+      name: String(facilityDraft.name || "").trim(),
+      description: String(facilityDraft.description || "").trim() || null,
+      facility_type: String(facilityDraft.facilityType || "service").trim(),
+      price_type: String(facilityDraft.pricingType || "per_use").trim(),
+      base_price: Number(facilityDraft.price) || 0,
+      is_active: true,
     };
 
-    if (!normalized.hotelId || !normalized.name) {
-      setFacilitiesError("Vui lòng chọn khách sạn và nhập tên dịch vụ.");
+    if (!normalized.hotel_id || !normalized.name) {
+      setFacilitiesError("Vui lòng chọn khách sạn và nhập tên facility.");
       return;
     }
 
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setFacilitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsFacilitySubmitting(true);
 
     try {
-      const payload = {
-        hotel_id: normalized.hotelId,
-        service_name: normalized.name,
-        service_price: normalized.price,
-        pricing_type: normalized.pricingType,
-      };
-
       if (editingFacilityId) {
-        await updateAdminFacilityApi(editingFacilityId, payload, accessToken);
+        await updateAdminFacilityApi(editingFacilityId, normalized, accessToken);
       } else {
-        await createAdminFacilityApi(payload, accessToken);
+        await createAdminFacilityApi(normalized, accessToken);
       }
 
       await refreshFacilities();
       resetFacilityEditor();
     } catch (error) {
-      setFacilitiesError(getErrorMessage(error, "Không lưu được dịch vụ."));
+      setFacilitiesError(getErrorMessage(error, "Không lưu được facility."));
     } finally {
       setIsFacilitySubmitting(false);
     }
@@ -1083,30 +682,17 @@ export const useAdminWorkspace = () => {
 
   const deleteFacility = async (facilityId) => {
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setFacilitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsFacilitySubmitting(true);
 
     try {
       await deleteAdminFacilityApi(facilityId, accessToken);
       await refreshFacilities();
-      await refreshRoomTypes();
-
-      setRoomTypes((currentRoomTypes) =>
-        currentRoomTypes.map((roomType) => ({
-          ...roomType,
-          facilities: roomType.facilities.filter((facility) => facility !== facilityId),
-        })),
-      );
 
       if (editingFacilityId === facilityId) {
         resetFacilityEditor();
       }
     } catch (error) {
-      setFacilitiesError(getErrorMessage(error, "Không xóa được dịch vụ."));
+      setFacilitiesError(getErrorMessage(error, "Không xóa được facility."));
     } finally {
       setIsFacilitySubmitting(false);
     }
@@ -1114,18 +700,16 @@ export const useAdminWorkspace = () => {
 
   const resetAmenityEditor = () => {
     setEditingAmenityId(null);
-    setAmenityDraft({
-      ...createAmenityDraft(),
-      hotelId: selectedHotelId || managerHotels[0]?.id || "",
-    });
+    setAmenityDraft(createAmenityDraft());
   };
 
   const startAmenityEdit = (amenity) => {
     setEditingAmenityId(amenity.id);
     setAmenityDraft({
-      hotelId: amenity.hotelId,
+      code: amenity.code,
       name: amenity.name,
-      description: amenity.description || "",
+      icon: amenity.icon,
+      description: amenity.description,
     });
   };
 
@@ -1133,43 +717,31 @@ export const useAdminWorkspace = () => {
     event.preventDefault();
 
     const normalized = {
-      hotelId: amenityDraft.hotelId,
-      name: amenityDraft.name.trim(),
-      description: amenityDraft.description.trim(),
+      code: String(amenityDraft.code || "").trim() || ensureCode("amenity", amenityDraft.name),
+      name: String(amenityDraft.name || "").trim(),
+      icon: String(amenityDraft.icon || "").trim() || null,
+      description: String(amenityDraft.description || "").trim() || null,
     };
 
-    if (!normalized.hotelId || !normalized.name) {
-      setAmenitiesError("Vui lòng chọn khách sạn và nhập tên tiện nghi.");
+    if (!normalized.name) {
+      setAmenitiesError("Vui lòng nhập tên amenity.");
       return;
     }
 
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setAmenitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsAmenitySubmitting(true);
 
     try {
-      const payload = {
-        hotel_id: Number(normalized.hotelId),
-        amenity_name: normalized.name,
-        amenity_description: normalized.description || null,
-      };
-
       if (editingAmenityId) {
-        await updateAdminAmenityApi(editingAmenityId, payload, accessToken);
+        await updateAdminAmenityApi(editingAmenityId, normalized, accessToken);
       } else {
-        await createAdminAmenityApi(payload, accessToken);
+        await createAdminAmenityApi(normalized, accessToken);
       }
 
-      setSelectedHotelId(String(normalized.hotelId));
-      await refreshRoomTypes();
       await refreshAmenities();
       resetAmenityEditor();
     } catch (error) {
-      setAmenitiesError(getErrorMessage(error, "Không lưu được tiện nghi."));
+      setAmenitiesError(getErrorMessage(error, "Không lưu được amenity."));
     } finally {
       setIsAmenitySubmitting(false);
     }
@@ -1177,23 +749,17 @@ export const useAdminWorkspace = () => {
 
   const deleteAmenity = async (amenityId) => {
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setAmenitiesError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
     setIsAmenitySubmitting(true);
 
     try {
       await deleteAdminAmenityApi(amenityId, accessToken);
       await refreshAmenities();
-      await refreshRoomTypes();
 
       if (editingAmenityId === amenityId) {
         resetAmenityEditor();
       }
     } catch (error) {
-      setAmenitiesError(getErrorMessage(error, "Không xóa được tiện nghi."));
+      setAmenitiesError(getErrorMessage(error, "Không xóa được amenity."));
     } finally {
       setIsAmenitySubmitting(false);
     }
@@ -1201,140 +767,120 @@ export const useAdminWorkspace = () => {
 
   const resetPricingEditor = () => {
     setEditingPricingId(null);
-    setEditingPricingType(null);
-    setPricingDraft({
+    setEditingPricingType("");
+    setPricingDraft((currentDraft) => ({
       ...createPricingDraft(),
-      hotelId: selectedHotelId || managerHotels[0]?.id || "",
+      hotelId: currentDraft.hotelId || String(selectedHotelId || managerHotels[0]?.id || ""),
       roomTypeId:
-        filteredManagerRoomTypes[0]?.id ||
-        managerRoomTypes.find((roomType) => String(roomType.hotelId) === String(selectedHotelId))?.id ||
-        managerRoomTypes[0]?.id ||
-        "",
-    });
+        managerRoomTypes.find(
+          (roomType) => String(roomType.hotelId) === String(currentDraft.hotelId || selectedHotelId),
+        )?.id || "",
+    }));
   };
 
-  const startPricingEdit = (pricing) => {
-    setEditingPricingId(pricing.id);
-    setEditingPricingType(pricing.type);
-
-    if (pricing.type === "date_range") {
-      setPricingDraft({
-        type: "date_range",
-        hotelId: pricing.hotelId,
-        roomTypeId: "",
-        startDate: pricing.startDate,
-        endDate: pricing.endDate,
-        specificDate: "",
-        multiplier: pricing.multiplier,
-        specificRate: 2500000,
-        specificNote: "",
-      });
-      return;
-    }
-
+  const startPricingEdit = (rule) => {
+    setEditingPricingId(rule.id);
+    setEditingPricingType(rule.type);
     setPricingDraft({
-      type: "single_day",
-      hotelId: pricing.hotelId,
-      roomTypeId: pricing.roomTypeId,
-      startDate: "",
-      endDate: "",
-      specificDate: pricing.specificDate,
-      multiplier: 1.1,
-      specificRate: pricing.specificRate,
-      specificNote: pricing.specificNote || "",
+      type: rule.type,
+      hotelId: String(rule.hotelId || ""),
+      roomTypeId: String(rule.roomTypeId || ""),
+      specificDate: rule.specificDate || "",
+      specificPercent: Number(rule.specificPercent) || 0,
+      specificDirection: rule.specificDirection || "increase",
+      specificNote: rule.specificNote || "",
+      startDate: rule.startDate || "",
+      endDate: rule.endDate || "",
+      multiplier: Number(rule.multiplier) || 1,
+      priority: Number(rule.priority) || 100,
+      active: rule.active !== false,
     });
   };
 
   const submitPricing = async (event) => {
     event.preventDefault();
+    setPricingRulesError("");
 
-    const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setPricingError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
+    const isSingleDay = pricingDraft.type === "single_day";
+    const normalized = {
+      hotel_id: String(pricingDraft.hotelId || "").trim(),
+      room_type_id: String(pricingDraft.roomTypeId || "").trim(),
+      type: pricingDraft.type,
+      priority: Number(pricingDraft.priority) || 100,
+      active: pricingDraft.active !== false,
+      note: String(pricingDraft.specificNote || "").trim() || null,
+      conditions: isSingleDay
+        ? { date: String(pricingDraft.specificDate || "").trim() }
+        : {
+            start_date: String(pricingDraft.startDate || "").trim(),
+            end_date: String(pricingDraft.endDate || "").trim(),
+          },
+      actions: isSingleDay
+        ? pricingDraft.specificDirection === "decrease"
+          ? { decrease_percent: Number(pricingDraft.specificPercent) || 0 }
+          : { increase_percent: Number(pricingDraft.specificPercent) || 0 }
+        : { multiplier: Number(pricingDraft.multiplier) || 1 },
+    };
+
+    if (!normalized.hotel_id || !normalized.room_type_id) {
+      setPricingRulesError("Vui lòng chọn khách sạn và room type.");
       return;
     }
 
-    setIsPricingSubmitting(true);
+    if (isSingleDay && !normalized.conditions.date) {
+      setPricingRulesError("Vui lòng chọn ngày áp dụng.");
+      return;
+    }
+
+    if (isSingleDay && (!Number.isFinite(Number(pricingDraft.specificPercent)) || Number(pricingDraft.specificPercent) <= 0)) {
+      setPricingRulesError("Vui lòng nhập phần trăm thay đổi lớn hơn 0 cho rule đơn ngày.");
+      return;
+    }
+
+    if (!isSingleDay && (!normalized.conditions.start_date || !normalized.conditions.end_date)) {
+      setPricingRulesError("Vui lòng chọn ngày bắt đầu và kết thúc.");
+      return;
+    }
+
+    const accessToken = getAdminAccessToken();
+    setIsPricingRuleSubmitting(true);
 
     try {
-      if (pricingDraft.type === "date_range") {
-        const payload = {
-          hotel_id: Number(pricingDraft.hotelId),
-          start_date: pricingDraft.startDate,
-          end_date: pricingDraft.endDate,
-          multiplier: Number(pricingDraft.multiplier),
-        };
-
-        if (!payload.hotel_id || !payload.start_date || !payload.end_date || !payload.multiplier) {
-          setPricingError("Vui lòng chọn khách sạn, ngày bắt đầu, ngày kết thúc và multiplier.");
-          return;
-        }
-
-        if (editingPricingId && editingPricingType === "date_range") {
-          await updateAdminSeasonalPricingApi(editingPricingId, payload, accessToken);
-        } else {
-          await createAdminSeasonalPricingApi(payload, accessToken);
-        }
+      if (editingPricingId) {
+        await updateAdminPricingRuleApi(editingPricingId, normalized, accessToken);
       } else {
-        const payload = {
-          room_type_id: Number(pricingDraft.roomTypeId),
-          specific_date: pricingDraft.specificDate,
-          specific_rate: Number(pricingDraft.specificRate),
-          specific_note: pricingDraft.specificNote.trim() || null,
-        };
-
-        if (!payload.room_type_id || !payload.specific_date || !payload.specific_rate) {
-          setPricingError("Vui lòng chọn room type, ngày áp dụng và giá cố định.");
-          return;
-        }
-
-        if (editingPricingId && editingPricingType === "single_day") {
-          await updateAdminSpecificDatePricingApi(editingPricingId, payload, accessToken);
-        } else {
-          await createAdminSpecificDatePricingApi(payload, accessToken);
-        }
+        await createAdminPricingRuleApi(normalized, accessToken);
       }
 
-      await refreshPricing();
+      await refreshPricingRules();
       resetPricingEditor();
     } catch (error) {
-      setPricingError(getErrorMessage(error, "Không lưu được pricing."));
+      setPricingRulesError(getErrorMessage(error, "Không lưu được pricing rule."));
     } finally {
-      setIsPricingSubmitting(false);
+      setIsPricingRuleSubmitting(false);
     }
   };
 
-  const deletePricing = async (pricingId, pricingType) => {
+  const deletePricing = async (pricingRuleId) => {
     const accessToken = getAdminAccessToken();
-    if (!accessToken) {
-      setPricingError("Phiên đăng nhập admin đã hết. Vui lòng đăng nhập lại.");
-      return;
-    }
-
-    setIsPricingSubmitting(true);
+    setIsPricingRuleSubmitting(true);
 
     try {
-      if (pricingType === "date_range") {
-        await deleteAdminSeasonalPricingApi(pricingId, accessToken);
-      } else {
-        await deleteAdminSpecificDatePricingApi(pricingId, accessToken);
-      }
+      await deleteAdminPricingRuleApi(pricingRuleId, accessToken);
+      await refreshPricingRules();
 
-      await refreshPricing();
-
-      if (editingPricingId === pricingId && editingPricingType === pricingType) {
+      if (editingPricingId === pricingRuleId) {
         resetPricingEditor();
       }
     } catch (error) {
-      setPricingError(getErrorMessage(error, "Không xóa được pricing."));
+      setPricingRulesError(getErrorMessage(error, "Không xóa được pricing rule."));
     } finally {
-      setIsPricingSubmitting(false);
+      setIsPricingRuleSubmitting(false);
     }
   };
 
   return {
     hotelOptions: activeHotelOptions,
-    countryOptions,
     roomTypes,
     facilities,
     amenities,
@@ -1349,31 +895,13 @@ export const useAdminWorkspace = () => {
     filteredManagerRoomTypes,
     filteredSeasonalRules,
     filteredSpecificDatePricing,
+    filteredBookingHistory,
     selectedHotel,
     highestHolidayUplift,
     getHolidayPercentForRoomType,
     getPricingPreviewForRoomType,
     pricePreviewDraft,
     setPricePreviewDraft,
-    countryDraft,
-    setCountryDraft,
-    editingCountryId,
-    startCountryEdit,
-    submitCountry,
-    deleteCountry,
-    resetCountryEditor,
-    isCountriesLoading,
-    isCountrySubmitting,
-    countriesError,
-    searchIndexStatus,
-    searchIndexDraft,
-    setSearchIndexDraft,
-    searchIndexResults,
-    rebuildSearchIndex,
-    testSearchIndexQuery,
-    isSearchIndexLoading,
-    isSearchIndexSubmitting,
-    searchIndexError,
     hotelDraft,
     setHotelDraft,
     editingHotelId,
@@ -1390,7 +918,6 @@ export const useAdminWorkspace = () => {
     startRoomTypeEdit,
     submitRoomType,
     deleteRoomType,
-    toggleDraftCollectionValue,
     updateRoomTypePrice,
     resetRoomTypeEditor,
     isRoomTypesLoading,
@@ -1420,13 +947,16 @@ export const useAdminWorkspace = () => {
     setPricingDraft,
     editingPricingId,
     editingPricingType,
-    startPricingEdit,
     submitPricing,
+    startPricingEdit,
     deletePricing,
     resetPricingEditor,
-    isPricingLoading,
-    isPricingSubmitting,
-    pricingError,
+    isPricingRulesLoading,
+    isPricingRuleSubmitting,
+    pricingRulesError,
+    bookingHistory,
+    isBookingHistoryLoading,
+    bookingHistoryError,
   };
 };
 

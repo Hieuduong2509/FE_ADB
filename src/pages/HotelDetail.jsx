@@ -212,7 +212,7 @@ const HotelDetail = () => {
             </h2>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {selectedRoomType?.amenities.map((amenity) => (
+              {(selectedRoomType?.amenities || []).map((amenity) => (
                 <div
                   key={amenity}
                   className="rounded-[22px] border border-[#ece2d3] bg-[#fffcf7] px-4 py-4 text-sm font-medium text-gray-700"

@@ -9,7 +9,6 @@ const RoomTypesSection = ({
   submitRoomType,
   editingRoomTypeId,
   resetRoomTypeEditor,
-  toggleDraftCollectionValue,
   filteredRoomTypes,
   startRoomTypeEdit,
   deleteRoomType,
@@ -20,9 +19,28 @@ const RoomTypesSection = ({
   const availableFacilities = facilities.filter(
     (facility) => String(facility.hotelId) === String(roomTypeDraft.hotelId),
   );
-  const availableAmenities = amenities.filter(
-    (amenity) => String(amenity.hotelId) === String(roomTypeDraft.hotelId),
-  );
+  const selectedAmenityIds = Array.isArray(roomTypeDraft.amenities) ? roomTypeDraft.amenities.map(String) : [];
+  const selectedFacilityIds = Array.isArray(roomTypeDraft.facilities)
+    ? roomTypeDraft.facilities.map(String)
+    : [];
+
+  const amenityMap = new Map(amenities.map((amenity) => [String(amenity.id), amenity]));
+  const facilityMap = new Map(facilities.map((facility) => [String(facility.id), facility]));
+
+  const toggleDraftValue = (field, value) => {
+    setRoomTypeDraft((currentDraft) => {
+      const currentValues = Array.isArray(currentDraft[field]) ? currentDraft[field].map(String) : [];
+      const normalizedValue = String(value);
+      const nextValues = currentValues.includes(normalizedValue)
+        ? currentValues.filter((item) => item !== normalizedValue)
+        : [...currentValues, normalizedValue];
+
+      return {
+        ...currentDraft,
+        [field]: nextValues,
+      };
+    });
+  };
 
   return (
     <section
@@ -35,7 +53,7 @@ const RoomTypesSection = ({
             Room type manager
           </div>
           <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-            CRUD loại phòng và gắn amenities, facilities trực tiếp
+            CRUD loại phòng theo schema backend hiện tại
           </h2>
 
           <form onSubmit={submitRoomType} className="mt-6 space-y-4">
@@ -63,33 +81,139 @@ const RoomTypesSection = ({
               </select>
             </label>
 
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Mã loại phòng</span>
+                <input
+                  type="text"
+                  value={roomTypeDraft.code}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      code: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Tên loại phòng</span>
+                <input
+                  type="text"
+                  value={roomTypeDraft.name}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      name: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  placeholder="Ví dụ: Deluxe Ocean Panorama"
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Base price</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={roomTypeDraft.basePrice}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      basePrice: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Diện tích (m2)</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={roomTypeDraft.roomSize}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      roomSize: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Người lớn</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={roomTypeDraft.maxAdults}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      maxAdults: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Trẻ em</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={roomTypeDraft.maxChildren}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      maxChildren: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-gray-600">Inventory</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={roomTypeDraft.totalInventory}
+                  onChange={(event) =>
+                    setRoomTypeDraft((currentDraft) => ({
+                      ...currentDraft,
+                      totalInventory: event.target.value,
+                    }))
+                  }
+                  disabled={isSubmitting}
+                  className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                />
+              </label>
+            </div>
+
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Tên loại phòng</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Loại giường</span>
               <input
                 type="text"
-                value={roomTypeDraft.name}
+                value={roomTypeDraft.bedType}
                 onChange={(event) =>
                   setRoomTypeDraft((currentDraft) => ({
                     ...currentDraft,
-                    name: event.target.value,
-                  }))
-                }
-                disabled={isSubmitting}
-                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-                placeholder="Ví dụ: Deluxe Ocean Panorama"
-              />
-            </label>
-
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Base price</span>
-              <input
-                type="number"
-                min="0"
-                value={roomTypeDraft.basePrice}
-                onChange={(event) =>
-                  setRoomTypeDraft((currentDraft) => ({
-                    ...currentDraft,
-                    basePrice: event.target.value,
+                    bedType: event.target.value,
                   }))
                 }
                 disabled={isSubmitting}
@@ -97,83 +221,79 @@ const RoomTypesSection = ({
               />
             </label>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">
-                Mô tả / service text
-              </span>
-              <textarea
-                rows="3"
-                value={roomTypeDraft.servicesText}
-                onChange={(event) =>
-                  setRoomTypeDraft((currentDraft) => ({
-                    ...currentDraft,
-                    servicesText: event.target.value,
-                  }))
-                }
-                disabled={isSubmitting}
-                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-              />
-            </label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-[24px] border border-[#e7dcc8] bg-[#fcfaf6] p-4">
+                <div className="mb-3 text-sm font-medium text-gray-600">Amenities gắn vào phòng</div>
+                <div className="flex flex-wrap gap-2">
+                  {amenities.map((amenity) => {
+                    const isSelected = selectedAmenityIds.includes(String(amenity.id));
 
-            <div className="space-y-3">
-              <div>
-                <div className="text-sm font-medium text-gray-600">Gắn amenities</div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {availableAmenities.map((amenity) => {
-                    const selected = roomTypeDraft.amenities.includes(amenity.id);
                     return (
                       <button
                         key={amenity.id}
                         type="button"
-                        onClick={() => toggleDraftCollectionValue("amenities", amenity.id)}
+                        onClick={() => toggleDraftValue("amenities", amenity.id)}
                         disabled={isSubmitting}
-                        className={`rounded-full px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                          selected
-                            ? "bg-[#17363f] text-white"
-                            : "border border-[#e7dcc8] bg-[#fcfaf6] text-textPrimary hover:bg-[#f5ecde]"
+                        className={`rounded-full border px-3 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          isSelected
+                            ? "border-[#17363f] bg-[#17363f] text-white"
+                            : "border-[#d8ccb8] bg-white text-textPrimary hover:bg-[#faf4ea]"
                         }`}
                       >
                         {amenity.name}
                       </button>
                     );
                   })}
+                  {!amenities.length ? (
+                    <div className="text-sm text-gray-500">Chưa có amenity nào trong catalog.</div>
+                  ) : null}
                 </div>
-                {!availableAmenities.length ? (
-                  <div className="mt-3 text-sm text-gray-500">
-                    Khách sạn này chưa có amenity nào để gắn.
-                  </div>
-                ) : null}
               </div>
 
-              <div>
-                <div className="text-sm font-medium text-gray-600">Gắn facilities</div>
-                <div className="mt-3 flex flex-wrap gap-2">
+              <div className="rounded-[24px] border border-[#e7dcc8] bg-[#fcfaf6] p-4">
+                <div className="mb-3 text-sm font-medium text-gray-600">Facilities áp cho room type</div>
+                <div className="flex flex-wrap gap-2">
                   {availableFacilities.map((facility) => {
-                    const selected = roomTypeDraft.facilities.includes(facility.id);
+                    const isSelected = selectedFacilityIds.includes(String(facility.id));
+
                     return (
                       <button
                         key={facility.id}
                         type="button"
-                        onClick={() => toggleDraftCollectionValue("facilities", facility.id)}
+                        onClick={() => toggleDraftValue("facilities", facility.id)}
                         disabled={isSubmitting}
-                        className={`rounded-full px-4 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${
-                          selected
-                            ? "bg-[#c5811c] text-white"
-                            : "border border-[#e7dcc8] bg-[#fcfaf6] text-textPrimary hover:bg-[#f5ecde]"
+                        className={`rounded-full border px-3 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                          isSelected
+                            ? "border-[#8b5e34] bg-[#8b5e34] text-white"
+                            : "border-[#d8ccb8] bg-white text-textPrimary hover:bg-[#faf4ea]"
                         }`}
                       >
                         {facility.name}
                       </button>
                     );
                   })}
+                  {!availableFacilities.length ? (
+                    <div className="text-sm text-gray-500">Hotel này chưa có facility nào để gắn.</div>
+                  ) : null}
                 </div>
-                {!availableFacilities.length ? (
-                  <div className="mt-3 text-sm text-gray-500">
-                    Khách sạn này chưa có facility nào để gắn.
-                  </div>
-                ) : null}
               </div>
             </div>
+
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Mô tả</span>
+              <textarea
+                rows="3"
+                value={roomTypeDraft.description}
+                onChange={(event) =>
+                  setRoomTypeDraft((currentDraft) => ({
+                    ...currentDraft,
+                    description: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
 
             {errorMessage ? (
               <div className="rounded-2xl border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
@@ -239,41 +359,61 @@ const RoomTypesSection = ({
                 </div>
               </div>
 
-              {roomType.servicesText ? (
-                <p className="mt-4 text-sm leading-7 text-gray-600">{roomType.servicesText}</p>
+              {roomType.description ? (
+                <p className="mt-4 text-sm leading-7 text-gray-600">{roomType.description}</p>
               ) : null}
 
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="rounded-[22px] bg-[#f7efe2] p-4">
-                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Amenities</div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {roomType.amenities.map((amenity) => (
-                      <span
-                        key={`${roomType.id}-${amenity.id}`}
-                        className="rounded-full bg-white px-3 py-2 text-sm text-textPrimary"
-                      >
-                        {amenity.name}
-                      </span>
-                    ))}
+                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Capacity</div>
+                  <div className="mt-3 text-sm text-textPrimary">
+                    {roomType.maxAdults} người lớn · {roomType.maxChildren} trẻ em
                   </div>
                 </div>
 
                 <div className="rounded-[22px] bg-[#17363f] p-4 text-white">
                   <div className="text-xs uppercase tracking-[0.18em] text-[#f6ddb0]">
-                    Facilities
+                    Room info
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {roomType.facilities.map((facility) => (
-                      <span
-                        key={`${roomType.id}-${facility.id}`}
-                        className="rounded-full bg-white/10 px-3 py-2 text-sm"
-                      >
-                        {facility.name}
-                      </span>
-                    ))}
+                  <div className="mt-3 space-y-2 text-sm text-white/84">
+                    <div>{roomType.roomSize || 0} m2</div>
+                    <div>{roomType.bedType || "Chưa khai báo giường"}</div>
+                    <div>Inventory: {roomType.totalInventory || 0}</div>
                   </div>
                 </div>
               </div>
+
+              {roomType.amenities.length ? (
+                <div className="mt-4">
+                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Amenities</div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {roomType.amenities.map((amenityId) => (
+                      <div
+                        key={`${roomType.id}-amenity-${amenityId}`}
+                        className="rounded-full bg-[#f5ecde] px-3 py-2 text-sm text-textPrimary"
+                      >
+                        {amenityMap.get(String(amenityId))?.name || amenityId}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {roomType.facilities.length ? (
+                <div className="mt-4">
+                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Facilities</div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {roomType.facilities.map((facilityId) => (
+                      <div
+                        key={`${roomType.id}-facility-${facilityId}`}
+                        className="rounded-full bg-[#17363f] px-3 py-2 text-sm text-white"
+                      >
+                        {facilityMap.get(String(facilityId))?.name || facilityId}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               <div className="mt-4 flex flex-wrap gap-3">
                 <button
