@@ -33,6 +33,25 @@ const Booking = () => {
   const [selectedRoomTypeId, setSelectedRoomTypeId] = useState(searchParams.get("roomTypeId") || "");
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [quote, setQuote] = useState(null);
+  const [session, setSession] = useState(null);
+
+  useEffect(() => {
+    const currentSession = readAuthSession();
+    setSession(currentSession);
+  }, []);
+
+  useEffect(() => {
+    if (!session?.user) {
+      return;
+    }
+
+    setGuestForm((currentForm) => ({
+      ...currentForm,
+      fullName: currentForm.fullName || String(session.user.fullName || "").trim(),
+      email: currentForm.email || String(session.user.email || "").trim(),
+      phone: currentForm.phone || String(session.user.phone || "").trim(),
+    }));
+  }, [session]);
 
   useEffect(() => {
     const loadHotel = async () => {
@@ -117,8 +136,8 @@ const Booking = () => {
   };
 
   const handleCreateBooking = async () => {
-    const session = readAuthSession();
-    if (!session?.accessToken) {
+    const activeSession = readAuthSession();
+    if (!activeSession?.accessToken) {
       setErrorMessage("Vui lòng đăng nhập trước khi xác nhận booking.");
       navigate(ROUTES.LOGIN);
       return;
@@ -142,8 +161,9 @@ const Booking = () => {
           countChild: 0,
           paymentMethod,
           ...guestForm,
+          email: String(activeSession.user?.email || guestForm.email || "").trim(),
         },
-        session.accessToken,
+        activeSession.accessToken,
       );
 
       if (paymentMethod === "vnpay" && result?.paymentRedirectUrl) {
