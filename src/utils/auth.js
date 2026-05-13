@@ -131,6 +131,38 @@ const buildSearchQuery = (filters = {}) => {
     params.set("roomTypeId", String(filters.roomTypeId));
   }
 
+  if (filters.search) {
+    params.set("search", String(filters.search));
+  }
+
+  if (filters.destination && filters.destination !== "Tất cả") {
+    params.set("destination", String(filters.destination));
+  }
+
+  if (filters.roomType && filters.roomType !== "Tất cả") {
+    params.set("roomType", String(filters.roomType));
+  }
+
+  if (filters.amenity && filters.amenity !== "Tất cả") {
+    params.set("amenity", String(filters.amenity));
+  }
+
+  if (filters.service && filters.service !== "Tất cả") {
+    params.set("service", String(filters.service));
+  }
+
+  if (filters.minPrice) {
+    params.set("minPrice", String(filters.minPrice));
+  }
+
+  if (filters.maxPrice) {
+    params.set("maxPrice", String(filters.maxPrice));
+  }
+
+  if (filters.stars) {
+    params.set("stars", String(filters.stars));
+  }
+
   return params.toString();
 };
 
