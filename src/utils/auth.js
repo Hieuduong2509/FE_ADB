@@ -428,14 +428,18 @@ export const createBookingApi = async (payload, accessToken) =>
       checkOut: payload.checkOut,
       adults: Number(payload.countParent || parseGuestCount(payload.guests) || 1),
       children: Number(payload.countChild || 0),
-      currency: payload.currency || "USD",
+      currency: payload.currency || "VND",
+      paymentMethod: String(payload.paymentMethod || "pay_at_hotel").trim(),
       customer: {
         ...splitFullName(payload.fullName),
         email: String(payload.email || "").trim(),
         phone: String(payload.phone || "").trim() || null,
       },
     }),
-  }).then((result) => result?.booking || result);
+  });
+
+export const getBookingPaymentStatusApi = async (bookingId) =>
+  requestJson(`/api/payments/booking/${bookingId}/status`);
 
 export const getMyBookingHistoryApi = async (accessToken) =>
   requestJson("/api/bookings/history/me", {

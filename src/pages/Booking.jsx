@@ -29,6 +29,7 @@ const Booking = () => {
     phone: "",
     note: "",
   });
+  const [paymentMethod, setPaymentMethod] = useState("pay_at_hotel");
   const [selectedRoomTypeId, setSelectedRoomTypeId] = useState(searchParams.get("roomTypeId") || "");
   const [selectedServiceIds, setSelectedServiceIds] = useState([]);
   const [quote, setQuote] = useState(null);
@@ -130,7 +131,7 @@ const Booking = () => {
 
     setIsSubmitting(true);
     try {
-      const booking = await createBookingApi(
+      const result = await createBookingApi(
         {
           roomTypeId: String(selectedRoomTypeId),
           checkIn: filters.checkIn,
@@ -139,19 +140,22 @@ const Booking = () => {
           serviceIds: selectedServiceIds.map((item) => String(item)),
           countParent: Number(String(filters.guests).match(/\d+/)?.[0] || 1),
           countChild: 0,
+          paymentMethod,
           ...guestForm,
         },
         session.accessToken,
       );
 
+      if (paymentMethod === "vnpay" && result?.paymentRedirectUrl) {
+        window.location.assign(result.paymentRedirectUrl);
+        return;
+      }
+
       navigate(
         `${ROUTES.BOOKING_CONFIRM}?${buildSearchParams({
-          bookingId: booking.id,
-          hotelName: quote.hotelName,
-          roomTypeName: quote.roomTypeName,
-          totalAmount: quote.totalAmount,
-          checkIn: quote.checkIn,
-          checkOut: quote.checkOut,
+          bookingId: result?.booking?.id || result?.id,
+          method: paymentMethod,
+          status: paymentMethod === "pay_at_hotel" ? "PENDING" : "",
         }).toString()}`,
       );
     } catch (error) {
@@ -391,6 +395,57 @@ const Booking = () => {
               </label>
             </div>
           </section>
+
+          <section className="rounded-[30px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+              Phương thức thanh toán
+            </p>
+            <div className="mt-5 grid gap-4">
+              <label
+                className={`flex cursor-pointer items-start gap-4 rounded-[24px] border p-5 transition ${
+                  paymentMethod === "pay_at_hotel"
+                    ? "border-[#17363f] bg-[#17363f] text-white shadow-[0_12px_30px_rgba(23,54,63,0.16)]"
+                    : "border-[#ece2d3] bg-[#fffcf7] hover:border-[#d8c6ac]"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payment_method"
+                  checked={paymentMethod === "pay_at_hotel"}
+                  onChange={() => setPaymentMethod("pay_at_hotel")}
+                  className="mt-1 h-4 w-4 accent-[#17363f]"
+                />
+                <div>
+                  <div className="text-lg font-semibold">Thanh toán tại khách sạn</div>
+                  <div className={`mt-2 text-sm ${paymentMethod === "pay_at_hotel" ? "text-white/72" : "text-gray-600"}`}>
+                    Booking được tạo trước, thanh toán xử lý thủ công tại quầy lễ tân.
+                  </div>
+                </div>
+              </label>
+
+              <label
+                className={`flex cursor-pointer items-start gap-4 rounded-[24px] border p-5 transition ${
+                  paymentMethod === "vnpay"
+                    ? "border-[#17363f] bg-[#17363f] text-white shadow-[0_12px_30px_rgba(23,54,63,0.16)]"
+                    : "border-[#ece2d3] bg-[#fffcf7] hover:border-[#d8c6ac]"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="payment_method"
+                  checked={paymentMethod === "vnpay"}
+                  onChange={() => setPaymentMethod("vnpay")}
+                  className="mt-1 h-4 w-4 accent-[#17363f]"
+                />
+                <div>
+                  <div className="text-lg font-semibold">VNPay</div>
+                  <div className={`mt-2 text-sm ${paymentMethod === "vnpay" ? "text-white/72" : "text-gray-600"}`}>
+                    Hệ thống sẽ chuyển bạn sang cổng VNPay sau khi tạo booking, sau đó quay lại trang kết quả.
+                  </div>
+                </div>
+              </label>
+            </div>
+          </section>
         </div>
 
         <aside className="h-fit rounded-[30px] border border-[#dfd4c3] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)] xl:sticky xl:top-24">
@@ -526,6 +581,12 @@ const Booking = () => {
             )}
           </div>
 
+          <div className="mt-6 rounded-[20px] border border-dashed border-[#d9ccb8] px-4 py-4 text-sm text-gray-500">
+            {paymentMethod === "vnpay"
+              ? "Sau khi xác nhận, hệ thống sẽ chuyển sang VNPay và tự cập nhật trạng thái thanh toán khi callback trả về."
+              : "Phương thức hiện tại là thanh toán tại khách sạn. Payment status sẽ ở trạng thái chờ xử lý."}
+          </div>
+
           <div className="mt-6 flex flex-col gap-3">
             <button
               type="button"
@@ -533,7 +594,11 @@ const Booking = () => {
               disabled={isSubmitting || !quote}
               className="rounded-2xl bg-[#17363f] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Đang tạo booking..." : "Tiếp tục xác nhận"}
+              {isSubmitting
+                ? "Đang tạo booking..."
+                : paymentMethod === "vnpay"
+                  ? "Tạo booking và sang VNPay"
+                  : "Tạo booking"}
             </button>
             <Link
               to={`${ROUTES.HOTELS}?${buildSearchParams(filters).toString()}`}
