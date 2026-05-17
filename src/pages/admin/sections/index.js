@@ -1,5 +1,6 @@
 export { default as AmenitiesSection } from "./AmenitiesSection";
 export { default as BookingHistorySection } from "./BookingHistorySection";
+export { default as DashboardSection } from "./DashboardSection";
 export { default as FacilitiesSection } from "./FacilitiesSection";
 export { default as HolidayRulesSection } from "./HolidayRulesSection";
 export { default as HotelsSection } from "./HotelsSection";

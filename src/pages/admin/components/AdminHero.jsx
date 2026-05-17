@@ -6,7 +6,7 @@ const StatCard = ({ label, value, hint }) => (
   </div>
 );
 
-const AdminHero = ({ roomTypesCount, highestHolidayUplift, facilitiesCount }) => (
+const AdminHero = ({ totalBookings, totalRevenue, pendingPaymentCount }) => (
   <section className="relative isolate border-b border-white/30">
     <div className="absolute inset-0 -z-20 bg-[linear-gradient(140deg,_#102a31_0%,_#1d4950_42%,_#e8c993_100%)]" />
     <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(251,244,228,0.24),_transparent_24%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.16),_transparent_18%)]" />
@@ -18,30 +18,29 @@ const AdminHero = ({ roomTypesCount, highestHolidayUplift, facilitiesCount }) =>
             Pullman admin workspace
           </div>
           <h1 className="mt-5 max-w-4xl font-serif text-4xl leading-tight md:text-5xl">
-            Trang admin tập trung vào giá phòng, cấu hình ngày lễ và quản trị inventory phòng.
+            Trang admin tap trung vao gia phong, cau hinh ngay le va quan tri inventory phong.
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-white/78 md:text-lg">
-            Luồng này ưu tiên thao tác vận hành: chỉnh base price, cộng phần trăm dịp cao điểm,
-            thêm loại phòng mới, quản lý amenities theo khách sạn và gắn catalog đó vào từng
-            room type.
+            Luong nay uu tien thao tac van hanh: chinh base price, them room type moi,
+            quan ly amenities va theo doi KPI booking theo tung khach san.
           </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
           <StatCard
-            label="Room types"
-            value={String(roomTypesCount).padStart(2, "0")}
-            hint="Tổng room type đang mở bán trong UI admin."
+            label="Bookings"
+            value={String(totalBookings).padStart(2, "0")}
+            hint="Tong booking theo bo loc hien tai."
           />
           <StatCard
-            label="Holiday uplift"
-            value={`${highestHolidayUplift}%`}
-            hint="Mức tăng cao nhất đang được cấu hình."
+            label="Revenue"
+            value={new Intl.NumberFormat("vi-VN").format(totalRevenue)}
+            hint="Tong doanh thu final amount."
           />
           <StatCard
-            label="Facilities"
-            value={String(facilitiesCount).padStart(2, "0")}
-            hint="Dịch vụ add-on có thể gắn vào booking flow."
+            label="Pending payment"
+            value={String(pendingPaymentCount).padStart(2, "0")}
+            hint="Booking dang cho thanh toan."
           />
         </div>
       </div>

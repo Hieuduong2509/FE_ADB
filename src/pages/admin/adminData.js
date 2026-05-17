@@ -7,6 +7,7 @@ export const hotelOptions = pullmanHotels.map((hotel) => ({
 }));
 
 export const sectionLinks = [
+  { id: "dashboard", label: "Dashboard" },
   { id: "hotels", label: "Hotels" },
   { id: "booking-history", label: "Booking History" },
   { id: "holiday-rules", label: "Pricing Rules" },

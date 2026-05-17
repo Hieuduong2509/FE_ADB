@@ -1,6 +1,7 @@
 import {
   AmenitiesSection,
   BookingHistorySection,
+  DashboardSection,
   FacilitiesSection,
   HolidayRulesSection,
   HotelsSection,
@@ -10,6 +11,15 @@ import {
 
 export const renderAdminSection = (activeSection, workspace) => {
   switch (activeSection) {
+    case "dashboard":
+      return (
+        <DashboardSection
+          stats={workspace.dashboardStats}
+          selectedHotel={workspace.selectedHotel}
+          bookingHistory={workspace.bookingHistory}
+          managerHotels={workspace.managerHotels}
+        />
+      );
     case "hotels":
       return (
         <HotelsSection

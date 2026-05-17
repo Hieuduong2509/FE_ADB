@@ -6,14 +6,14 @@ import useAdminWorkspace from "./useAdminWorkspace";
 
 const AdminDashboard = () => {
   const workspace = useAdminWorkspace();
-  const [activeSection, setActiveSection] = useState(sectionLinks[0]?.id || "price-control");
+  const [activeSection, setActiveSection] = useState(sectionLinks[0]?.id || "dashboard");
 
   return (
     <div className="overflow-hidden">
       <AdminHero
-        roomTypesCount={workspace.roomTypes.length}
-        highestHolidayUplift={workspace.highestHolidayUplift}
-        facilitiesCount={workspace.facilities.length}
+        totalBookings={workspace.dashboardStats.totalBookings}
+        totalRevenue={workspace.dashboardStats.totalRevenue}
+        pendingPaymentCount={workspace.dashboardStats.pendingPaymentCount}
       />
 
       <div className="container mx-auto px-4 py-8 md:py-10">

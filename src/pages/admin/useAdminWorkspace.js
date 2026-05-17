@@ -35,6 +35,128 @@ import {
 import { getTodayDateValue, getTomorrowDateValue } from "../../utils/search";
 
 const getErrorMessage = (error, fallbackMessage) => error?.message || fallbackMessage;
+const roundPercent = (value) => Number((Number(value) || 0).toFixed(1));
+
+const createStatusRows = (records = [], keyName) => {
+  const total = records.length || 1;
+  const map = new Map();
+
+  records.forEach((record) => {
+    const key = String(record?.[keyName] || "UNKNOWN").toUpperCase();
+    map.set(key, (map.get(key) || 0) + 1);
+  });
+
+  return Array.from(map.entries())
+    .map(([key, count]) => {
+      const percent = roundPercent((count / total) * 100);
+      const tone = key === "CONFIRMED" || key === "PAID" ? "positive" : key === "PENDING" ? "warning" : "neutral";
+      return { key, count, percent, tone };
+    })
+    .sort((a, b) => b.count - a.count);
+};
+
+const createHotelRevenueRows = (records = []) => {
+  const byHotel = new Map();
+  records.forEach((record) => {
+    const hotelId = String(record?.hotel_id || "unknown");
+    const current = byHotel.get(hotelId) || {
+      hotelId,
+      hotelName: record?.hotel_name || "Unknown hotel",
+      bookings: 0,
+      revenue: 0,
+    };
+    current.bookings += 1;
+    current.revenue += Number(record?.final_amount || 0);
+    byHotel.set(hotelId, current);
+  });
+
+  return Array.from(byHotel.values())
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 5);
+};
+
+const resolveBookingDate = (record = {}) => record?.checkin_date || record?.created_at || null;
+
+const toDateKey = (dateValue) => {
+  if (!dateValue) return "";
+  const raw = String(dateValue).trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
+    return raw;
+  }
+
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const toMonthKey = (dateValue) => {
+  const dayKey = toDateKey(dateValue);
+  if (!dayKey) return "";
+  return dayKey.slice(0, 7);
+};
+
+const getLatestDateFromRecords = (records = []) => {
+  const validKeys = records
+    .map((record) => toDateKey(resolveBookingDate(record)))
+    .filter(Boolean)
+    .sort();
+  return validKeys[validKeys.length - 1] || toDateKey(new Date());
+};
+
+const buildRevenueByMonth = (records = [], months = 6) => {
+  const latestKey = getLatestDateFromRecords(records);
+  const [latestYear, latestMonth] = latestKey.split("-").map((item) => Number(item));
+  const anchor = new Date(latestYear, Math.max(0, latestMonth - 1), 1);
+  const monthKeys = [];
+  for (let i = months - 1; i >= 0; i -= 1) {
+    const d = new Date(anchor.getFullYear(), anchor.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    monthKeys.push(key);
+  }
+
+  const revenueMap = new Map(monthKeys.map((key) => [key, 0]));
+  records.forEach((record) => {
+    const key = toMonthKey(resolveBookingDate(record));
+    if (!revenueMap.has(key)) return;
+    revenueMap.set(key, Number(revenueMap.get(key) || 0) + Number(record?.final_amount || 0));
+  });
+
+  return monthKeys.map((key) => ({
+    key,
+    label: key.slice(5),
+    revenue: Math.round(Number(revenueMap.get(key) || 0)),
+  }));
+};
+
+const buildBookingsByDay = (records = [], days = 14) => {
+  const latestKey = getLatestDateFromRecords(records);
+  const [y, m, d] = latestKey.split("-").map((item) => Number(item));
+  const anchor = new Date(y, Math.max(0, m - 1), d || 1);
+  const dayKeys = [];
+  for (let i = days - 1; i >= 0; i -= 1) {
+    const cursor = new Date(anchor);
+    cursor.setDate(anchor.getDate() - i);
+    dayKeys.push(toDateKey(cursor));
+  }
+
+  const countMap = new Map(dayKeys.map((key) => [key, 0]));
+  records.forEach((record) => {
+    const key = toDateKey(resolveBookingDate(record));
+    if (!countMap.has(key)) return;
+    countMap.set(key, Number(countMap.get(key) || 0) + 1);
+  });
+
+  return dayKeys.map((key) => ({
+    key,
+    label: key.slice(5),
+    count: Number(countMap.get(key) || 0),
+  }));
+};
 
 const ensureCode = (prefix, value) => {
   const slug = slugify(value);
@@ -240,6 +362,47 @@ export const useAdminWorkspace = () => {
 
   const getHolidayPercentForRoomType = () => 0;
 
+  const dashboardSource = filteredBookingHistory;
+  const paidDashboardSource = dashboardSource.filter(
+    (booking) => String(booking?.payment_status || "").toUpperCase() === "PAID",
+  );
+  const paidBookingHistoryAllHotels = bookingHistory.filter(
+    (booking) => String(booking?.payment_status || "").toUpperCase() === "PAID",
+  );
+  const totalBookings = dashboardSource.length;
+  const totalRevenue = paidDashboardSource.reduce((sum, booking) => sum + Number(booking.final_amount || 0), 0);
+  const averageBookingValue = paidDashboardSource.length
+    ? Math.round(totalRevenue / paidDashboardSource.length)
+    : 0;
+  const paidBookings = dashboardSource.filter(
+    (booking) => String(booking.payment_status || "").toUpperCase() === "PAID",
+  ).length;
+  const paidRatio = totalBookings ? roundPercent((paidBookings / totalBookings) * 100) : 0;
+  const bookingStatusRows = createStatusRows(dashboardSource, "booking_status");
+  const paymentStatusRows = createStatusRows(dashboardSource, "payment_status");
+  const topHotelsByRevenue = createHotelRevenueRows(paidBookingHistoryAllHotels);
+  const confirmedBookings = dashboardSource.filter(
+    (booking) => String(booking.booking_status || "").toUpperCase() === "CONFIRMED",
+  ).length;
+  const confirmRate = totalBookings ? roundPercent((confirmedBookings / totalBookings) * 100) : 0;
+  const pendingPaymentCount = dashboardSource.filter(
+    (booking) => String(booking.payment_status || "").toUpperCase() === "PENDING",
+  ).length;
+
+  const dashboardStats = {
+    totalBookings,
+    totalRevenue,
+    averageBookingValue,
+    paidRatio,
+    confirmRate,
+    pendingPaymentCount,
+    bookingStatusRows,
+    paymentStatusRows,
+    topHotelsByRevenue,
+    revenueByMonth: buildRevenueByMonth(dashboardSource, 6),
+    bookingsByDay: buildBookingsByDay(dashboardSource, 14),
+  };
+
   const getPricingPreviewForRoomType = (roomType) => {
     const stayDates = generateStayDates(pricePreviewDraft.checkIn, pricePreviewDraft.checkOut);
     const basePrice = Number(roomType.basePrice) || 0;
@@ -378,7 +541,10 @@ export const useAdminWorkspace = () => {
 
     try {
       const accessToken = getAdminAccessToken();
-      const response = await getAdminBookingHistoryApi(accessToken, { limit: 200 });
+      const response = await getAdminBookingHistoryApi(accessToken, {
+        limit: 10000,
+        hotel_id: selectedHotelId || undefined,
+      });
       setBookingHistory(Array.isArray(response?.items) ? response.items : []);
       setBookingHistoryError("");
     } catch (error) {
@@ -387,13 +553,17 @@ export const useAdminWorkspace = () => {
     } finally {
       setIsBookingHistoryLoading(false);
     }
-  }, []);
+  }, [selectedHotelId]);
 
   useEffect(() => {
     void refreshHotels();
     void refreshAmenities();
+  }, [refreshAmenities, refreshHotels]);
+
+  useEffect(() => {
+    if (!selectedHotelId) return;
     void refreshBookingHistory();
-  }, [refreshAmenities, refreshBookingHistory, refreshHotels]);
+  }, [refreshBookingHistory, selectedHotelId]);
 
   useEffect(() => {
     if (!managerHotels.length) {
@@ -957,6 +1127,7 @@ export const useAdminWorkspace = () => {
     bookingHistory,
     isBookingHistoryLoading,
     bookingHistoryError,
+    dashboardStats,
   };
 };
 
