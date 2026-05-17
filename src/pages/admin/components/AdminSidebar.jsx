@@ -35,7 +35,7 @@ const AdminSidebar = ({
     <div className="rounded-[28px] border border-[#ded3c3] bg-[#17363f] p-5 text-white shadow-[0_18px_40px_rgba(13,33,38,0.16)]">
       <div className="text-xs uppercase tracking-[0.22em] text-[#f6ddb0]">Bộ lọc nhanh</div>
       <label className="mt-4 block">
-        <span className="mb-2 block text-sm text-white/72">Khách sạn đang xem</span>
+        <span className="mb-2 block text-sm text-white/72">Hotel đang xem</span>
         <select
           value={selectedHotelId}
           onChange={(event) => setSelectedHotelId(event.target.value)}
@@ -71,3 +71,4 @@ const AdminSidebar = ({
 );
 
 export default AdminSidebar;
+

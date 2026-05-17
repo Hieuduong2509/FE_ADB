@@ -6,6 +6,7 @@ import {
   HolidayRulesSection,
   HotelsSection,
   PriceControlSection,
+  ReceptionistsSection,
   RoomTypesSection,
 } from "./sections";
 
@@ -94,6 +95,22 @@ export const renderAdminSection = (activeSection, workspace) => {
           isLoading={workspace.isAmenitiesLoading}
           isSubmitting={workspace.isAmenitySubmitting}
           errorMessage={workspace.amenitiesError}
+        />
+      );
+    case "receptionists":
+      return (
+        <ReceptionistsSection
+          users={workspace.adminUsers}
+          hotelOptions={workspace.managerHotels}
+          assigningUserId={workspace.assigningUserId}
+          assignHotelMap={workspace.assignHotelMap}
+          onAssignHotelChange={workspace.handleAssignHotelChange}
+          onSetReceptionistRole={workspace.handleSetReceptionistRole}
+          onAssignHotel={workspace.handleAssignReceptionistHotel}
+          onRemoveReceptionist={workspace.handleRemoveReceptionistRole}
+          isSubmitting={workspace.isReceptionistSubmitting}
+          isLoading={workspace.isAdminUsersLoading}
+          errorMessage={workspace.receptionistError}
         />
       );
     case "holiday-rules":

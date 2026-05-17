@@ -1,7 +1,7 @@
-export const DEFAULT_DESTINATION = "Tất cả";
-export const DEFAULT_ROOM_TYPE = "Tất cả";
-export const DEFAULT_AMENITY = "Tất cả";
-export const DEFAULT_SERVICE = "Tất cả";
+export const DEFAULT_DESTINATION = "All";
+export const DEFAULT_ROOM_TYPE = "All";
+export const DEFAULT_AMENITY = "All";
+export const DEFAULT_SERVICE = "All";
 export const DEFAULT_GUESTS = "2 người";
 
 export const getTodayDateValue = () => new Date().toISOString().split("T")[0];
@@ -65,7 +65,7 @@ export const buildSearchParams = (filters = {}) => {
 
 export const validateStayDates = (checkIn, checkOut) => {
   if (!checkIn || !checkOut) {
-    return "Vui lòng chọn đầy đủ ngày nhận và ngày trả phòng.";
+    return "Please chọn đầy đủ ngày nhận và ngày trả phòng.";
   }
 
   const startDate = new Date(checkIn);
@@ -81,3 +81,4 @@ export const validateStayDates = (checkIn, checkOut) => {
 
   return "";
 };
+

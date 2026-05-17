@@ -217,7 +217,7 @@ const HotelsSection = ({
                 disabled={isSubmitting}
                 className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Hủy chỉnh sửa
+                Cancel editing
               </button>
             ) : null}
           </div>
@@ -227,7 +227,7 @@ const HotelsSection = ({
       <div className="space-y-4">
         {isLoading ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-            Đang tải danh sách khách sạn...
+            Loading danh sách khách sạn...
           </div>
         ) : null}
 
@@ -268,7 +268,7 @@ const HotelsSection = ({
                 disabled={isSubmitting}
                 className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Sửa
+                Edit
               </button>
               <button
                 type="button"
@@ -276,7 +276,7 @@ const HotelsSection = ({
                 disabled={isSubmitting}
                 className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Xóa
+                Delete
               </button>
             </div>
           </div>
@@ -287,3 +287,4 @@ const HotelsSection = ({
 );
 
 export default HotelsSection;
+

@@ -77,7 +77,7 @@ const normalizeCatalogHotel = (hotel = {}) => ({
   countryName: hotel.country || "",
   cityAddress: hotel.city || "",
   address: hotel.address || "",
-  description: hotel.description || "Khách sạn hiện đã được đồng bộ từ backend.",
+  description: hotel.description || "Hotel hiện đã được đồng bộ từ backend.",
   starRating: Number(hotel.star_rating) || 0,
   timezone: hotel.timezone || "Asia/Ho_Chi_Minh",
 });
@@ -111,7 +111,7 @@ const normalizeSearchRoomType = (item = {}, catalog = {}) => {
   availableRoomCount: Number(item.available_inventory) || 0,
   averageNightlyRate: Number(item.average_rate) || 0,
   stayTotal: Number(item.stay_total) || 0,
-  servicesText: "Loại phòng đang dùng dữ liệu khả dụng thực từ database.",
+  servicesText: "Room type đang dùng dữ liệu khả dụng thực từ database.",
   amenities,
   services,
   });
@@ -135,19 +135,19 @@ const buildSearchQuery = (filters = {}) => {
     params.set("search", String(filters.search));
   }
 
-  if (filters.destination && filters.destination !== "Tất cả") {
+  if (filters.destination && filters.destination !== "All") {
     params.set("destination", String(filters.destination));
   }
 
-  if (filters.roomType && filters.roomType !== "Tất cả") {
+  if (filters.roomType && filters.roomType !== "All") {
     params.set("roomType", String(filters.roomType));
   }
 
-  if (filters.amenity && filters.amenity !== "Tất cả") {
+  if (filters.amenity && filters.amenity !== "All") {
     params.set("amenity", String(filters.amenity));
   }
 
-  if (filters.service && filters.service !== "Tất cả") {
+  if (filters.service && filters.service !== "All") {
     params.set("service", String(filters.service));
   }
 
@@ -191,7 +191,7 @@ const mergeHotelsWithAvailability = (
       countryName: roomTypes[0]?.country || "",
       cityAddress: roomTypes[0]?.city || "",
       address: "",
-      description: "Khách sạn hiện đã được đồng bộ từ backend.",
+      description: "Hotel hiện đã được đồng bộ từ backend.",
       starRating: Number(roomTypes[0]?.star_rating) || 0,
       timezone: "Asia/Ho_Chi_Minh",
     };
@@ -217,7 +217,7 @@ const mergeHotelsWithAvailability = (
     .filter((hotel) => {
       if (
         filters.destination &&
-        filters.destination !== "Tất cả" &&
+        filters.destination !== "All" &&
         hotel.cityAddress !== filters.destination
       ) {
         return false;
@@ -237,7 +237,7 @@ const mergeHotelsWithAvailability = (
 
       if (
         filters.roomType &&
-        filters.roomType !== "Tất cả" &&
+        filters.roomType !== "All" &&
         !hotel.matchedRoomTypes.some((roomType) => roomType.name === filters.roomType)
       ) {
         return false;
@@ -305,6 +305,12 @@ export const loginClientApi = async (formData) =>
 
 export const loginAdminApi = async (formData) =>
   requestJson("/api/admin/auth/login", {
+    method: "POST",
+    body: JSON.stringify(formData),
+  });
+
+export const loginReceptionistApi = async (formData) =>
+  requestJson("/api/receptionist/auth/login", {
     method: "POST",
     body: JSON.stringify(formData),
   });
@@ -460,6 +466,87 @@ export const getAdminBookingHistoryApi = async (accessToken, query = {}) => {
   });
 };
 
+export const getAdminUsersApi = async (accessToken) =>
+  requestJson("/api/admin/auth/users", {
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const setReceptionistRoleApi = async (accessToken, userId) =>
+  requestJson("/api/admin/auth/set-receptionist", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify({ userId }),
+  });
+
+export const setReceptionistHotelApi = async (accessToken, userId, hotelId) =>
+  requestJson("/api/admin/auth/set-receptionist-hotel", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify({ userId, hotelId }),
+  });
+
+export const removeReceptionistRoleApi = async (accessToken, userId) =>
+  requestJson("/api/admin/auth/remove-receptionist", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify({ userId }),
+  });
+
+export const getReceptionistDailyBookingsApi = async (accessToken, query = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  return requestJson(`/api/receptionist/bookings/daily${queryString ? `?${queryString}` : ""}`, {
+    headers: withAuthHeaders(accessToken),
+  });
+};
+
+export const getReceptionistRoomBoardApi = async (accessToken, query = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  return requestJson(`/api/receptionist/rooms/board${queryString ? `?${queryString}` : ""}`, {
+    headers: withAuthHeaders(accessToken),
+  });
+};
+
+export const checkInBookingApi = async (bookingId, accessToken) =>
+  requestJson(`/api/receptionist/bookings/${bookingId}/check-in`, {
+    method: "PATCH",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const checkOutBookingApi = async (bookingId, accessToken) =>
+  requestJson(`/api/receptionist/bookings/${bookingId}/check-out`, {
+    method: "PATCH",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const markBookingPaidApi = async (bookingId, accessToken) =>
+  requestJson(`/api/receptionist/bookings/${bookingId}/mark-paid`, {
+    method: "PATCH",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const markBookingNoShowApi = async (bookingId, accessToken) =>
+  requestJson(`/api/receptionist/bookings/${bookingId}/no-show`, {
+    method: "PATCH",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const lookupReceptionistBookingApi = async (accessToken, bookingNumber) =>
+  requestJson(`/api/receptionist/bookings/lookup?bookingNumber=${encodeURIComponent(String(bookingNumber || "").trim())}`, {
+    headers: withAuthHeaders(accessToken),
+  });
+
 export const getAdminHotelsApi = async () => listRequest("/api/hotels?limit=100");
 
 export const createAdminHotelApi = async (payload, accessToken) =>
@@ -611,3 +698,5 @@ export const clearAuthSession = () => {
 };
 
 export const isAdminSession = (session) => session?.user?.role === "admin";
+export const isReceptionistSession = (session) => session?.user?.role === "receptionist";
+

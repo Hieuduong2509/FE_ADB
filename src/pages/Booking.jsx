@@ -58,7 +58,7 @@ const Booking = () => {
       if (!hotelId) {
         setHotel(null);
         setIsLoading(false);
-        setErrorMessage("Thiếu hotelId để bắt đầu booking.");
+        setErrorMessage("Missing hotelId để bắt đầu booking.");
         return;
       }
 
@@ -70,7 +70,7 @@ const Booking = () => {
         setErrorMessage("");
       } catch (error) {
         setHotel(null);
-        setErrorMessage(error.message || "Không tải được thông tin booking.");
+        setErrorMessage(error.message || "Unable to load thông tin booking.");
       } finally {
         setIsLoading(false);
       }
@@ -138,7 +138,7 @@ const Booking = () => {
   const handleCreateBooking = async () => {
     const activeSession = readAuthSession();
     if (!activeSession?.accessToken) {
-      setErrorMessage("Vui lòng đăng nhập trước khi xác nhận booking.");
+      setErrorMessage("Please đăng nhập trước khi xác nhận booking.");
       navigate(ROUTES.LOGIN);
       return;
     }
@@ -189,7 +189,7 @@ const Booking = () => {
     return (
       <div className="container mx-auto px-4 py-10">
         <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center">
-          Đang tải booking...
+          Loading booking...
         </div>
       </div>
     );
@@ -199,7 +199,7 @@ const Booking = () => {
     return (
       <div className="container mx-auto px-4 py-10">
         <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center">
-          <h1 className="text-2xl font-semibold text-textPrimary">Không thể mở booking</h1>
+          <h1 className="text-2xl font-semibold text-textPrimary">Cannot mở booking</h1>
           <p className="mt-3 text-sm text-gray-600">{errorMessage}</p>
         </div>
       </div>
@@ -223,7 +223,7 @@ const Booking = () => {
           </div>
 
           <div className="rounded-[26px] border border-white/12 bg-white/10 p-5 backdrop-blur">
-            <div className="text-xs uppercase tracking-[0.2em] text-white/60">Tạm tính</div>
+            <div className="text-xs uppercase tracking-[0.2em] text-white/60">Subtotal</div>
             <div className="mt-2 text-3xl font-semibold">{formatCurrency(quote?.totalAmount || 0)}</div>
             <div className="mt-2 text-sm text-white/72">
               {quote?.stayNights || 0} đêm · {filters.guests}
@@ -257,7 +257,7 @@ const Booking = () => {
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-[24px] bg-[#faf5ec] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Loại phòng đã chọn</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Room type đã chọn</div>
                 <div className="mt-2 text-xl font-semibold text-textPrimary">{selectedRoomType.name}</div>
                 <div className="mt-2 text-sm text-gray-600">{selectedRoomType.servicesText}</div>
               </div>
@@ -276,7 +276,7 @@ const Booking = () => {
                 <div className="mt-2 text-sm text-gray-600">{quote?.stayNights || 0} đêm lưu trú</div>
               </div>
               <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Số khách</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Guests</div>
                 <div className="mt-2 text-lg font-semibold text-textPrimary">{filters.guests}</div>
                 <div className="mt-2 text-sm text-gray-600">{hotel.cityAddress}</div>
               </div>
@@ -374,7 +374,7 @@ const Booking = () => {
             </p>
             <div className="mt-5 grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Họ và tên</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Full name</span>
                 <input
                   type="text"
                   value={guestForm.fullName}
@@ -394,7 +394,7 @@ const Booking = () => {
                 />
               </label>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Số điện thoại</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Phone number</span>
                 <input
                   type="tel"
                   value={guestForm.phone}
@@ -404,7 +404,7 @@ const Booking = () => {
                 />
               </label>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Ghi chú</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Notes</span>
                 <input
                   type="text"
                   value={guestForm.note}
@@ -418,7 +418,7 @@ const Booking = () => {
 
           <section className="rounded-[30px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-              Phương thức thanh toán
+              Payment method
             </p>
             <div className="mt-5 grid gap-4">
               <label
@@ -436,7 +436,7 @@ const Booking = () => {
                   className="mt-1 h-4 w-4 accent-[#17363f]"
                 />
                 <div>
-                  <div className="text-lg font-semibold">Thanh toán tại khách sạn</div>
+                  <div className="text-lg font-semibold">Pay at hotel</div>
                   <div className={`mt-2 text-sm ${paymentMethod === "pay_at_hotel" ? "text-white/72" : "text-gray-600"}`}>
                     Booking được tạo trước, thanh toán xử lý thủ công tại quầy lễ tân.
                   </div>
@@ -472,10 +472,10 @@ const Booking = () => {
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
             Booking summary
           </p>
-          <h2 className="mt-2 text-2xl font-semibold text-textPrimary">Tóm tắt đặt phòng</h2>
+          <h2 className="mt-2 text-2xl font-semibold text-textPrimary">Booking summary</h2>
 
           <div className="mt-6 rounded-[24px] bg-[#17363f] p-5 text-white">
-            <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Khách sạn</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Hotel</div>
             <div className="mt-2 text-xl font-semibold">{hotel.name}</div>
             <div className="mt-2 text-sm text-white/72">{hotel.cityAddress}</div>
           </div>
@@ -499,7 +499,7 @@ const Booking = () => {
               </span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Dịch vụ đã chọn</span>
+              <span>Selected services</span>
               <span className="font-semibold text-textPrimary">{formatCurrency(quote?.serviceTotal || 0)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
@@ -509,7 +509,7 @@ const Booking = () => {
           </div>
 
           <div className="mt-6 rounded-[24px] bg-[#faf5ec] p-5">
-            <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Tổng cộng</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Total</div>
             <div className="mt-2 text-3xl font-semibold text-textPrimary">
               {formatCurrency(quote?.totalAmount || 0)}
             </div>
@@ -596,7 +596,7 @@ const Booking = () => {
               ))
             ) : (
               <div className="rounded-[20px] border border-dashed border-[#d9ccb8] px-4 py-4 text-sm text-gray-500">
-                Chưa chọn dịch vụ cộng thêm.
+                Not selected dịch vụ cộng thêm.
               </div>
             )}
           </div>
@@ -624,7 +624,7 @@ const Booking = () => {
               to={`${ROUTES.HOTELS}?${buildSearchParams(filters).toString()}`}
               className="rounded-2xl border border-[#d9ccb8] px-5 py-3 text-center text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
             >
-              Quay lại tìm kiếm
+              Back to search
             </Link>
           </div>
         </aside>
@@ -634,3 +634,4 @@ const Booking = () => {
 };
 
 export default Booking;
+

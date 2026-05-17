@@ -19,7 +19,7 @@ export const calculateStayNights = (checkIn, checkOut) => {
 
 export const formatDateLabel = (dateValue) => {
   if (!dateValue) {
-    return "Chưa chọn";
+    return "Not selected";
   }
 
   const parsedDate = new Date(dateValue);
@@ -34,3 +34,4 @@ export const formatDateLabel = (dateValue) => {
     year: "numeric",
   }).format(parsedDate);
 };
+

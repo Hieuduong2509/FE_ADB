@@ -47,7 +47,7 @@ const Login = () => {
       persistAuthSession(authData);
       navigate(authData?.user?.role === "admin" ? ROUTES.ADMIN : ROUTES.HOME);
     } catch (error) {
-      setErrorMessage(error.message || "Đăng nhập thất bại.");
+      setErrorMessage(error.message || "Sign in thất bại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,10 +57,10 @@ const Login = () => {
     <div className="container mx-auto px-4 py-10">
       <div className="max-w-md mx-auto bg-white rounded-xl border border-gray-200 shadow-md p-6 md:p-8">
         <h1 className="text-2xl font-bold text-textPrimary mb-2 text-center">
-          Đăng nhập Pullman Member
+          Sign in Pullman Member
         </h1>
         <p className="text-sm text-gray-600 mb-6 text-center">
-          Đăng nhập để quản lý booking Pullman và lưu thông tin lưu trú của bạn.
+          Sign in để quản lý booking Pullman và lưu thông tin lưu trú của bạn.
         </p>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -80,7 +80,7 @@ const Login = () => {
 
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="password">
-              Mật khẩu
+              Password
             </label>
             <input
               id="password"
@@ -116,14 +116,14 @@ const Login = () => {
             disabled={isSubmitting}
             className="w-full bg-accent text-white font-medium py-2.5 rounded-lg transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+            {isSubmitting ? "Đang đăng nhập..." : "Sign in"}
           </button>
         </form>
 
         <p className="mt-6 text-sm text-gray-600 text-center">
           Chưa có tài khoản?{" "}
           <Link to={ROUTES.SIGN_UP} className="text-accent font-medium hover:underline">
-            Đăng ký ngay
+            Sign up ngay
           </Link>
         </p>
       </div>
@@ -132,3 +132,4 @@ const Login = () => {
 };
 
 export default Login;
+

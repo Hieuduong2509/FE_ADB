@@ -12,12 +12,24 @@ import SignUp from "./pages/account/SignUp";
 import BookingHistory from "./pages/account/BookingHistory";
 import AdminDashboard from "./pages/admin";
 import AdminRouteGuard from "./pages/admin/AdminRouteGuard";
+import ReceptionistLogin from "./pages/receptionist/ReceptionistLogin";
+import ReceptionistDashboard from "./pages/receptionist/ReceptionistDashboard";
+import ReceptionistRouteGuard from "./pages/receptionist/ReceptionistRouteGuard";
 import { ROUTES } from "./constants";
 
 function App() {
   return (
     <div className="min-h-screen bg-background">
       <Routes>
+        <Route path={ROUTES.RECEPTIONIST_LOGIN} element={<ReceptionistLogin />} />
+        <Route
+          path={ROUTES.RECEPTIONIST_DASHBOARD}
+          element={(
+            <ReceptionistRouteGuard>
+              <ReceptionistDashboard />
+            </ReceptionistRouteGuard>
+          )}
+        />
         <Route element={<MainLayout />}>
           <Route path={ROUTES.HOME} element={<Home />} />
           <Route path={ROUTES.HOTELS} element={<Hotels />} />

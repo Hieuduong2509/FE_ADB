@@ -71,7 +71,7 @@ const HolidayRulesSection = ({
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Khách sạn</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Hotel</span>
                 <select
                   value={pricingDraft.hotelId}
                   onChange={(event) =>
@@ -210,7 +210,7 @@ const HolidayRulesSection = ({
                 </div>
 
                 <label className="block">
-                  <span className="mb-2 block text-sm font-medium text-gray-600">Ghi chú</span>
+                  <span className="mb-2 block text-sm font-medium text-gray-600">Notes</span>
                   <textarea
                     rows="3"
                     value={pricingDraft.specificNote}
@@ -230,7 +230,7 @@ const HolidayRulesSection = ({
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-600">
-                      Ngày bắt đầu
+                      Start date
                     </span>
                     <input
                       type="date"
@@ -247,7 +247,7 @@ const HolidayRulesSection = ({
 
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-600">
-                      Ngày kết thúc
+                      End date
                     </span>
                     <input
                       type="date"
@@ -312,7 +312,7 @@ const HolidayRulesSection = ({
                   onClick={resetPricingEditor}
                   className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
                 >
-                  Hủy chỉnh sửa
+                  Cancel editing
                 </button>
               ) : null}
             </div>
@@ -328,7 +328,7 @@ const HolidayRulesSection = ({
             <div className="mt-4 space-y-4">
               {isLoading ? (
                 <div className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5 text-sm text-gray-500">
-                  Đang tải seasonal pricing...
+                  Loading seasonal pricing...
                 </div>
               ) : seasonalRules.length ? (
                 seasonalRules.map((rule) => (
@@ -356,14 +356,14 @@ const HolidayRulesSection = ({
                         onClick={() => startPricingEdit(rule)}
                         className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
                       >
-                        Sửa
+                        Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => deletePricing(rule.id, rule.type)}
                         className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
                       >
-                        Xóa
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -384,7 +384,7 @@ const HolidayRulesSection = ({
             <div className="mt-4 space-y-4">
               {isLoading ? (
                 <div className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5 text-sm text-gray-500">
-                  Đang tải specific date pricing...
+                  Loading specific date pricing...
                 </div>
               ) : specificDatePricing.length ? (
                 specificDatePricing.map((rule) => (
@@ -438,14 +438,14 @@ const HolidayRulesSection = ({
                         onClick={() => startPricingEdit(rule)}
                         className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
                       >
-                        Sửa
+                        Edit
                       </button>
                       <button
                         type="button"
                         onClick={() => deletePricing(rule.id, rule.type)}
                         className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee]"
                       >
-                        Xóa
+                        Delete
                       </button>
                     </div>
                   </div>
@@ -464,3 +464,4 @@ const HolidayRulesSection = ({
 };
 
 export default HolidayRulesSection;
+

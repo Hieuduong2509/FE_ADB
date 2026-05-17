@@ -27,7 +27,7 @@ const SignUp = () => {
     setErrorMessage("");
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Mật khẩu xác nhận không khớp.");
+      setErrorMessage("Password xác nhận không khớp.");
       return;
     }
 
@@ -44,7 +44,7 @@ const SignUp = () => {
       persistAuthSession(authData);
       navigate(ROUTES.HOME);
     } catch (error) {
-      setErrorMessage(error.message || "Đăng ký thất bại.");
+      setErrorMessage(error.message || "Sign up thất bại.");
     } finally {
       setIsSubmitting(false);
     }
@@ -54,7 +54,7 @@ const SignUp = () => {
     <div className="container mx-auto px-4 py-10">
       <div className="max-w-md mx-auto bg-white rounded-xl border border-gray-200 shadow-md p-6 md:p-8">
         <h1 className="text-2xl font-bold text-textPrimary mb-2 text-center">
-          Đăng ký Pullman Member
+          Sign up Pullman Member
         </h1>
         <p className="text-sm text-gray-600 mb-6 text-center">
           Tạo tài khoản để thử đăng nhập, quản lý booking và lưu thông tin khách lưu trú Pullman.
@@ -63,7 +63,7 @@ const SignUp = () => {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="fullName">
-              Họ và tên
+              Full name
             </label>
             <input
               id="fullName"
@@ -91,7 +91,7 @@ const SignUp = () => {
 
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="phone">
-              Số điện thoại
+              Phone number
             </label>
             <input
               id="phone"
@@ -105,7 +105,7 @@ const SignUp = () => {
 
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="password">
-              Mật khẩu
+              Password
             </label>
             <input
               id="password"
@@ -153,7 +153,7 @@ const SignUp = () => {
         <p className="mt-6 text-sm text-gray-600 text-center">
           Đã có tài khoản?{" "}
           <Link to={ROUTES.LOGIN} className="text-accent font-medium hover:underline">
-            Đăng nhập
+            Sign in
           </Link>
         </p>
       </div>
@@ -162,3 +162,4 @@ const SignUp = () => {
 };
 
 export default SignUp;
+

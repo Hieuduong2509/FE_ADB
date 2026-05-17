@@ -90,7 +90,7 @@ const PriceControlSection = ({
                 onClick={() => startRoomTypeEdit(roomType)}
                 className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
               >
-                Sửa chi tiết
+                Edit chi tiết
               </button>
             </div>
 
@@ -153,3 +153,4 @@ const PriceControlSection = ({
 );
 
 export default PriceControlSection;
+

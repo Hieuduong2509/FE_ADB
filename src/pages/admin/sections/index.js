@@ -5,4 +5,5 @@ export { default as FacilitiesSection } from "./FacilitiesSection";
 export { default as HolidayRulesSection } from "./HolidayRulesSection";
 export { default as HotelsSection } from "./HotelsSection";
 export { default as PriceControlSection } from "./PriceControlSection";
+export { default as ReceptionistsSection } from "./ReceptionistsSection";
 export { default as RoomTypesSection } from "./RoomTypesSection";

@@ -5,10 +5,10 @@ import { formatCurrency, formatDateLabel } from "../utils";
 import { getBookingPaymentStatusApi } from "../utils/auth";
 
 const STATUS_LABELS = {
-  PAID: "Thanh toán thành công",
+  PAID: "Payment thành công",
   PENDING: "Đang chờ thanh toán",
-  FAILED: "Thanh toán thất bại",
-  CANCELLED: "Thanh toán đã hủy",
+  FAILED: "Payment thất bại",
+  CANCELLED: "Payment đã hủy",
   CONFIRMED: "Booking đã xác nhận",
 };
 
@@ -50,7 +50,7 @@ const BookingConfirm = () => {
 
     const loadStatus = async () => {
       if (!bookingId) {
-        setErrorMessage("Thiếu bookingId để theo dõi trạng thái thanh toán.");
+        setErrorMessage("Missing bookingId để theo dõi trạng thái thanh toán.");
         setIsLoading(false);
         return;
       }
@@ -134,7 +134,7 @@ const BookingConfirm = () => {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5">
-              <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Mã booking</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Booking code</div>
               <div className="mt-2 text-lg font-semibold text-textPrimary">
                 {paymentInfo?.booking_number || bookingId || "N/A"}
               </div>
@@ -149,7 +149,7 @@ const BookingConfirm = () => {
               <div className="mt-2 text-lg font-semibold text-textPrimary">
                 {formatCurrency(Number(paymentInfo?.amount ?? paymentInfo?.final_amount ?? 0))}
               </div>
-              <div className="mt-4 text-xs uppercase tracking-[0.18em] text-gray-400">Trạng thái booking</div>
+              <div className="mt-4 text-xs uppercase tracking-[0.18em] text-gray-400">Status booking</div>
               <div className="mt-2 text-sm font-semibold text-textPrimary">
                 {paymentInfo?.booking_status || "N/A"}
               </div>
@@ -159,10 +159,10 @@ const BookingConfirm = () => {
           <div className="mt-6 rounded-[24px] border border-[#ece2d3] bg-white p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Chi tiết lưu trú</div>
             <div className="mt-3 text-lg font-semibold text-textPrimary">
-              {paymentInfo?.hotel_name || "Khách sạn"}
+              {paymentInfo?.hotel_name || "Hotel"}
             </div>
             <div className="mt-1 text-sm text-gray-600">
-              {paymentInfo?.room_type_name || "Loại phòng"}
+              {paymentInfo?.room_type_name || "Room type"}
             </div>
             <div className="mt-3 text-sm text-gray-600">
               {paymentInfo?.checkin_date ? formatDateLabel(paymentInfo.checkin_date) : "--"}
@@ -196,3 +196,4 @@ const BookingConfirm = () => {
 };
 
 export default BookingConfirm;
+

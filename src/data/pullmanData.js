@@ -163,7 +163,7 @@ export const pullmanHotels = [
     priceFrom: 2650000,
     tagline: "Cân bằng giữa nhịp công tác, trải nghiệm ẩm thực và không gian nghỉ tiện nghi.",
     description:
-      "Khách sạn phong cách hiện đại với phòng họp linh hoạt, spa thư giãn và vị trí thuận tiện để di chuyển trong nội thành.",
+      "Hotel phong cách hiện đại với phòng họp linh hoạt, spa thư giãn và vị trí thuận tiện để di chuyển trong nội thành.",
     address: "40 Cát Linh, Đống Đa, Hà Nội",
     highlights: ["Dễ di chuyển", "Ẩm thực cao cấp", "Không gian business"],
     overviewAmenities: ["Spa", "Pool bar", "Co-working lounge", "Late check-out"],
@@ -280,17 +280,17 @@ export const bookingFacilities = [
   },
 ];
 
-export const destinationOptions = ["Tất cả", ...new Set(pullmanHotels.map((hotel) => hotel.city))];
+export const destinationOptions = ["All", ...new Set(pullmanHotels.map((hotel) => hotel.city))];
 
 export const roomTypeOptions = [
-  "Tất cả",
+  "All",
   ...new Set(
     pullmanHotels.flatMap((hotel) => hotel.rooms.map((room) => room.category)),
   ),
 ];
 
 export const amenityOptions = [
-  "Tất cả",
+  "All",
   ...new Set(
     pullmanHotels.flatMap((hotel) => hotel.rooms.flatMap((room) => room.amenities)),
   ),
@@ -314,21 +314,21 @@ export const getTrendingHotels = () =>
   [...pullmanHotels].sort((firstHotel, secondHotel) => secondHotel.rating - firstHotel.rating);
 
 export const filterHotels = ({
-  destination = "Tất cả",
-  roomType = "Tất cả",
+  destination = "All",
+  roomType = "All",
   guests = "2 người",
-  amenity = "Tất cả",
+  amenity = "All",
 }) => {
   const requestedGuests = getGuestCount(guests);
 
   return pullmanHotels
-    .filter((hotel) => destination === "Tất cả" || hotel.city === destination)
+    .filter((hotel) => destination === "All" || hotel.city === destination)
     .map((hotel) => {
       const matchedRooms = hotel.rooms
         .filter((room) => {
-        const matchesRoomType = roomType === "Tất cả" || room.category === roomType;
+        const matchesRoomType = roomType === "All" || room.category === roomType;
         const matchesGuests = room.capacity >= requestedGuests;
-        const matchesAmenity = amenity === "Tất cả" || room.amenities.includes(amenity);
+        const matchesAmenity = amenity === "All" || room.amenities.includes(amenity);
 
         return matchesRoomType && matchesGuests && matchesAmenity;
         })
@@ -343,3 +343,4 @@ export const filterHotels = ({
     .sort((firstHotel, secondHotel) => firstHotel.priceFrom - secondHotel.priceFrom)
     .filter((hotel) => hotel.matchedRooms.length > 0);
 };
+

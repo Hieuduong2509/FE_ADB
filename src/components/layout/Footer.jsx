@@ -20,12 +20,12 @@ const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to={ROUTES.HOME} className="hover:text-secondary transition-colors">
-                  Trang chủ
+                  Home
                 </Link>
               </li>
               <li>
                 <Link to={ROUTES.HOTELS} className="hover:text-secondary transition-colors">
-                  Tìm kiếm
+                  Search
                 </Link>
               </li>
               <li>
@@ -35,18 +35,18 @@ const Footer = () => {
               </li>
               <li>
                 <Link to={ROUTES.ABOUT} className="hover:text-secondary transition-colors">
-                  Giới thiệu
+                  About
                 </Link>
               </li>
               <li>
                 <Link to={ROUTES.CONTACT} className="hover:text-secondary transition-colors">
-                  Liên hệ
+                  Contact
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h3 className="font-semibold text-secondary mb-3">Liên hệ</h3>
+            <h3 className="font-semibold text-secondary mb-3">Contact</h3>
             <p className="text-sm text-white/90 leading-7">
               Hotline: 1900 Pullman
               <br />
@@ -63,3 +63,4 @@ const Footer = () => {
 };
 
 export default Footer;
+

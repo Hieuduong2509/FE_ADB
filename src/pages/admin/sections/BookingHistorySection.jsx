@@ -23,7 +23,7 @@ const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
     <div className="mt-6 space-y-4">
       {isLoading ? (
         <div className="rounded-[24px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-          Đang tải booking history...
+          Loading booking history...
         </div>
       ) : null}
 
@@ -76,3 +76,4 @@ const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
 );
 
 export default BookingHistorySection;
+

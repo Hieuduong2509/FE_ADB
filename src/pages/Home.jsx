@@ -10,9 +10,9 @@ import {
 } from "../utils/search";
 
 const staySignals = [
-  { value: "API", label: "dữ liệu hotel và room type lấy từ backend" },
-  { value: "LIVE", label: "giá booking tính theo seasonal và specific date pricing" },
-  { value: "REAL", label: "dịch vụ cộng thêm bám theo dữ liệu DB" },
+  { value: "API", label: "hotel and room type data is loaded from the backend" },
+  { value: "LIVE", label: "booking prices are calculated from seasonal and specific-date pricing" },
+  { value: "REAL", label: "add-on services are loaded from database records" },
 ];
 
 const Home = () => {
@@ -39,12 +39,12 @@ const Home = () => {
   }, []);
 
   const spotlightHotels = hotels.slice(0, 3);
-  const destinationOptions = ["Tất cả", ...new Set(hotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
+  const destinationOptions = ["All", ...new Set(hotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
   const roomTypeOptions = [
-    "Tất cả",
+    "All",
     ...new Set(hotels.flatMap((hotel) => hotel.matchedRoomTypes?.map((roomType) => roomType.name) || [])),
   ];
-  const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
+  const guestOptions = ["1 guest", "2 guests", "3 guests", "4 guests"];
   const starOptions = ["", "5", "4", "3"];
 
   const handleFieldChange = (field) => (event) => {
@@ -79,11 +79,11 @@ const Home = () => {
               Real booking catalog
             </div>
             <h1 className="mt-6 max-w-3xl font-serif text-4xl leading-tight md:text-5xl lg:text-6xl">
-              Trang chủ giờ lấy khách sạn, loại phòng và giá từ backend thay vì mock data.
+              The home page now loads hotels, room types, and prices from the backend instead of mock data.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/78 md:text-lg">
-              Người dùng có thể đi từ tìm kiếm đến booking với cùng một nguồn dữ liệu thật, cùng
-              logic giá theo ngày lưu trú.
+              Users can move from search to booking with one consistent live data source and
+              stay-date pricing logic.
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -91,7 +91,7 @@ const Home = () => {
                 to={ROUTES.HOTELS}
                 className="rounded-full bg-[#f8deb0] px-6 py-3 text-sm font-semibold text-[#133039] transition hover:-translate-y-0.5 hover:bg-[#fde8c4]"
               >
-                Mở trang tìm kiếm
+                Open search page
               </Link>
             </div>
 
@@ -118,11 +118,11 @@ const Home = () => {
                   Quick hotel search
                 </p>
                 <h2 className="mt-2 max-w-lg text-2xl font-semibold leading-tight text-textPrimary">
-                  Chọn nơi ở, ngày lưu trú và loại phòng để sang thẳng trang tìm kiếm.
+                  Choose destination, stay dates, and room type to jump straight to search.
                 </h2>
               </div>
               <div className="rounded-3xl bg-[#17363f] px-4 py-3 text-white">
-                <div className="text-xs uppercase tracking-[0.2em] text-[#f4d7a2]">Đang hot</div>
+                <div className="text-xs uppercase tracking-[0.2em] text-[#f4d7a2]">Trending</div>
                 <div className="mt-1 text-lg font-semibold">
                   {spotlightHotels[0]?.name || "Hotel Booking"}
                 </div>
@@ -132,19 +132,19 @@ const Home = () => {
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="block md:col-span-2">
                 <span className="mb-2 block text-sm font-medium text-gray-600">
-                  Tìm theo tên hotel / thành phố
+                  Search by hotel name / city
                 </span>
                 <input
                   type="text"
                   value={searchForm.search}
                   onChange={handleFieldChange("search")}
-                  placeholder="Ví dụ: Da Nang, Pullman, biển..."
+                  placeholder="Example: Da Nang, Pullman, beach"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
                 />
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Điểm đến</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Destination</span>
                 <select
                   value={searchForm.destination}
                   onChange={handleFieldChange("destination")}
@@ -159,7 +159,7 @@ const Home = () => {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Loại phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Room type</span>
                 <select
                   value={searchForm.roomType}
                   onChange={handleFieldChange("roomType")}
@@ -174,7 +174,7 @@ const Home = () => {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Nhận phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Check-in</span>
                 <input
                   type="date"
                   value={searchForm.checkIn}
@@ -184,7 +184,7 @@ const Home = () => {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Trả phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Check-out</span>
                 <input
                   type="date"
                   value={searchForm.checkOut}
@@ -194,7 +194,7 @@ const Home = () => {
               </label>
 
               <label className="block md:col-span-2">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Số khách</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Guests</span>
                 <div className="grid gap-3 md:grid-cols-[1fr_auto]">
                   <select
                     value={searchForm.guests}
@@ -211,7 +211,7 @@ const Home = () => {
                     type="submit"
                     className="rounded-2xl bg-[#183b44] px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#102d34]"
                   >
-                    Tìm khách sạn
+                    Search hotels
                   </button>
                 </div>
               </label>
@@ -235,7 +235,7 @@ const Home = () => {
                   onChange={handleFieldChange("stars")}
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#183b44] focus:ring-4 focus:ring-[#183b44]/10"
                 >
-                  <option value="">Tất cả</option>
+                  <option value="">All</option>
                   {starOptions
                     .filter(Boolean)
                     .map((star) => (
@@ -277,7 +277,7 @@ const Home = () => {
         <div className="mt-8 grid gap-6 xl:grid-cols-3">
           {isLoading ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center xl:col-span-3">
-              Đang tải khách sạn...
+              Loading khách sạn...
             </div>
           ) : null}
 
@@ -306,7 +306,7 @@ const Home = () => {
 
                 <div className="space-y-5 p-6">
                   <p className="text-sm leading-6 text-gray-600">
-                    {hotel.description || "Khách sạn hiện đã được đồng bộ từ backend."}
+                    {hotel.description || "Hotel hiện đã được đồng bộ từ backend."}
                   </p>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -368,3 +368,4 @@ const Home = () => {
 };
 
 export default Home;
+

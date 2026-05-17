@@ -27,7 +27,7 @@ src/
 
 ## Luồng chính
 
-- **Trang chủ**: Hero + form tìm kiếm (placeholder)
-- **Khách sạn**: Danh sách chi nhánh (placeholder data)
+- **Home**: Hero + form tìm kiếm (placeholder)
+- **Hotel**: Danh sách chi nhánh (placeholder data)
 - **Chi tiết KS**: `/khach-san/:hotelId` — thông tin chi nhánh, nút đặt phòng
 - **Đặt phòng** → **Xác nhận**: Luồng đặt phòng (sẽ gắn API sau)

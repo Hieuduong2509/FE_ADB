@@ -26,7 +26,7 @@ const HotelDetail = () => {
         setErrorMessage("");
       } catch (error) {
         setHotel(null);
-        setErrorMessage(error.message || "Không tải được chi tiết khách sạn.");
+        setErrorMessage(error.message || "Unable to load chi tiết khách sạn.");
       } finally {
         setIsLoading(false);
       }
@@ -45,7 +45,7 @@ const HotelDetail = () => {
     `?${buildSearchParams({
       ...filters,
       destination: hotel?.cityAddress || filters.destination,
-      roomType: hotel?.roomTypes.find((roomType) => roomType.roomTypeId === roomTypeId)?.name || "Tất cả",
+      roomType: hotel?.roomTypes.find((roomType) => roomType.roomTypeId === roomTypeId)?.name || "All",
       roomTypeId,
     }).toString()}`;
 
@@ -53,7 +53,7 @@ const HotelDetail = () => {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="rounded-[28px] border border-dashed border-[#d9ccb8] bg-white p-8 text-center">
-          Đang tải chi tiết khách sạn...
+          Loading chi tiết khách sạn...
         </div>
       </div>
     );
@@ -194,7 +194,7 @@ const HotelDetail = () => {
                     </div>
                   </div>
                   <p className={`mt-3 text-sm leading-7 ${isSelectedRoom ? "text-white/78" : "text-gray-600"}`}>
-                    {roomType.servicesText || "Loại phòng này có thể được đặt trực tiếp từ booking flow."}
+                    {roomType.servicesText || "Room type này có thể được đặt trực tiếp từ booking flow."}
                   </p>
                 </Link>
               );
@@ -245,3 +245,4 @@ const HotelDetail = () => {
 };
 
 export default HotelDetail;
+

@@ -44,7 +44,7 @@ const Hotels = () => {
         const data = await getClientHotelsApi(filters);
         setHotels(Array.isArray(data) ? data : []);
       } catch (error) {
-        setSearchError(error.message || "Không tải được khách sạn.");
+        setSearchError(error.message || "Unable to load khách sạn.");
         setHotels([]);
       } finally {
         setIsLoading(false);
@@ -58,13 +58,13 @@ const Hotels = () => {
     setCurrentPage(1);
   }, [filters]);
 
-  const destinationOptions = ["Tất cả", ...new Set(catalogHotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
+  const destinationOptions = ["All", ...new Set(catalogHotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
   const roomTypeOptions = [
-    "Tất cả",
+    "All",
     ...new Set(catalogHotels.flatMap((hotel) => hotel.matchedRoomTypes?.map((roomType) => roomType.name) || [])),
   ];
   const amenityOptions = [
-    "Tất cả",
+    "All",
     ...new Set(
       catalogHotels.flatMap(
         (hotel) =>
@@ -73,7 +73,7 @@ const Hotels = () => {
     ),
   ];
   const serviceOptions = [
-    "Tất cả",
+    "All",
     ...new Set(
       catalogHotels.flatMap(
         (hotel) =>
@@ -231,7 +231,7 @@ const Hotels = () => {
             </div>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Số khách</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Guests</span>
               <select
                 value={filters.guests}
                 onChange={handleFieldChange("guests")}
@@ -278,7 +278,7 @@ const Hotels = () => {
                 onChange={handleFieldChange("stars")}
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
               >
-                <option value="">Tất cả</option>
+                <option value="">All</option>
                 {starOptions
                   .filter(Boolean)
                   .map((option) => (
@@ -290,7 +290,7 @@ const Hotels = () => {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Loại phòng</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Room type</span>
               <select
                 value={filters.roomType}
                 onChange={handleFieldChange("roomType")}
@@ -398,7 +398,7 @@ const Hotels = () => {
 
           {isLoading ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center shadow-[0_12px_28px_rgba(34,27,18,0.05)]">
-              Đang tải kết quả tìm kiếm...
+              Loading kết quả tìm kiếm...
             </div>
           ) : null}
 
@@ -574,3 +574,4 @@ const Hotels = () => {
 };
 
 export default Hotels;
+

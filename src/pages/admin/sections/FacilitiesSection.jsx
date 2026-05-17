@@ -36,7 +36,7 @@ const FacilitiesSection = ({
         <form onSubmit={submitFacility} className="mt-6 space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Khách sạn</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Hotel</span>
               <select
                 value={facilityDraft.hotelId}
                 onChange={(event) =>
@@ -185,7 +185,7 @@ const FacilitiesSection = ({
                 disabled={isSubmitting}
                 className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Hủy chỉnh sửa
+                Cancel editing
               </button>
             ) : null}
           </div>
@@ -195,7 +195,7 @@ const FacilitiesSection = ({
       <div className="grid gap-4 md:grid-cols-2">
         {isLoading ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600 md:col-span-2">
-            Đang tải danh sách dịch vụ...
+            Loading danh sách dịch vụ...
           </div>
         ) : null}
 
@@ -235,7 +235,7 @@ const FacilitiesSection = ({
                 disabled={isSubmitting}
                 className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Sửa
+                Edit
               </button>
               <button
                 type="button"
@@ -243,7 +243,7 @@ const FacilitiesSection = ({
                 disabled={isSubmitting}
                 className="rounded-full border border-[#e7c5bf] px-4 py-2 text-sm font-medium text-[#aa4f3d] transition hover:bg-[#fff2ee] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Xóa
+                Delete
               </button>
             </div>
           </div>
@@ -254,3 +254,4 @@ const FacilitiesSection = ({
 );
 
 export default FacilitiesSection;
+

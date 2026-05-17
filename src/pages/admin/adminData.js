@@ -12,9 +12,10 @@ export const sectionLinks = [
   { id: "booking-history", label: "Booking History" },
   { id: "holiday-rules", label: "Pricing Rules" },
   { id: "price-control", label: "Giá phòng" },
-  { id: "room-types", label: "Loại phòng" },
+  { id: "room-types", label: "Room type" },
   { id: "facilities", label: "Facilities" },
   { id: "amenities", label: "Amenities" },
+  { id: "receptionists", label: "Receptionists" },
 ];
 
 export const slugify = (value = "") =>
@@ -114,3 +115,4 @@ export const createPricingDraft = () => ({
   priority: 100,
   active: true,
 });
+

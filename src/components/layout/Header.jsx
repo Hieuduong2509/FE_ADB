@@ -10,12 +10,12 @@ const Header = () => {
   const location = useLocation();
   const isAdmin = isAdminSession(session);
   const navItems = [
-    { path: ROUTES.HOME, label: "Trang chủ" },
-    { path: ROUTES.HOTELS, label: "Tìm kiếm" },
+    { path: ROUTES.HOME, label: "Home" },
+    { path: ROUTES.HOTELS, label: "Search" },
     { path: ROUTES.BOOKING, label: "Booking" },
     ...(session?.user && !isAdmin ? [{ path: ROUTES.BOOKING_HISTORY, label: "Lịch sử" }] : []),
     ...(isAdmin ? [{ path: ROUTES.ADMIN, label: "Admin" }] : []),
-    { path: ROUTES.CONTACT, label: "Liên hệ" },
+    { path: ROUTES.CONTACT, label: "Contact" },
   ];
 
   useEffect(() => {
@@ -76,14 +76,14 @@ const Header = () => {
               {session?.user ? (
                 <>
                   <div className="rounded-full border border-[#d8ccb8] bg-white px-4 py-2 text-sm text-textPrimary">
-                    Xin chào, {session.user.fullName || session.user.email}
+                    Hello, {session.user.fullName || session.user.email}
                   </div>
                   <button
                     type="button"
                     onClick={handleLogout}
                     className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#102d34]"
                   >
-                    Đăng xuất
+                    Sign out
                   </button>
                 </>
               ) : (
@@ -94,7 +94,7 @@ const Header = () => {
                       isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
                     }`}
                   >
-                    Đăng nhập
+                    Sign in
                   </Link>
                   <Link
                     to={ROUTES.SIGN_UP}
@@ -102,7 +102,7 @@ const Header = () => {
                       isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
                     }`}
                   >
-                    Đăng ký
+                    Sign up
                   </Link>
                 </>
               )}
@@ -144,7 +144,7 @@ const Header = () => {
               {session?.user ? (
                 <>
                   <li className="mt-2 rounded-xl border border-[#e7dcc8] bg-white px-3 py-3 text-sm text-textPrimary">
-                    Xin chào, {session.user.fullName || session.user.email}
+                    Hello, {session.user.fullName || session.user.email}
                   </li>
                   <li>
                     <button
@@ -152,7 +152,7 @@ const Header = () => {
                       onClick={handleLogout}
                       className="w-full rounded-full bg-[#17363f] py-2 px-2 text-center text-sm font-medium text-white hover:bg-[#102d34]"
                     >
-                      Đăng xuất
+                      Sign out
                     </button>
                   </li>
                 </>
@@ -165,7 +165,7 @@ const Header = () => {
                       isActive(ROUTES.LOGIN) ? "bg-[#faf5ec]" : "hover:bg-white"
                     }`}
                   >
-                    Đăng nhập
+                    Sign in
                   </Link>
                   <Link
                     to={ROUTES.SIGN_UP}
@@ -174,7 +174,7 @@ const Header = () => {
                       isActive(ROUTES.SIGN_UP) ? "ring-2 ring-[#17363f]/30" : "hover:bg-[#102d34]"
                     }`}
                   >
-                    Đăng ký
+                    Sign up
                   </Link>
                 </li>
               )}
@@ -187,3 +187,4 @@ const Header = () => {
 };
 
 export default Header;
+

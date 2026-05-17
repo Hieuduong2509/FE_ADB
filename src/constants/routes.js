@@ -13,6 +13,8 @@ export const ROUTES = {
   SIGN_UP: "/dang-ky",
   BOOKING_HISTORY: "/lich-su-dat-phong",
   ADMIN: "/admin/van-hanh",
+  RECEPTIONIST_LOGIN: "/receptionist/login",
+  RECEPTIONIST_DASHBOARD: "/receptionist/dashboard",
 };
 
 /** Helper tạo path chi tiết khách sạn */

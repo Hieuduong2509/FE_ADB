@@ -1,7 +1,7 @@
 const About = () => {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-textPrimary mb-2">Giới thiệu</h1>
+      <h1 className="text-2xl font-bold text-textPrimary mb-2">About</h1>
       <p className="text-gray-600 mb-6">Website đặt phòng dành riêng cho thương hiệu Pullman.</p>
       <div className="max-w-2xl text-gray-600 space-y-4">
         <p>
@@ -18,3 +18,4 @@ const About = () => {
 };
 
 export default About;
+

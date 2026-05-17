@@ -24,7 +24,7 @@ const BookingHistory = () => {
         setItems(Array.isArray(response?.items) ? response.items : []);
         setErrorMessage("");
       } catch (error) {
-        setErrorMessage(error.message || "Không tải được lịch sử booking.");
+        setErrorMessage(error.message || "Unable to load lịch sử booking.");
       } finally {
         setIsLoading(false);
       }
@@ -62,7 +62,7 @@ const BookingHistory = () => {
         <div className="mt-6 space-y-4">
           {isLoading ? (
             <div className="rounded-[24px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-              Đang tải lịch sử booking...
+              Loading lịch sử booking...
             </div>
           ) : null}
 
@@ -86,7 +86,7 @@ const BookingHistory = () => {
                     {booking.room_type_name}
                   </h2>
                   <div className="mt-2 text-sm text-gray-600">
-                    Mã booking: {booking.booking_number}
+                    Booking code: {booking.booking_number}
                   </div>
                 </div>
                 <div className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-semibold text-white">
@@ -99,16 +99,16 @@ const BookingHistory = () => {
                   {formatDateLabel(booking.checkin_date)} → {formatDateLabel(booking.checkout_date)}
                 </div>
                 <div className="rounded-[20px] bg-white p-4 text-sm text-gray-700">
-                  Trạng thái: {booking.booking_status}
+                  Status: {booking.booking_status}
                 </div>
                 <div className="rounded-[20px] bg-white p-4 text-sm text-gray-700">
-                  Thanh toán: {booking.payment_status}
+                  Payment: {booking.payment_status}
                 </div>
               </div>
 
               {Array.isArray(booking.facilities) && booking.facilities.length ? (
                 <div className="mt-4">
-                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Dịch vụ đã chọn</div>
+                  <div className="text-xs uppercase tracking-[0.18em] text-accent">Selected services</div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {booking.facilities.map((facility) => (
                       <div
@@ -130,3 +130,4 @@ const BookingHistory = () => {
 };
 
 export default BookingHistory;
+
