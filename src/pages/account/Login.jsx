@@ -32,6 +32,7 @@ const Login = () => {
       } catch (adminError) {
         const shouldFallbackToClient =
           adminError?.status === 401 ||
+          adminError?.code === "ROLE_NOT_ALLOWED" ||
           adminError?.code === "ROLE_NOT_ADMIN" ||
           adminError?.code === "INVALID_CREDENTIALS";
 

@@ -11,12 +11,14 @@ import {
 } from "../utils/search";
 
 const Hotels = () => {
+  const HOTELS_PER_PAGE = 2;
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState(() => createSearchFiltersFromParams(searchParams));
   const [searchError, setSearchError] = useState("");
   const [hotels, setHotels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [catalogHotels, setCatalogHotels] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     setFilters(createSearchFiltersFromParams(searchParams));
@@ -50,6 +52,10 @@ const Hotels = () => {
     };
 
     void loadHotels();
+  }, [filters]);
+
+  useEffect(() => {
+    setCurrentPage(1);
   }, [filters]);
 
   const destinationOptions = ["Tất cả", ...new Set(catalogHotels.map((hotel) => hotel.cityAddress).filter(Boolean))];
@@ -111,6 +117,13 @@ const Hotels = () => {
     setSearchError("");
     syncFiltersToUrl(clearedFilters);
   };
+
+  const totalPages = Math.max(1, Math.ceil(hotels.length / HOTELS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const paginatedHotels = hotels.slice(
+    (safeCurrentPage - 1) * HOTELS_PER_PAGE,
+    safeCurrentPage * HOTELS_PER_PAGE,
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 md:py-10">
@@ -359,6 +372,9 @@ const Hotels = () => {
                 <div className="mt-2 text-lg font-semibold text-textPrimary">
                   {hotels.length} khách sạn khả dụng trong {filters.checkIn} → {filters.checkOut}
                 </div>
+                <div className="mt-1 text-sm text-gray-500">
+                  Trang {safeCurrentPage}/{totalPages}
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 {filters.search ? (
@@ -387,7 +403,7 @@ const Hotels = () => {
           ) : null}
 
           {!isLoading && hotels.length > 0 ? (
-            hotels.map((hotel) => (
+            paginatedHotels.map((hotel) => (
               <article
                 key={hotel.id}
                 className="overflow-hidden rounded-[30px] border border-[#e4dac8] bg-white shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
@@ -506,6 +522,41 @@ const Hotels = () => {
                 </div>
               </article>
             ))
+          ) : null}
+
+          {!isLoading && hotels.length > HOTELS_PER_PAGE ? (
+            <div className="flex flex-wrap items-center justify-center gap-2 rounded-[20px] border border-[#e5dbc9] bg-white px-4 py-3 shadow-[0_10px_24px_rgba(34,27,18,0.05)]">
+              <button
+                type="button"
+                disabled={safeCurrentPage <= 1}
+                onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary transition hover:bg-[#faf6ef] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Trước
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className={`h-9 w-9 rounded-full text-sm font-semibold transition ${
+                    pageNumber === safeCurrentPage
+                      ? "bg-[#17363f] text-white"
+                      : "border border-[#d8ccb8] text-textPrimary hover:bg-[#faf6ef]"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+              <button
+                type="button"
+                disabled={safeCurrentPage >= totalPages}
+                onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
+                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary transition hover:bg-[#faf6ef] disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Sau
+              </button>
+            </div>
           ) : null}
 
           {!isLoading && !hotels.length ? (
