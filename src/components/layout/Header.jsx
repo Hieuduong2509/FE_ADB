@@ -13,7 +13,7 @@ const Header = () => {
     { path: ROUTES.HOME, label: "Home" },
     { path: ROUTES.HOTELS, label: "Search" },
     { path: ROUTES.BOOKING, label: "Booking" },
-    ...(session?.user && !isAdmin ? [{ path: ROUTES.BOOKING_HISTORY, label: "Lịch sử" }] : []),
+    ...(session?.user && !isAdmin ? [{ path: ROUTES.BOOKING_HISTORY, label: "History" }] : []),
     ...(isAdmin ? [{ path: ROUTES.ADMIN, label: "Admin" }] : []),
     { path: ROUTES.CONTACT, label: "Contact" },
   ];

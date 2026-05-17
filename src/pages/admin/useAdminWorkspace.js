@@ -466,7 +466,7 @@ export const useAdminWorkspace = () => {
             : String(nextHotels[0]?.id || ""),
       }));
     } catch (error) {
-      const message = getErrorMessage(error, "Unable to load danh mục khách sạn.");
+      const message = getErrorMessage(error, "Unable to load hotel catalog.");
       setHotelsError(message);
       setManagerHotels([]);
     } finally {
@@ -486,7 +486,7 @@ export const useAdminWorkspace = () => {
       setManagerRoomTypes(nextRoomTypes);
       setRoomTypesError("");
     } catch (error) {
-      setRoomTypesError(getErrorMessage(error, "Unable to load danh sách loại phòng."));
+      setRoomTypesError(getErrorMessage(error, "Unable to load room type list."));
       setRoomTypes([]);
       setManagerRoomTypes([]);
     } finally {
@@ -503,7 +503,7 @@ export const useAdminWorkspace = () => {
       setFacilities(response.map((facility) => formatFacilityRecord(facility, hotelsById)));
       setFacilitiesError("");
     } catch (error) {
-      setFacilitiesError(getErrorMessage(error, "Unable to load danh sách facilities."));
+      setFacilitiesError(getErrorMessage(error, "Unable to load facilities list."));
       setFacilities([]);
     } finally {
       setIsFacilitiesLoading(false);
@@ -518,7 +518,7 @@ export const useAdminWorkspace = () => {
       setAmenities(response.map((amenity) => formatAmenityRecord(amenity)));
       setAmenitiesError("");
     } catch (error) {
-      setAmenitiesError(getErrorMessage(error, "Unable to load danh sách amenities."));
+      setAmenitiesError(getErrorMessage(error, "Unable to load amenities list."));
       setAmenities([]);
     } finally {
       setIsAmenitiesLoading(false);
@@ -574,7 +574,7 @@ export const useAdminWorkspace = () => {
       setReceptionistError("");
     } catch (error) {
       setAdminUsers([]);
-      setReceptionistError(getErrorMessage(error, "Unable to load danh sách user."));
+      setReceptionistError(getErrorMessage(error, "Unable to load user list."));
     } finally {
       setIsAdminUsersLoading(false);
     }
@@ -673,7 +673,7 @@ export const useAdminWorkspace = () => {
     };
 
     if (!normalized.name || !normalized.country || !normalized.city || !normalized.address) {
-      setHotelsError("Please nhập tên khách sạn, quốc gia, thành phố và địa chỉ.");
+      setHotelsError("Please enter hotel name, country, city, and address.");
       return;
     }
 
@@ -690,7 +690,7 @@ export const useAdminWorkspace = () => {
       await refreshHotels();
       resetHotelEditor();
     } catch (error) {
-      setHotelsError(getErrorMessage(error, "Không lưu được khách sạn."));
+      setHotelsError(getErrorMessage(error, "Unable to save hotel."));
     } finally {
       setIsHotelSubmitting(false);
     }
@@ -708,7 +708,7 @@ export const useAdminWorkspace = () => {
         resetHotelEditor();
       }
     } catch (error) {
-      setHotelsError(getErrorMessage(error, "Không xóa được khách sạn."));
+      setHotelsError(getErrorMessage(error, "Unable to delete hotel."));
     } finally {
       setIsHotelSubmitting(false);
     }
@@ -764,7 +764,7 @@ export const useAdminWorkspace = () => {
     };
 
     if (!normalized.hotel_id || !normalized.name) {
-      setRoomTypesError("Please chọn khách sạn và nhập tên loại phòng.");
+      setRoomTypesError("Please select a hotel and enter room type name.");
       return;
     }
 
@@ -781,7 +781,7 @@ export const useAdminWorkspace = () => {
       await refreshRoomTypes();
       resetRoomTypeEditor();
     } catch (error) {
-      setRoomTypesError(getErrorMessage(error, "Không lưu được loại phòng."));
+      setRoomTypesError(getErrorMessage(error, "Unable to save room type."));
     } finally {
       setIsRoomTypeSubmitting(false);
     }
@@ -799,7 +799,7 @@ export const useAdminWorkspace = () => {
         resetRoomTypeEditor();
       }
     } catch (error) {
-      setRoomTypesError(getErrorMessage(error, "Không xóa được loại phòng."));
+      setRoomTypesError(getErrorMessage(error, "Unable to delete room type."));
     } finally {
       setIsRoomTypeSubmitting(false);
     }
@@ -853,7 +853,7 @@ export const useAdminWorkspace = () => {
     };
 
     if (!normalized.hotel_id || !normalized.name) {
-      setFacilitiesError("Please chọn khách sạn và nhập tên facility.");
+      setFacilitiesError("Please select a hotel and enter facility name.");
       return;
     }
 
@@ -870,7 +870,7 @@ export const useAdminWorkspace = () => {
       await refreshFacilities();
       resetFacilityEditor();
     } catch (error) {
-      setFacilitiesError(getErrorMessage(error, "Không lưu được facility."));
+      setFacilitiesError(getErrorMessage(error, "Unable to save facility."));
     } finally {
       setIsFacilitySubmitting(false);
     }
@@ -888,7 +888,7 @@ export const useAdminWorkspace = () => {
         resetFacilityEditor();
       }
     } catch (error) {
-      setFacilitiesError(getErrorMessage(error, "Không xóa được facility."));
+      setFacilitiesError(getErrorMessage(error, "Unable to delete facility."));
     } finally {
       setIsFacilitySubmitting(false);
     }
@@ -920,7 +920,7 @@ export const useAdminWorkspace = () => {
     };
 
     if (!normalized.name) {
-      setAmenitiesError("Please nhập tên amenity.");
+      setAmenitiesError("Please enter amenity name.");
       return;
     }
 
@@ -937,7 +937,7 @@ export const useAdminWorkspace = () => {
       await refreshAmenities();
       resetAmenityEditor();
     } catch (error) {
-      setAmenitiesError(getErrorMessage(error, "Không lưu được amenity."));
+      setAmenitiesError(getErrorMessage(error, "Unable to save amenity."));
     } finally {
       setIsAmenitySubmitting(false);
     }
@@ -955,7 +955,7 @@ export const useAdminWorkspace = () => {
         resetAmenityEditor();
       }
     } catch (error) {
-      setAmenitiesError(getErrorMessage(error, "Không xóa được amenity."));
+      setAmenitiesError(getErrorMessage(error, "Unable to delete amenity."));
     } finally {
       setIsAmenitySubmitting(false);
     }
@@ -1019,22 +1019,22 @@ export const useAdminWorkspace = () => {
     };
 
     if (!normalized.hotel_id || !normalized.room_type_id) {
-      setPricingRulesError("Please chọn khách sạn và room type.");
+      setPricingRulesError("Please select hotel and room type.");
       return;
     }
 
     if (isSingleDay && !normalized.conditions.date) {
-      setPricingRulesError("Please chọn ngày áp dụng.");
+      setPricingRulesError("Please select applied date.");
       return;
     }
 
     if (isSingleDay && (!Number.isFinite(Number(pricingDraft.specificPercent)) || Number(pricingDraft.specificPercent) <= 0)) {
-      setPricingRulesError("Please nhập phần trăm thay đổi lớn hơn 0 cho rule đơn ngày.");
+      setPricingRulesError("Please enter a percent change greater than 0 for single-date rule.");
       return;
     }
 
     if (!isSingleDay && (!normalized.conditions.start_date || !normalized.conditions.end_date)) {
-      setPricingRulesError("Please chọn ngày bắt đầu và kết thúc.");
+      setPricingRulesError("Please select start and end date.");
       return;
     }
 
@@ -1051,7 +1051,7 @@ export const useAdminWorkspace = () => {
       await refreshPricingRules();
       resetPricingEditor();
     } catch (error) {
-      setPricingRulesError(getErrorMessage(error, "Không lưu được pricing rule."));
+      setPricingRulesError(getErrorMessage(error, "Unable to save pricing rule."));
     } finally {
       setIsPricingRuleSubmitting(false);
     }
@@ -1069,7 +1069,7 @@ export const useAdminWorkspace = () => {
         resetPricingEditor();
       }
     } catch (error) {
-      setPricingRulesError(getErrorMessage(error, "Không xóa được pricing rule."));
+      setPricingRulesError(getErrorMessage(error, "Unable to delete pricing rule."));
     } finally {
       setIsPricingRuleSubmitting(false);
     }
@@ -1091,7 +1091,7 @@ export const useAdminWorkspace = () => {
       await refreshAdminUsers();
       setReceptionistError("");
     } catch (error) {
-      setReceptionistError(getErrorMessage(error, "Không set được role receptionist."));
+      setReceptionistError(getErrorMessage(error, "Unable to set receptionist role."));
     } finally {
       setIsReceptionistSubmitting(false);
       setAssigningUserId("");
@@ -1102,7 +1102,7 @@ export const useAdminWorkspace = () => {
     const accessToken = getAdminAccessToken();
     const hotelId = assignHotelMap[userId];
     if (!hotelId) {
-      setReceptionistError("Please chọn khách sạn trước khi gán.");
+      setReceptionistError("Please select hotel before assigning.");
       return;
     }
 
@@ -1113,7 +1113,7 @@ export const useAdminWorkspace = () => {
       await refreshAdminUsers();
       setReceptionistError("");
     } catch (error) {
-      setReceptionistError(getErrorMessage(error, "Không gán được khách sạn cho receptionist."));
+      setReceptionistError(getErrorMessage(error, "Unable to assign hotel to receptionist."));
     } finally {
       setIsReceptionistSubmitting(false);
       setAssigningUserId("");
@@ -1129,7 +1129,7 @@ export const useAdminWorkspace = () => {
       await refreshAdminUsers();
       setReceptionistError("");
     } catch (error) {
-      setReceptionistError(getErrorMessage(error, "Không remove được role receptionist."));
+      setReceptionistError(getErrorMessage(error, "Unable to remove receptionist role."));
     } finally {
       setIsReceptionistSubmitting(false);
       setAssigningUserId("");

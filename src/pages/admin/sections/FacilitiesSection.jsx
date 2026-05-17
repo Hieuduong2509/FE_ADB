@@ -1,9 +1,9 @@
 import { formatCurrency } from "../../../utils";
 
 const pricingTypeLabels = {
-  per_use: "Tính theo lần",
-  per_night: "Tính theo đêm",
-  one_time: "Tính một lần",
+  per_use: "Per use",
+  per_night: "Per night",
+  one_time: "One-time",
 };
 
 const FacilitiesSection = ({
@@ -30,7 +30,7 @@ const FacilitiesSection = ({
           Facilities manager
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Quản lý facilities theo schema backend hiện tại
+          Manage facilities based on current backend schema
         </h2>
 
         <form onSubmit={submitFacility} className="mt-6 space-y-4">
@@ -48,7 +48,7 @@ const FacilitiesSection = ({
                 disabled={!hotelOptions.length || isSubmitting}
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {!hotelOptions.length ? <option value="">Chưa có khách sạn</option> : null}
+                {!hotelOptions.length ? <option value="">No hotels available</option> : null}
                 {hotelOptions.map((hotel) => (
                   <option key={hotel.id} value={hotel.id}>
                     {hotel.name}
@@ -58,7 +58,7 @@ const FacilitiesSection = ({
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Loại facility</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Facility type</span>
               <input
                 type="text"
                 value={facilityDraft.facilityType}
@@ -76,7 +76,7 @@ const FacilitiesSection = ({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Mã facility</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Facility code</span>
               <input
                 type="text"
                 value={facilityDraft.code}
@@ -92,7 +92,7 @@ const FacilitiesSection = ({
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Kiểu tính phí</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Billing type</span>
               <select
                 value={facilityDraft.pricingType}
                 onChange={(event) =>
@@ -104,15 +104,15 @@ const FacilitiesSection = ({
                 disabled={isSubmitting}
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option value="per_use">Tính theo lần</option>
-                <option value="per_night">Tính theo đêm</option>
-                <option value="one_time">Tính một lần</option>
+                <option value="per_use">Per use</option>
+                <option value="per_night">Per night</option>
+                <option value="one_time">One-time</option>
               </select>
             </label>
           </div>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Tên dịch vụ</span>
+            <span className="mb-2 block text-sm font-medium text-gray-600">Service name</span>
             <input
               type="text"
               value={facilityDraft.name}
@@ -128,7 +128,7 @@ const FacilitiesSection = ({
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Mô tả</span>
+            <span className="mb-2 block text-sm font-medium text-gray-600">Description</span>
             <textarea
               rows="3"
               value={facilityDraft.description}
@@ -144,7 +144,7 @@ const FacilitiesSection = ({
           </label>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Giá</span>
+            <span className="mb-2 block text-sm font-medium text-gray-600">Price</span>
             <input
               type="number"
               min="0"
@@ -173,10 +173,10 @@ const FacilitiesSection = ({
               className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting
-                ? "Đang lưu..."
+                ? "Saving..."
                 : editingFacilityId
-                  ? "Lưu dịch vụ"
-                  : "Thêm dịch vụ"}
+                  ? "Save service"
+                  : "Add service"}
             </button>
             {editingFacilityId ? (
               <button
@@ -195,13 +195,13 @@ const FacilitiesSection = ({
       <div className="grid gap-4 md:grid-cols-2">
         {isLoading ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600 md:col-span-2">
-            Loading danh sách dịch vụ...
+            Loading service list...
           </div>
         ) : null}
 
         {!isLoading && !facilities.length ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600 md:col-span-2">
-            Chưa có dịch vụ nào trong hệ thống.
+            No services in the system yet.
           </div>
         ) : null}
 

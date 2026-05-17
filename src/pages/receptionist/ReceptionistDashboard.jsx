@@ -49,7 +49,7 @@ const ReceptionistDashboard = () => {
     } catch (error) {
       setItems([]);
       setRoomBoard(null);
-      setErrorMessage(error.message || "Unable to load danh sách booking.");
+      setErrorMessage(error.message || "Unable to load booking list.");
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +119,7 @@ const ReceptionistDashboard = () => {
       setErrorMessage("");
     } catch (error) {
       setLookupResult(null);
-      setErrorMessage(error.message || "Không tìm thấy booking.");
+      setErrorMessage(error.message || "Booking not found.");
     }
   };
 
@@ -220,7 +220,7 @@ const ReceptionistDashboard = () => {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="text-xs uppercase tracking-[0.2em] text-accent">Receptionist Dashboard</div>
-              <h1 className="mt-1 text-2xl font-semibold text-textPrimary">Vận hành lễ tân</h1>
+              <h1 className="mt-1 text-2xl font-semibold text-textPrimary">Reception operations</h1>
               <p className="mt-1 text-sm text-gray-600">{session?.user?.email}</p>
             </div>
             <div className="flex items-center gap-2">
@@ -249,13 +249,13 @@ const ReceptionistDashboard = () => {
 
         <div className="mt-4 rounded-2xl border border-[#e5dbc9] bg-white p-5 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
           <div className="mb-4 rounded-xl border border-[#ece2d3] bg-[#fffcf7] p-3">
-            <div className="mb-2 text-xs uppercase tracking-[0.2em] text-accent">Tra cứu booking</div>
+            <div className="mb-2 text-xs uppercase tracking-[0.2em] text-accent">Booking lookup</div>
             <div className="flex flex-wrap gap-2">
               <input
                 type="text"
                 value={lookupCode}
                 onChange={(event) => setLookupCode(event.target.value)}
-                placeholder="Nhập mã booking (VD: BK-...)"
+                placeholder="Enter booking code (e.g. BK-...)"
                 className="min-w-[260px] flex-1 rounded-lg border border-[#e7dcc8] bg-[#fcfaf6] px-3 py-2 text-sm"
               />
               <button
@@ -281,7 +281,7 @@ const ReceptionistDashboard = () => {
                 type="text"
                 value={searchCode}
                 onChange={(event) => setSearchCode(event.target.value)}
-                placeholder="Tìm trong danh sách theo mã booking"
+                placeholder="Search list by booking code"
                 className="rounded-lg border border-[#e7dcc8] bg-[#fcfaf6] px-3 py-2 text-sm"
               />
               <select
@@ -289,37 +289,37 @@ const ReceptionistDashboard = () => {
                 onChange={(event) => setPaymentFilter(event.target.value)}
                 className="rounded-lg border border-[#e7dcc8] bg-[#fcfaf6] px-3 py-2 text-sm"
               >
-                <option value="all">All thanh toán</option>
-                <option value="paid">Chỉ PAID</option>
-                <option value="unpaid">Chỉ UNPAID</option>
+                <option value="all">All payments</option>
+                <option value="paid">PAID only</option>
+                <option value="unpaid">UNPAID only</option>
               </select>
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value)}
                 className="rounded-lg border border-[#e7dcc8] bg-[#fcfaf6] px-3 py-2 text-sm"
               >
-                <option value="checkin_asc">Check-in tăng dần</option>
-                <option value="checkin_desc">Check-in giảm dần</option>
-                <option value="checkout_asc">Check-out tăng dần</option>
-                <option value="checkout_desc">Check-out giảm dần</option>
+                <option value="checkin_asc">Check-in ascending</option>
+                <option value="checkin_desc">Check-in descending</option>
+                <option value="checkout_asc">Check-out ascending</option>
+                <option value="checkout_desc">Check-out descending</option>
               </select>
             </div>
           </div>
 
           <div className="mb-4">
-            <div className="text-xs uppercase tracking-[0.2em] text-accent">Mô phỏng khách sạn theo ngày</div>
-            <h2 className="mt-1 text-xl font-semibold text-textPrimary">Tình trạng phòng: trống / đã book</h2>
+            <div className="text-xs uppercase tracking-[0.2em] text-accent">Daily hotel simulation</div>
+            <h2 className="mt-1 text-xl font-semibold text-textPrimary">Room status: available / booked</h2>
           </div>
           {roomBoard?.summary ? (
             <div className="mb-4 grid gap-3 md:grid-cols-3">
               <div className="rounded-xl bg-[#f3ebdc] p-3 text-sm text-[#17363f]">
-                Tổng phòng: <b>{roomBoard.summary.totalInventory || 0}</b>
+                Total rooms: <b>{roomBoard.summary.totalInventory || 0}</b>
               </div>
               <div className="rounded-xl bg-[#fbe8e5] p-3 text-sm text-[#8b3f32]">
-                Đã book: <b>{roomBoard.summary.occupiedCount || 0}</b>
+                Booked: <b>{roomBoard.summary.occupiedCount || 0}</b>
               </div>
               <div className="rounded-xl bg-[#e8f6ee] p-3 text-sm text-[#1f7a4f]">
-                Còn trống: <b>{roomBoard.summary.availableCount || 0}</b>
+                Available: <b>{roomBoard.summary.availableCount || 0}</b>
               </div>
             </div>
           ) : null}
@@ -329,8 +329,8 @@ const ReceptionistDashboard = () => {
               {roomBoard.roomTypes.map((roomType) => (
                 <div key={roomType.room_type_id} className="rounded-xl border border-[#ece2d3] bg-[#fffcf7] p-3">
                   <div className="text-sm font-semibold text-textPrimary">{roomType.room_type_name}</div>
-                  <div className="mt-2 text-xs text-gray-600">Tổng: {roomType.total_inventory}</div>
-                  <div className="text-xs text-[#8b3f32]">Đã book: {roomType.occupied_count}</div>
+                  <div className="mt-2 text-xs text-gray-600">Total: {roomType.total_inventory}</div>
+                  <div className="text-xs text-[#8b3f32]">Booked: {roomType.occupied_count}</div>
                   <div className="text-xs text-[#1f7a4f]">Trống: {roomType.available_count}</div>
                 </div>
               ))}
@@ -341,7 +341,7 @@ const ReceptionistDashboard = () => {
             <div className="mb-6 rounded-xl border border-[#ece2d3] bg-white p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-accent">Sơ đồ phòng 3D theo tầng</div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-accent">3D room map by floor</div>
                   <h3 className="mt-1 text-lg font-semibold text-textPrimary">
                     {activeRoomMap.room_type_name}
                   </h3>
@@ -366,7 +366,7 @@ const ReceptionistDashboard = () => {
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span className="h-3 w-3 rounded bg-[#aa4f3d]" />
-                  Đã book
+                  Booked
                 </span>
               </div>
 
@@ -410,9 +410,9 @@ const ReceptionistDashboard = () => {
               </div>
               {hoveredTile?.status === "occupied" && hoveredTile?.booking ? (
                 <div className="mt-3 rounded-lg border border-[#f3c8c1] bg-[#fff5f2] p-3 text-xs text-[#7a342a]">
-                  <div className="font-semibold">Thông tin booking tại phòng {hoveredTile.roomNo}</div>
+                  <div className="font-semibold">Booking details for room {hoveredTile.roomNo}</div>
                   <div className="mt-1">
-                    Booking code: {hoveredTile.booking.booking_number} · Khách: {hoveredTile.booking.first_name}{" "}
+                    Booking code: {hoveredTile.booking.booking_number} · Guest: {hoveredTile.booking.first_name}{" "}
                     {hoveredTile.booking.last_name}
                   </div>
                   <div className="mt-1">
@@ -420,19 +420,19 @@ const ReceptionistDashboard = () => {
                     {hoveredTile.booking.booking_status} / {hoveredTile.booking.payment_status}
                   </div>
                   <div className="mt-1">
-                    Lưu trú: {hoveredTile.booking.checkin_date} → {hoveredTile.booking.checkout_date}
+                    Stay: {hoveredTile.booking.checkin_date} → {hoveredTile.booking.checkout_date}
                   </div>
                 </div>
               ) : (
                 <div className="mt-3 rounded-lg border border-[#e7dcc8] bg-[#fcfaf6] p-3 text-xs text-gray-600">
-                  Di chuột vào ô phòng màu đỏ để xem chi tiết khách và booking.
+                  Hover over a red room tile to view guest and booking details.
                 </div>
               )}
             </div>
           ) : null}
 
           <div className="border-t border-[#ece2d3] pt-4">
-            <div className="mb-3 text-xs uppercase tracking-[0.2em] text-accent">Booking tương tác</div>
+            <div className="mb-3 text-xs uppercase tracking-[0.2em] text-accent">Interactive bookings</div>
           </div>
 
           {isLoading ? (
@@ -477,7 +477,7 @@ const ReceptionistDashboard = () => {
                         onClick={() => handleMarkPaid(booking.id)}
                         className="rounded-lg bg-[#0f766e] px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
                       >
-                        Xác nhận đã thanh toán
+                        Mark as paid
                       </button>
                       <button
                         type="button"
@@ -499,7 +499,7 @@ const ReceptionistDashboard = () => {
                     onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                     className="rounded-full border border-[#d8ccb8] px-3 py-1 text-xs disabled:opacity-50"
                   >
-                    Trước
+                    Previous
                   </button>
                   <span className="text-xs text-gray-600">
                     Trang {safePage}/{totalPages}
@@ -516,7 +516,7 @@ const ReceptionistDashboard = () => {
               ) : null}
             </div>
           ) : (
-            <div className="text-sm text-gray-600">Không có booking phù hợp với bộ lọc hiện tại.</div>
+            <div className="text-sm text-gray-600">None booking phù hợp với bộ lọc hiện tại.</div>
           )}
         </div>
       </div>

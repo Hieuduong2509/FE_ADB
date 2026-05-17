@@ -11,7 +11,7 @@ export const sectionLinks = [
   { id: "hotels", label: "Hotels" },
   { id: "booking-history", label: "Booking History" },
   { id: "holiday-rules", label: "Pricing Rules" },
-  { id: "price-control", label: "Giá phòng" },
+  { id: "price-control", label: "Room pricing" },
   { id: "room-types", label: "Room type" },
   { id: "facilities", label: "Facilities" },
   { id: "amenities", label: "Amenities" },

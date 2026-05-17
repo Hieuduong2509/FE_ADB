@@ -1,5 +1,5 @@
 /**
- * Định nghĩa đường dẫn cho ứng dụng đặt phòng khách sạn đa chi nhánh
+ * Định nghĩa đường dẫn cho ứng dụng đặt phòng hotels đa chi nhánh
  */
 export const ROUTES = {
   HOME: "/",
@@ -17,5 +17,5 @@ export const ROUTES = {
   RECEPTIONIST_DASHBOARD: "/receptionist/dashboard",
 };
 
-/** Helper tạo path chi tiết khách sạn */
+/** Helper tạo path chi tiết hotels */
 export const getHotelDetailPath = (hotelId) => `/khach-san/${hotelId}`;

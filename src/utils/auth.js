@@ -77,7 +77,7 @@ const normalizeCatalogHotel = (hotel = {}) => ({
   countryName: hotel.country || "",
   cityAddress: hotel.city || "",
   address: hotel.address || "",
-  description: hotel.description || "Hotel hiện đã được đồng bộ từ backend.",
+  description: hotel.description || "Hotel data is synced from the backend.",
   starRating: Number(hotel.star_rating) || 0,
   timezone: hotel.timezone || "Asia/Ho_Chi_Minh",
 });
@@ -111,7 +111,7 @@ const normalizeSearchRoomType = (item = {}, catalog = {}) => {
   availableRoomCount: Number(item.available_inventory) || 0,
   averageNightlyRate: Number(item.average_rate) || 0,
   stayTotal: Number(item.stay_total) || 0,
-  servicesText: "Room type đang dùng dữ liệu khả dụng thực từ database.",
+  servicesText: "This room type uses live availability data from the database.",
   amenities,
   services,
   });
@@ -191,7 +191,7 @@ const mergeHotelsWithAvailability = (
       countryName: roomTypes[0]?.country || "",
       cityAddress: roomTypes[0]?.city || "",
       address: "",
-      description: "Hotel hiện đã được đồng bộ từ backend.",
+      description: "Hotel data is synced from the backend.",
       starRating: Number(roomTypes[0]?.star_rating) || 0,
       timezone: "Asia/Ho_Chi_Minh",
     };

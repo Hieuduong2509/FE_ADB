@@ -21,13 +21,13 @@ const HotelsSection = ({
           Hotel manager
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          CRUD thông tin khách sạn trong admin workspace
+          CRUD hotel information in admin workspace
         </h2>
 
         <form onSubmit={submitHotel} className="mt-6 space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Mã khách sạn</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Hotel code</span>
               <input
                 type="text"
                 value={hotelDraft.code}
@@ -41,7 +41,7 @@ const HotelsSection = ({
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Tên khách sạn</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Hotel name</span>
               <input
                 type="text"
                 value={hotelDraft.name}
@@ -76,7 +76,7 @@ const HotelsSection = ({
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Quốc gia</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Country</span>
               <input
                 type="text"
                 value={hotelDraft.country}
@@ -94,7 +94,7 @@ const HotelsSection = ({
 
           <div className="grid gap-4 md:grid-cols-2">
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Thành phố</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">City</span>
               <input
                 type="text"
                 value={hotelDraft.city}
@@ -110,7 +110,7 @@ const HotelsSection = ({
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Quận / khu vực</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">District / area</span>
               <input
                 type="text"
                 value={hotelDraft.district}
@@ -127,7 +127,7 @@ const HotelsSection = ({
           </div>
 
           <label className="block">
-            <span className="mb-2 block text-sm font-medium text-gray-600">Địa chỉ</span>
+            <span className="mb-2 block text-sm font-medium text-gray-600">Address</span>
             <input
               type="text"
               value={hotelDraft.address}
@@ -179,7 +179,7 @@ const HotelsSection = ({
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Tổng số phòng</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Total rooms</span>
               <input
                 type="number"
                 min="0"
@@ -208,7 +208,7 @@ const HotelsSection = ({
               disabled={isSubmitting}
               className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isSubmitting ? "Đang lưu..." : editingHotelId ? "Lưu khách sạn" : "Thêm khách sạn"}
+              {isSubmitting ? "Saving..." : editingHotelId ? "Save hotel" : "Add hotel"}
             </button>
             {editingHotelId ? (
               <button
@@ -227,13 +227,13 @@ const HotelsSection = ({
       <div className="space-y-4">
         {isLoading ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-            Loading danh sách khách sạn...
+            Loading hotel list...
           </div>
         ) : null}
 
         {!isLoading && !hotels.length ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-            Chưa có khách sạn nào trong hệ thống.
+            No hotels available nào trong hệ thống.
           </div>
         ) : null}
 
@@ -242,7 +242,7 @@ const HotelsSection = ({
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <div className="text-xs uppercase tracking-[0.2em] text-accent">
-                    {hotel.country || "Chưa có quốc gia"}{hotel.city ? ` · ${hotel.city}` : ""}
+                    {hotel.country || "No country"}{hotel.city ? ` · ${hotel.city}` : ""}
                   </div>
                 <h3 className="mt-2 text-2xl font-semibold text-textPrimary">{hotel.name}</h3>
               </div>

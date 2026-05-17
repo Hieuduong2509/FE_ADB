@@ -47,7 +47,7 @@ const Login = () => {
       persistAuthSession(authData);
       navigate(authData?.user?.role === "admin" ? ROUTES.ADMIN : ROUTES.HOME);
     } catch (error) {
-      setErrorMessage(error.message || "Sign in thất bại.");
+      setErrorMessage(error.message || "Sign-in failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -60,7 +60,7 @@ const Login = () => {
           Sign in Pullman Member
         </h1>
         <p className="text-sm text-gray-600 mb-6 text-center">
-          Sign in để quản lý booking Pullman và lưu thông tin lưu trú của bạn.
+          Sign in to manage your Pullman bookings and saved stay details.
         </p>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -104,10 +104,10 @@ const Login = () => {
                 type="checkbox"
                 className="h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent/40"
               />
-              <span className="text-gray-600">Nhớ đăng nhập</span>
+              <span className="text-gray-600">Remember me</span>
             </label>
             <button type="button" className="text-accent hover:underline">
-              Quên mật khẩu?
+              Forgot password?
             </button>
           </div>
 
@@ -116,12 +116,12 @@ const Login = () => {
             disabled={isSubmitting}
             className="w-full bg-accent text-white font-medium py-2.5 rounded-lg transition-colors hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Đang đăng nhập..." : "Sign in"}
+            {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
         </form>
 
         <p className="mt-6 text-sm text-gray-600 text-center">
-          Chưa có tài khoản?{" "}
+          Don't have an account?{" "}
           <Link to={ROUTES.SIGN_UP} className="text-accent font-medium hover:underline">
             Sign up ngay
           </Link>

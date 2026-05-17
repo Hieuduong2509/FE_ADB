@@ -28,7 +28,7 @@ const ReceptionistLogin = () => {
       persistAuthSession(authData);
       navigate(ROUTES.RECEPTIONIST_DASHBOARD);
     } catch (error) {
-      setErrorMessage(error.message || "Sign in lễ tân thất bại.");
+      setErrorMessage(error.message || "Receptionist sign-in failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -38,8 +38,8 @@ const ReceptionistLogin = () => {
     <div className="min-h-screen bg-[#f7f3ea] px-4 py-10">
       <div className="mx-auto max-w-md rounded-2xl border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
         <div className="text-xs uppercase tracking-[0.2em] text-accent">Receptionist Portal</div>
-        <h1 className="mt-2 text-2xl font-semibold text-textPrimary">Sign in lễ tân</h1>
-        <p className="mt-2 text-sm text-gray-600">Quản lý check-in/check-out theo khách sạn được phân công.</p>
+        <h1 className="mt-2 text-2xl font-semibold text-textPrimary">Receptionist sign in</h1>
+        <p className="mt-2 text-sm text-gray-600">Quản lý check-in/check-out theo hotels được phân công.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <label className="block">
@@ -72,7 +72,7 @@ const ReceptionistLogin = () => {
             disabled={isSubmitting}
             className="w-full rounded-xl bg-[#17363f] py-2.5 text-sm font-semibold text-white hover:bg-[#102d34] disabled:opacity-60"
           >
-            {isSubmitting ? "Đang đăng nhập..." : "Sign in"}
+            {isSubmitting ? "Signing in..." : "Sign in"}
           </button>
         </form>
       </div>

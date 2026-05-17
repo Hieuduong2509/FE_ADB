@@ -11,12 +11,12 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-secondary mb-3">Pullman Hotels</h3>
             <p className="text-sm text-white/90 leading-7">
-              Giao diện mới tập trung vào danh sách khách sạn Pullman đang hot, tìm kiếm phòng,
-              xem amenities chi tiết và chọn facilities trước khi booking.
+              The refreshed experience focuses on trending Pullman hotels, room search,
+              detailed amenities, and facility selection before booking.
             </p>
           </div>
           <div>
-            <h3 className="font-semibold text-secondary mb-3">Liên kết</h3>
+            <h3 className="font-semibold text-secondary mb-3">Links</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link to={ROUTES.HOME} className="hover:text-secondary transition-colors">

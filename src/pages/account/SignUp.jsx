@@ -27,7 +27,7 @@ const SignUp = () => {
     setErrorMessage("");
 
     if (formData.password !== formData.confirmPassword) {
-      setErrorMessage("Password xác nhận không khớp.");
+      setErrorMessage("Password confirmation does not match.");
       return;
     }
 
@@ -44,7 +44,7 @@ const SignUp = () => {
       persistAuthSession(authData);
       navigate(ROUTES.HOME);
     } catch (error) {
-      setErrorMessage(error.message || "Sign up thất bại.");
+      setErrorMessage(error.message || "Sign-up failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -57,7 +57,7 @@ const SignUp = () => {
           Sign up Pullman Member
         </h1>
         <p className="text-sm text-gray-600 mb-6 text-center">
-          Tạo tài khoản để thử đăng nhập, quản lý booking và lưu thông tin khách lưu trú Pullman.
+          Create an account to sign in, manage bookings, and store guest stay details.
         </p>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -112,21 +112,21 @@ const SignUp = () => {
               type="password"
               value={formData.password}
               onChange={handleFieldChange("password")}
-              placeholder="Tối thiểu 8 ký tự"
+              placeholder="Minimum 8 characters"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
           </div>
 
           <div>
             <label className="block text-sm text-gray-700 mb-1" htmlFor="confirmPassword">
-              Xác nhận mật khẩu
+              Confirm password
             </label>
             <input
               id="confirmPassword"
               type="password"
               value={formData.confirmPassword}
               onChange={handleFieldChange("confirmPassword")}
-              placeholder="Nhập lại mật khẩu"
+              placeholder="Re-enter password"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
           </div>
@@ -138,7 +138,7 @@ const SignUp = () => {
           ) : null}
 
           <div className="text-xs text-gray-500">
-            Bằng việc đăng ký, bạn đồng ý với các điều khoản sử dụng hệ thống booking Pullman.
+            By signing up, you agree to the Pullman booking platform terms.
           </div>
 
           <button
@@ -146,12 +146,12 @@ const SignUp = () => {
             disabled={isSubmitting}
             className="w-full bg-primary text-textWhite font-medium py-2.5 rounded-lg transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Đang tạo tài khoản..." : "Tạo tài khoản"}
+            {isSubmitting ? "Creating account..." : "Create account"}
           </button>
         </form>
 
         <p className="mt-6 text-sm text-gray-600 text-center">
-          Đã có tài khoản?{" "}
+          Already have an account?{" "}
           <Link to={ROUTES.LOGIN} className="text-accent font-medium hover:underline">
             Sign in
           </Link>

@@ -10,7 +10,7 @@ const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
         Booking history
       </div>
       <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-        Lịch sử đặt phòng toàn hệ thống
+        System-wide booking history
       </h2>
     </div>
 
@@ -29,7 +29,7 @@ const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
 
       {!isLoading && !bookings.length ? (
         <div className="rounded-[24px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-          Chưa có booking nào trong hệ thống.
+          No bookings in the system yet.
         </div>
       ) : null}
 

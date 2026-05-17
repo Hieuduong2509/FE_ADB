@@ -16,10 +16,10 @@ const PriceControlSection = ({
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-          Giá loại phòng
+          Price loại phòng
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-          Chỉnh base price và xem preview giá bán thực
+          Edit base price and preview selling rate
         </h2>
       </div>
       <div className="rounded-[24px] bg-[#17363f] px-5 py-4 text-white">
@@ -27,7 +27,7 @@ const PriceControlSection = ({
           Pricing engine preview
         </div>
         <div className="mt-2 text-lg font-semibold">
-          `Đơn ngày` override `dải ngày`, còn lại fallback về base price
+          `Single date` override `dải ngày`, còn lại fallback về base price
         </div>
       </div>
     </div>
@@ -90,7 +90,7 @@ const PriceControlSection = ({
                 onClick={() => startRoomTypeEdit(roomType)}
                 className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf4ea]"
               >
-                Edit chi tiết
+                Edit details
               </button>
             </div>
 
@@ -105,7 +105,7 @@ const PriceControlSection = ({
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-white px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
                 <div className="mt-2 text-sm text-gray-500">
-                  {formatCurrency(roomType.basePrice)} / đêm
+                  {formatCurrency(roomType.basePrice)} / night
                 </div>
               </label>
 
@@ -115,17 +115,17 @@ const PriceControlSection = ({
                 </div>
                 <div className="mt-3 text-3xl font-semibold">{holidayPercent}%</div>
                 <div className="mt-2 text-sm text-white/74">
-                  Giá trung bình: {formatCurrency(sellingPrice)}
+                  Price trung bình: {formatCurrency(sellingPrice)}
                 </div>
                 <div className="mt-2 text-sm text-white/74">
-                  Tổng {pricingPreview.nights} đêm: {formatCurrency(pricingPreview.total)}
+                  Total {pricingPreview.nights} đêm: {formatCurrency(pricingPreview.total)}
                 </div>
                 <div className="mt-2 text-xs text-[#f6ddb0]">
                   {pricingPreview.hasSpecificDate
-                    ? "Có ngày đơn override."
+                    ? "Single-date override exists."
                     : pricingPreview.hasSeasonal
-                      ? "Đang áp dải ngày."
-                      : "Đang dùng base price."}
+                      ? "Date-range pricing is active."
+                      : "Using base price."}
                 </div>
               </div>
             </div>

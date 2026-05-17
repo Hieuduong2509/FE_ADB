@@ -5,11 +5,11 @@ import { formatCurrency, formatDateLabel } from "../utils";
 import { getBookingPaymentStatusApi } from "../utils/auth";
 
 const STATUS_LABELS = {
-  PAID: "Payment thành công",
-  PENDING: "Đang chờ thanh toán",
-  FAILED: "Payment thất bại",
-  CANCELLED: "Payment đã hủy",
-  CONFIRMED: "Booking đã xác nhận",
+  PAID: "Payment successful",
+  PENDING: "Waiting for payment",
+  FAILED: "Payment failed",
+  CANCELLED: "Payment cancelled",
+  CONFIRMED: "Booking confirmed",
 };
 
 const statusTone = (status) => {
@@ -50,7 +50,7 @@ const BookingConfirm = () => {
 
     const loadStatus = async () => {
       if (!bookingId) {
-        setErrorMessage("Missing bookingId để theo dõi trạng thái thanh toán.");
+        setErrorMessage("Missing bookingId to track payment status.");
         setIsLoading(false);
         return;
       }
@@ -76,7 +76,7 @@ const BookingConfirm = () => {
           return;
         }
 
-        setErrorMessage(error.message || "Không lấy được trạng thái thanh toán.");
+        setErrorMessage(error.message || "Unable to fetch payment status.");
         setIsLoading(false);
       }
     };
@@ -126,9 +126,9 @@ const BookingConfirm = () => {
             <div className="text-sm text-gray-600">
               {method === "vnpay"
                 ? normalizedStatus === "PENDING"
-                  ? "Hệ thống đang chờ callback từ VNPay. Trang này sẽ tự cập nhật."
-                  : "Kết quả dưới đây được đồng bộ từ backend sau khi xử lý callback/IPN."
-                : "Booking đã được tạo với hình thức thanh toán tại khách sạn."}
+                  ? "Waiting for VNPay callback. This page updates automatically."
+                  : "The result below is synced from the backend after callback/IPN processing."
+                : "Booking has been created with pay-at-hotel method."}
             </div>
           </div>
 
@@ -138,14 +138,14 @@ const BookingConfirm = () => {
               <div className="mt-2 text-lg font-semibold text-textPrimary">
                 {paymentInfo?.booking_number || bookingId || "N/A"}
               </div>
-              <div className="mt-4 text-xs uppercase tracking-[0.18em] text-gray-400">Phương thức</div>
+              <div className="mt-4 text-xs uppercase tracking-[0.18em] text-gray-400">Method</div>
               <div className="mt-2 text-sm font-semibold text-textPrimary">
                 {paymentInfo?.payment_method || method}
               </div>
             </div>
 
             <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5">
-              <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Số tiền</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Amount</div>
               <div className="mt-2 text-lg font-semibold text-textPrimary">
                 {formatCurrency(Number(paymentInfo?.amount ?? paymentInfo?.final_amount ?? 0))}
               </div>
@@ -157,7 +157,7 @@ const BookingConfirm = () => {
           </div>
 
           <div className="mt-6 rounded-[24px] border border-[#ece2d3] bg-white p-5">
-            <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Chi tiết lưu trú</div>
+            <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Stay details</div>
             <div className="mt-3 text-lg font-semibold text-textPrimary">
               {paymentInfo?.hotel_name || "Hotel"}
             </div>
@@ -172,7 +172,7 @@ const BookingConfirm = () => {
           </div>
 
           {isLoading ? (
-            <div className="mt-6 text-sm text-gray-500">Đang đồng bộ trạng thái thanh toán...</div>
+            <div className="mt-6 text-sm text-gray-500">Syncing payment status...</div>
           ) : null}
 
           <div className="mt-8 flex flex-col gap-3 md:flex-row">
@@ -180,13 +180,13 @@ const BookingConfirm = () => {
               to={ROUTES.BOOKING_HISTORY}
               className="rounded-2xl bg-[#17363f] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#102d34]"
             >
-              Xem lịch sử đặt phòng
+              View booking history
             </Link>
             <Link
               to={ROUTES.HOME}
               className="rounded-2xl border border-[#d9ccb8] px-6 py-3 text-center text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
             >
-              Về trang chủ
+              Back to home
             </Link>
           </div>
         </div>

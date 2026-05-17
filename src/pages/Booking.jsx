@@ -58,7 +58,7 @@ const Booking = () => {
       if (!hotelId) {
         setHotel(null);
         setIsLoading(false);
-        setErrorMessage("Missing hotelId để bắt đầu booking.");
+        setErrorMessage("Missing hotelId to start booking.");
         return;
       }
 
@@ -70,7 +70,7 @@ const Booking = () => {
         setErrorMessage("");
       } catch (error) {
         setHotel(null);
-        setErrorMessage(error.message || "Unable to load thông tin booking.");
+        setErrorMessage(error.message || "Unable to load booking details.");
       } finally {
         setIsLoading(false);
       }
@@ -113,7 +113,7 @@ const Booking = () => {
         setErrorMessage("");
       } catch (error) {
         setQuote(null);
-        setErrorMessage(error.message || "Không tính được báo giá booking.");
+        setErrorMessage(error.message || "Unable to calculate booking quote.");
       }
     };
 
@@ -138,13 +138,13 @@ const Booking = () => {
   const handleCreateBooking = async () => {
     const activeSession = readAuthSession();
     if (!activeSession?.accessToken) {
-      setErrorMessage("Please đăng nhập trước khi xác nhận booking.");
+      setErrorMessage("Please sign in before confirming booking.");
       navigate(ROUTES.LOGIN);
       return;
     }
 
     if (!quote) {
-      setErrorMessage("Báo giá booking chưa sẵn sàng.");
+      setErrorMessage("Booking quote is not ready yet.");
       return;
     }
 
@@ -179,7 +179,7 @@ const Booking = () => {
         }).toString()}`,
       );
     } catch (error) {
-      setErrorMessage(error.message || "Không tạo được booking.");
+      setErrorMessage(error.message || "Unable to create booking.");
     } finally {
       setIsSubmitting(false);
     }
@@ -199,7 +199,7 @@ const Booking = () => {
     return (
       <div className="container mx-auto px-4 py-10">
         <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center">
-          <h1 className="text-2xl font-semibold text-textPrimary">Cannot mở booking</h1>
+          <h1 className="text-2xl font-semibold text-textPrimary">Cannot open booking</h1>
           <p className="mt-3 text-sm text-gray-600">{errorMessage}</p>
         </div>
       </div>
@@ -215,10 +215,10 @@ const Booking = () => {
               Real booking
             </p>
             <h1 className="mt-3 font-serif text-3xl md:text-5xl">
-              Booking đang lấy giá thực từ room type, seasonal pricing và special date pricing.
+              Booking uses live rates from room type, seasonal pricing, and special-date pricing.
             </h1>
             <p className="mt-4 max-w-3xl text-sm leading-7 text-white/78 md:text-base">
-              Khi bạn đổi loại phòng hoặc thêm dịch vụ, báo giá sẽ được gọi lại từ backend.
+              When you change room type or add services, the quote is recalculated by the backend.
             </p>
           </div>
 
@@ -238,7 +238,7 @@ const Booking = () => {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-                  Thông tin lưu trú
+                  Stay information
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-textPrimary">{hotel.name}</h2>
               </div>
@@ -251,29 +251,29 @@ const Booking = () => {
                 }).toString()}`}
                 className="rounded-full border border-[#d9ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
               >
-                Xem lại chi tiết phòng
+                Review room details
               </Link>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <div className="rounded-[24px] bg-[#faf5ec] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Room type đã chọn</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Selected room type</div>
                 <div className="mt-2 text-xl font-semibold text-textPrimary">{selectedRoomType.name}</div>
                 <div className="mt-2 text-sm text-gray-600">{selectedRoomType.servicesText}</div>
               </div>
               <div className="rounded-[24px] bg-[#17363f] p-4 text-white">
-                <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Giá trung bình / đêm</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">Average price / night</div>
                 <div className="mt-2 text-xl font-semibold">
                   {formatCurrency(quote?.nightlyBreakdown?.[0]?.rate || selectedRoomType.averageNightlyRate)}
                 </div>
-                <div className="mt-2 text-sm text-white/70">{selectedRoomType.availableRoomCount} phòng còn</div>
+                <div className="mt-2 text-sm text-white/70">{selectedRoomType.availableRoomCount} rooms left</div>
               </div>
               <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-4">
-                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Ngày ở</div>
+                <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Stay dates</div>
                 <div className="mt-2 text-lg font-semibold text-textPrimary">
                   {formatDateLabel(filters.checkIn)} → {formatDateLabel(filters.checkOut)}
                 </div>
-                <div className="mt-2 text-sm text-gray-600">{quote?.stayNights || 0} đêm lưu trú</div>
+                <div className="mt-2 text-sm text-gray-600">{quote?.stayNights || 0} night stay</div>
               </div>
               <div className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-4">
                 <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Guests</div>
@@ -285,7 +285,7 @@ const Booking = () => {
 
           <section className="rounded-[30px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-              Chọn loại phòng
+              Choose room type
             </p>
             <div className="mt-5 grid gap-4">
               {hotel.roomTypes.map((roomType) => {
@@ -305,7 +305,7 @@ const Booking = () => {
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <div className={`text-xs uppercase tracking-[0.2em] ${isSelected ? "text-[#f8deb0]" : "text-accent"}`}>
-                          {roomType.availableRoomCount} phòng còn
+                          {roomType.availableRoomCount} rooms left
                         </div>
                         <h3 className="mt-2 text-xl font-semibold">{roomType.name}</h3>
                         <p className={`mt-3 text-sm leading-7 ${isSelected ? "text-white/78" : "text-gray-600"}`}>
@@ -313,7 +313,7 @@ const Booking = () => {
                         </p>
                       </div>
                       <div className="min-w-[160px]">
-                        <div className="text-sm opacity-80">Tổng kỳ nghỉ</div>
+                        <div className="text-sm opacity-80">Total stay</div>
                         <div className="mt-2 text-2xl font-semibold">{formatCurrency(roomType.stayTotal)}</div>
                       </div>
                     </div>
@@ -325,7 +325,7 @@ const Booking = () => {
 
           <section className="rounded-[30px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-              Chọn thêm dịch vụ
+              Choose add-on services
             </p>
 
             <div className="mt-5 grid gap-4">
@@ -409,7 +409,7 @@ const Booking = () => {
                   type="text"
                   value={guestForm.note}
                   onChange={handleGuestFieldChange("note")}
-                  placeholder="Ví dụ: nhận phòng muộn"
+                  placeholder="Example: late check-in"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
               </label>
@@ -438,7 +438,7 @@ const Booking = () => {
                 <div>
                   <div className="text-lg font-semibold">Pay at hotel</div>
                   <div className={`mt-2 text-sm ${paymentMethod === "pay_at_hotel" ? "text-white/72" : "text-gray-600"}`}>
-                    Booking được tạo trước, thanh toán xử lý thủ công tại quầy lễ tân.
+                    Booking is created first, and payment is processed manually at the front desk.
                   </div>
                 </div>
               </label>
@@ -460,7 +460,7 @@ const Booking = () => {
                 <div>
                   <div className="text-lg font-semibold">VNPay</div>
                   <div className={`mt-2 text-sm ${paymentMethod === "vnpay" ? "text-white/72" : "text-gray-600"}`}>
-                    Hệ thống sẽ chuyển bạn sang cổng VNPay sau khi tạo booking, sau đó quay lại trang kết quả.
+                    The system will redirect you to VNPay after booking creation, then return you to the result page.
                   </div>
                 </div>
               </label>
@@ -492,7 +492,7 @@ const Booking = () => {
               <span className="font-semibold text-textPrimary">{formatCurrency(quote?.roomTotal || 0)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Điều chỉnh bởi pricing rules</span>
+              <span>Adjusted by pricing rules</span>
               <span className={`font-semibold ${Number(quote?.pricingAdjustmentTotal || 0) >= 0 ? "text-[#8b5e34]" : "text-[#1f7a4f]"}`}>
                 {Number(quote?.pricingAdjustmentTotal || 0) >= 0 ? "+" : ""}
                 {formatCurrency(quote?.pricingAdjustmentTotal || 0)}
@@ -503,7 +503,7 @@ const Booking = () => {
               <span className="font-semibold text-textPrimary">{formatCurrency(quote?.serviceTotal || 0)}</span>
             </div>
             <div className="flex items-center justify-between text-sm text-gray-600">
-              <span>Thuế và phí ước tính</span>
+              <span>Estimated tax and fees</span>
               <span className="font-semibold text-textPrimary">{formatCurrency(quote?.taxesAndFees || 0)}</span>
             </div>
           </div>
@@ -513,12 +513,12 @@ const Booking = () => {
             <div className="mt-2 text-3xl font-semibold text-textPrimary">
               {formatCurrency(quote?.totalAmount || 0)}
             </div>
-            <div className="mt-2 text-sm text-gray-600">Báo giá này đang được trả trực tiếp từ backend.</div>
+            <div className="mt-2 text-sm text-gray-600">This quote is returned directly from the backend.</div>
           </div>
 
           {Array.isArray(quote?.appliedPricingRules) && quote.appliedPricingRules.length ? (
             <div className="mt-6 rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5">
-              <div className="text-xs uppercase tracking-[0.18em] text-accent">Pricing rules đã áp dụng</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-accent">Applied pricing rules</div>
               <div className="mt-4 space-y-3">
                 {quote.appliedPricingRules.map((rule) => (
                   <div key={rule.ruleId} className="rounded-[18px] bg-white px-4 py-3">
@@ -596,15 +596,15 @@ const Booking = () => {
               ))
             ) : (
               <div className="rounded-[20px] border border-dashed border-[#d9ccb8] px-4 py-4 text-sm text-gray-500">
-                Not selected dịch vụ cộng thêm.
+                No add-on services selected.
               </div>
             )}
           </div>
 
           <div className="mt-6 rounded-[20px] border border-dashed border-[#d9ccb8] px-4 py-4 text-sm text-gray-500">
             {paymentMethod === "vnpay"
-              ? "Sau khi xác nhận, hệ thống sẽ chuyển sang VNPay và tự cập nhật trạng thái thanh toán khi callback trả về."
-              : "Phương thức hiện tại là thanh toán tại khách sạn. Payment status sẽ ở trạng thái chờ xử lý."}
+              ? "After confirmation, the system redirects to VNPay and auto-updates payment status when callback returns."
+              : "Current method is pay at hotel. Payment status will remain pending."}
           </div>
 
           <div className="mt-6 flex flex-col gap-3">
@@ -615,10 +615,10 @@ const Booking = () => {
               className="rounded-2xl bg-[#17363f] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isSubmitting
-                ? "Đang tạo booking..."
+                ? "Creating booking..."
                 : paymentMethod === "vnpay"
-                  ? "Tạo booking và sang VNPay"
-                  : "Tạo booking"}
+                  ? "Create booking and continue to VNPay"
+                  : "Create booking"}
             </button>
             <Link
               to={`${ROUTES.HOTELS}?${buildSearchParams(filters).toString()}`}

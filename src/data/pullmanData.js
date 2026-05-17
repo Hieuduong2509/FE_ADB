@@ -12,7 +12,7 @@ export const pullmanHotels = [
     tagline: "Resort sang trọng sát biển cho kỳ nghỉ thư giãn và family retreat.",
     description:
       "Khu nghỉ dưỡng nổi bật với hồ bơi ngoài trời, lounge ven biển và cụm phòng hướng đại dương phù hợp cho kỳ nghỉ dài ngày.",
-    address: "101 Võ Nguyên Giáp, Quận Ngũ Hành Sơn, Đà Nẵng",
+    address: "101 Võ Nguyên Pricep, Quận Ngũ Hành Sơn, Đà Nẵng",
     highlights: ["Sát biển", "Hồ bơi vô cực", "Buffet sáng signature"],
     overviewAmenities: ["Spa", "Gym 24/7", "Beach club", "Airport transfer"],
     rooms: [
@@ -87,7 +87,7 @@ export const pullmanHotels = [
     priceFrom: 3250000,
     tagline: "Lựa chọn mạnh cho khách công tác, hội họp và staycation trong trung tâm.",
     description:
-      "Tọa lạc gần khu tài chính và giải trí, khách sạn nổi bật với executive floors, rooftop dining và dịch vụ check-in nhanh.",
+      "Tọa lạc gần khu tài chính và giải trí, hotels nổi bật với executive floors, rooftop dining và dịch vụ check-in nhanh.",
     address: "148 Trần Hưng Đạo, Quận 1, TP. Hồ Chí Minh",
     highlights: ["Trung tâm quận 1", "Executive lounge", "Meeting ready"],
     overviewAmenities: ["Sky bar", "Meeting rooms", "Spa", "Airport transfer"],
@@ -249,7 +249,7 @@ export const bookingFacilities = [
   {
     id: "spa-package",
     title: "Gói spa thư giãn",
-    description: "01 suất massage 60 phút tại spa trong khách sạn.",
+    description: "01 suất massage 60 phút tại spa trong hotels.",
     price: 690000,
     tag: "Wellness",
     pricingType: "per_guest",
@@ -273,7 +273,7 @@ export const bookingFacilities = [
   {
     id: "meeting-room",
     title: "Meeting room 2 giờ",
-    description: "Phù hợp khách doanh nhân cần không gian họp riêng trong khách sạn.",
+    description: "Phù hợp khách doanh nhân cần không gian họp riêng trong hotels.",
     price: 850000,
     tag: "Business",
     pricingType: "per_stay",
@@ -296,7 +296,7 @@ export const amenityOptions = [
   ),
 ];
 
-export const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
+export const guestOptions = ["1 guest", "2 guests", "3 guests", "4 guests"];
 
 export const getGuestCount = (guestLabel) => {
   const match = guestLabel?.match(/\d+/);
@@ -316,7 +316,7 @@ export const getTrendingHotels = () =>
 export const filterHotels = ({
   destination = "All",
   roomType = "All",
-  guests = "2 người",
+  guests = "2 guests",
   amenity = "All",
 }) => {
   const requestedGuests = getGuestCount(guests);

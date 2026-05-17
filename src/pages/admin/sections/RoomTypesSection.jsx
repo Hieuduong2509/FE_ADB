@@ -53,7 +53,7 @@ const RoomTypesSection = ({
             Room type manager
           </div>
           <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-            CRUD loại phòng theo schema backend hiện tại
+            CRUD room types based on current backend schema
           </h2>
 
           <form onSubmit={submitRoomType} className="mt-6 space-y-4">
@@ -72,7 +72,7 @@ const RoomTypesSection = ({
                 disabled={!hotelOptions.length || isSubmitting}
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {!hotelOptions.length ? <option value="">Chưa có khách sạn</option> : null}
+                {!hotelOptions.length ? <option value="">No hotels available</option> : null}
                 {hotelOptions.map((hotel) => (
                   <option key={hotel.id} value={hotel.id}>
                     {hotel.name}
@@ -83,7 +83,7 @@ const RoomTypesSection = ({
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Mã loại phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Room type code</span>
                 <input
                   type="text"
                   value={roomTypeDraft.code}
@@ -99,7 +99,7 @@ const RoomTypesSection = ({
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Tên loại phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Room type name</span>
                 <input
                   type="text"
                   value={roomTypeDraft.name}
@@ -135,7 +135,7 @@ const RoomTypesSection = ({
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Diện tích (m2)</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Area (m2)</span>
                 <input
                   type="number"
                   min="0"
@@ -154,7 +154,7 @@ const RoomTypesSection = ({
 
             <div className="grid gap-4 md:grid-cols-3">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Người lớn</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Adults</span>
                 <input
                   type="number"
                   min="0"
@@ -171,7 +171,7 @@ const RoomTypesSection = ({
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Trẻ em</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Children</span>
                 <input
                   type="number"
                   min="0"
@@ -206,7 +206,7 @@ const RoomTypesSection = ({
             </div>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Loại giường</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Bed type</span>
               <input
                 type="text"
                 value={roomTypeDraft.bedType}
@@ -223,7 +223,7 @@ const RoomTypesSection = ({
 
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-[24px] border border-[#e7dcc8] bg-[#fcfaf6] p-4">
-                <div className="mb-3 text-sm font-medium text-gray-600">Amenities gắn vào phòng</div>
+                <div className="mb-3 text-sm font-medium text-gray-600">Amenities linked to room</div>
                 <div className="flex flex-wrap gap-2">
                   {amenities.map((amenity) => {
                     const isSelected = selectedAmenityIds.includes(String(amenity.id));
@@ -245,13 +245,13 @@ const RoomTypesSection = ({
                     );
                   })}
                   {!amenities.length ? (
-                    <div className="text-sm text-gray-500">Chưa có amenity nào trong catalog.</div>
+                    <div className="text-sm text-gray-500">No amenities in catalog yet.</div>
                   ) : null}
                 </div>
               </div>
 
               <div className="rounded-[24px] border border-[#e7dcc8] bg-[#fcfaf6] p-4">
-                <div className="mb-3 text-sm font-medium text-gray-600">Facilities áp cho room type</div>
+                <div className="mb-3 text-sm font-medium text-gray-600">Facilities applied to room type</div>
                 <div className="flex flex-wrap gap-2">
                   {availableFacilities.map((facility) => {
                     const isSelected = selectedFacilityIds.includes(String(facility.id));
@@ -273,14 +273,14 @@ const RoomTypesSection = ({
                     );
                   })}
                   {!availableFacilities.length ? (
-                    <div className="text-sm text-gray-500">Hotel này chưa có facility nào để gắn.</div>
+                    <div className="text-sm text-gray-500">This hotel has no facilities to link yet.</div>
                   ) : null}
                 </div>
               </div>
             </div>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Mô tả</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Description</span>
               <textarea
                 rows="3"
                 value={roomTypeDraft.description}
@@ -308,10 +308,10 @@ const RoomTypesSection = ({
                 className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {isSubmitting
-                  ? "Đang lưu..."
+                  ? "Saving..."
                   : editingRoomTypeId
-                    ? "Lưu loại phòng"
-                    : "Thêm loại phòng"}
+                    ? "Save room type"
+                    : "Add room type"}
               </button>
               {editingRoomTypeId ? (
                 <button
@@ -330,13 +330,13 @@ const RoomTypesSection = ({
         <div className="space-y-4">
           {isLoading ? (
             <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-              Loading danh sách loại phòng...
+              Loading room type list...
             </div>
           ) : null}
 
           {!isLoading && !filteredRoomTypes.length ? (
             <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-              Chưa có loại phòng nào trong hệ thống.
+              No room types in the system yet.
             </div>
           ) : null}
 
@@ -377,7 +377,7 @@ const RoomTypesSection = ({
                   </div>
                   <div className="mt-3 space-y-2 text-sm text-white/84">
                     <div>{roomType.roomSize || 0} m2</div>
-                    <div>{roomType.bedType || "Chưa khai báo giường"}</div>
+                    <div>{roomType.bedType || "Bed type not set"}</div>
                     <div>Inventory: {roomType.totalInventory || 0}</div>
                   </div>
                 </div>

@@ -44,7 +44,7 @@ const Hotels = () => {
         const data = await getClientHotelsApi(filters);
         setHotels(Array.isArray(data) ? data : []);
       } catch (error) {
-        setSearchError(error.message || "Unable to load khách sạn.");
+        setSearchError(error.message || "Unable to load hotels.");
         setHotels([]);
       } finally {
         setIsLoading(false);
@@ -81,12 +81,12 @@ const Hotels = () => {
       ),
     ),
   ];
-  const guestOptions = ["1 người", "2 người", "3 người", "4 người"];
+  const guestOptions = ["1 guest", "2 guests", "3 guests", "4 guests"];
   const starOptions = ["", "5", "4", "3"];
   const sortOptions = [
-    { value: "price_asc", label: "Giá tăng dần" },
-    { value: "price_desc", label: "Giá giảm dần" },
-    { value: "rating_desc", label: "Hạng sao cao trước" },
+    { value: "price_asc", label: "Price: low to high" },
+    { value: "price_desc", label: "Price: high to low" },
+    { value: "rating_desc", label: "Highest star rating first" },
   ];
 
   const handleFieldChange = (field) => (event) => {
@@ -131,29 +131,28 @@ const Hotels = () => {
         <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#f8deb0]">
-              Search stays
+              
             </p>
             <h1 className="mt-3 font-serif text-3xl md:text-5xl">
-              Kết quả giờ được lấy trực tiếp từ database và lọc theo room type còn trống.
+              Search stays
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/76 md:text-base">
-              Mỗi khách sạn sẽ hiển thị đúng những loại phòng còn khả dụng trong khoảng ngày ở mà
-              người dùng chọn.
+              
             </p>
           </div>
 
           <div className="grid gap-4 rounded-[28px] border border-white/10 bg-white/10 p-5 backdrop-blur md:grid-cols-3">
             <div>
-              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Từ khóa</div>
-              <div className="mt-2 text-xl font-semibold">{filters.search || "Không có"}</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Keyword</div>
+              <div className="mt-2 text-xl font-semibold">{filters.search || "None"}</div>
             </div>
             <div>
-              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Điểm đến</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Destination</div>
               <div className="mt-2 text-xl font-semibold">{filters.destination}</div>
             </div>
             <div>
-              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Kết quả</div>
-              <div className="mt-2 text-xl font-semibold">{hotels.length} khách sạn</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-white/60">Results</div>
+              <div className="mt-2 text-xl font-semibold">{hotels.length} hotels</div>
             </div>
           </div>
         </div>
@@ -167,9 +166,9 @@ const Hotels = () => {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-                Bộ lọc tìm kiếm
+                Search filters
               </p>
-              <h2 className="mt-2 text-2xl font-semibold text-textPrimary">Lọc theo nhu cầu ở</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-textPrimary">Filter by your stay preferences</h2>
             </div>
             <button
               type="button"
@@ -183,19 +182,19 @@ const Hotels = () => {
           <div className="mt-6 space-y-4">
             <label className="block">
               <span className="mb-2 block text-sm font-medium text-gray-600">
-                Tên hotel / thành phố / room type
+                Hotel name / city / room type
               </span>
               <input
                 type="text"
                 value={filters.search}
                 onChange={handleFieldChange("search")}
-                placeholder="Ví dụ: Pullman, Hà Nội, Suite..."
+                placeholder="Example: Pullman, Hanoi, Suite..."
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
               />
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Điểm đến</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Destination</span>
               <select
                 value={filters.destination}
                 onChange={handleFieldChange("destination")}
@@ -211,7 +210,7 @@ const Hotels = () => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Nhận phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Check-in</span>
                 <input
                   type="date"
                   value={filters.checkIn}
@@ -220,7 +219,7 @@ const Hotels = () => {
                 />
               </label>
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Trả phòng</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Check-out</span>
                 <input
                   type="date"
                   value={filters.checkOut}
@@ -247,7 +246,7 @@ const Hotels = () => {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Giá tối thiểu / đêm</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Minimum price / night</span>
                 <input
                   type="number"
                   min="0"
@@ -259,7 +258,7 @@ const Hotels = () => {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Giá tối đa / đêm</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Maximum price / night</span>
                 <input
                   type="number"
                   min="0"
@@ -272,7 +271,7 @@ const Hotels = () => {
             </div>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Hạng sao tối thiểu</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Minimum star rating</span>
               <select
                 value={filters.stars}
                 onChange={handleFieldChange("stars")}
@@ -283,7 +282,7 @@ const Hotels = () => {
                   .filter(Boolean)
                   .map((option) => (
                     <option key={option} value={option}>
-                      {option} sao trở lên
+                      {option} stars and above
                     </option>
                   ))}
               </select>
@@ -305,7 +304,7 @@ const Hotels = () => {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Tiện nghi mong muốn</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Preferred amenities</span>
               <select
                 value={filters.amenity}
                 onChange={handleFieldChange("amenity")}
@@ -320,7 +319,7 @@ const Hotels = () => {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Dịch vụ mong muốn</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Preferred services</span>
               <select
                 value={filters.service}
                 onChange={handleFieldChange("service")}
@@ -335,7 +334,7 @@ const Hotels = () => {
             </label>
 
             <label className="block">
-              <span className="mb-2 block text-sm font-medium text-gray-600">Sắp xếp</span>
+              <span className="mb-2 block text-sm font-medium text-gray-600">Sort by</span>
               <select
                 value={filters.sortBy}
                 onChange={handleFieldChange("sortBy")}
@@ -360,7 +359,7 @@ const Hotels = () => {
             type="submit"
             className="mt-6 w-full rounded-2xl bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
           >
-            Áp dụng bộ lọc
+            Apply filters
           </button>
         </form>
 
@@ -370,7 +369,7 @@ const Hotels = () => {
               <div>
                 <div className="text-xs uppercase tracking-[0.2em] text-accent">Elastic-style search</div>
                 <div className="mt-2 text-lg font-semibold text-textPrimary">
-                  {hotels.length} khách sạn khả dụng trong {filters.checkIn} → {filters.checkOut}
+                  {hotels.length} available hotels {filters.checkIn} → {filters.checkOut}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
                   Trang {safeCurrentPage}/{totalPages}
@@ -389,7 +388,7 @@ const Hotels = () => {
                 ) : null}
                 {filters.minPrice || filters.maxPrice ? (
                   <span className="rounded-full bg-[#f3ebdc] px-3 py-2 text-xs font-medium text-[#17363f]">
-                    {filters.minPrice || 0} - {filters.maxPrice || "max"} / đêm
+                    {filters.minPrice || 0} - {filters.maxPrice || "max"} / night
                   </span>
                 ) : null}
               </div>
@@ -398,7 +397,7 @@ const Hotels = () => {
 
           {isLoading ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center shadow-[0_12px_28px_rgba(34,27,18,0.05)]">
-              Loading kết quả tìm kiếm...
+              Loading search results...
             </div>
           ) : null}
 
@@ -429,16 +428,16 @@ const Hotels = () => {
                     <div className="flex flex-wrap items-end justify-between gap-4">
                       <div>
                         <div className="text-xs uppercase tracking-[0.2em] text-gray-400">
-                          Có {hotel.matchedRoomTypes.length} loại phòng phù hợp
+                          Found {hotel.matchedRoomTypes.length} matching room types
                         </div>
                         <div className="mt-2 text-2xl font-semibold text-textPrimary">
-                          Giá từ {formatCurrency(hotel.priceFrom)}
+                          From {formatCurrency(hotel.priceFrom)}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
-                          Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
+                          Total stay từ {formatCurrency(hotel.stayTotalFrom)}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
-                          Còn tổng {hotel.availableRoomCountTotal || 0} phòng khả dụng
+                          Total {hotel.availableRoomCountTotal || 0} rooms available
                         </div>
                       </div>
                       <div className="rounded-[22px] bg-[#f7f1e6] px-4 py-3 text-sm text-gray-700">
@@ -469,7 +468,7 @@ const Hotels = () => {
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
                                 <div className="text-xs uppercase tracking-[0.18em] text-accent">
-                                  {roomType.availableRoomCount} phòng còn trống
+                                  {roomType.availableRoomCount} rooms left trống
                                 </div>
                                 <h3 className="mt-2 text-xl font-semibold text-textPrimary">
                                   {roomType.name}
@@ -481,7 +480,7 @@ const Hotels = () => {
 
                               <div className="rounded-[22px] bg-[#17363f] px-4 py-3 text-white md:min-w-[180px]">
                                 <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">
-                                  Trung bình / đêm
+                                  Average / night
                                 </div>
                                 <div className="mt-2 text-2xl font-semibold">
                                   {formatCurrency(roomType.averageNightlyRate)}
@@ -505,13 +504,13 @@ const Hotels = () => {
                                 to={`${getHotelDetailPath(hotel.id)}?${detailSearchParams.toString()}`}
                                 className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
                               >
-                                Xem chi tiết
+                                View details
                               </Link>
                               <Link
                                 to={`${ROUTES.BOOKING}?${bookingSearchParams.toString()}`}
                                 className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
                               >
-                                Chọn phòng này
+                                Select this room
                               </Link>
                             </div>
                           </div>
@@ -532,7 +531,7 @@ const Hotels = () => {
                 onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
                 className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary transition hover:bg-[#faf6ef] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Trước
+                Previous
               </button>
               {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
                 <button
@@ -561,9 +560,9 @@ const Hotels = () => {
 
           {!isLoading && !hotels.length ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center shadow-[0_12px_28px_rgba(34,27,18,0.05)]">
-              <h2 className="text-2xl font-semibold text-textPrimary">Chưa có kết quả phù hợp</h2>
+              <h2 className="text-2xl font-semibold text-textPrimary">No matching results</h2>
               <p className="mt-3 text-sm leading-7 text-gray-600">
-                Hãy thử đổi điểm đến, loại phòng hoặc tiện nghi để xem thêm khách sạn.
+                Try changing destination, room type, or amenities to see more hotels.
               </p>
             </div>
           ) : null}

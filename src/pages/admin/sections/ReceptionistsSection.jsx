@@ -18,14 +18,14 @@ const ReceptionistsSection = ({
   <section id="receptionists" className="space-y-4">
     <div>
       <div className="text-xs uppercase tracking-[0.2em] text-accent">Receptionist Roles</div>
-      <h2 className="mt-2 text-2xl font-semibold text-textPrimary">Phân quyền lễ tân</h2>
-      <p className="mt-1 text-sm text-gray-600">Set role receptionist và gán khách sạn cho từng user.</p>
+      <h2 className="mt-2 text-2xl font-semibold text-textPrimary">Receptionist permissions</h2>
+      <p className="mt-1 text-sm text-gray-600">Set receptionist role and assign hotels to each user.</p>
       <div className="mt-2 flex flex-wrap gap-2 text-xs">
         <span className="rounded-full bg-[#e8f6ee] px-3 py-1 font-semibold text-[#1f7a4f]">
           Receptionist: {receptionistCount}
         </span>
         <span className="rounded-full bg-[#f3ebdc] px-3 py-1 font-semibold text-[#8b5e34]">
-          Chưa là receptionist: {nonReceptionistCount}
+          Not receptionist yet: {nonReceptionistCount}
         </span>
       </div>
     </div>
@@ -58,7 +58,7 @@ const ReceptionistsSection = ({
                   >
                     {user.role === "receptionist" ? "Receptionist" : `Role: ${user.role}`}
                   </span>
-                  <span className="text-gray-500">Assigned hotel: {user.assignedHotelId || "Chưa gán"}</span>
+                  <span className="text-gray-500">Assigned hotel: {user.assignedHotelId || "Unassigned"}</span>
                 </div>
               </div>
 
@@ -85,7 +85,7 @@ const ReceptionistsSection = ({
                   onChange={(event) => onAssignHotelChange(user.id, event.target.value)}
                   className="rounded-lg border border-[#e7dcc8] bg-[#fcfaf6] px-3 py-2 text-xs"
                 >
-                  <option value="">Chọn khách sạn</option>
+                  <option value="">Select hotel</option>
                   {hotelOptions.map((hotel) => (
                     <option key={hotel.id} value={hotel.id}>
                       {hotel.name}
@@ -99,7 +99,7 @@ const ReceptionistsSection = ({
                   onClick={() => onAssignHotel(user.id)}
                   className="rounded-lg bg-[#8b5e34] px-3 py-2 text-xs font-semibold text-white disabled:opacity-60"
                 >
-                  Gán Hotel
+                  Assign hotel
                 </button>
               </div>
             </div>

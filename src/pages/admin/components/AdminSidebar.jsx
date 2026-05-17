@@ -25,7 +25,7 @@ const AdminSidebar = ({
           >
             <span>{link.label}</span>
             <span className={activeSection === link.id ? "text-[#f6ddb0]" : "text-accent"}>
-              {activeSection === link.id ? "Đang mở" : "Mở"}
+              {activeSection === link.id ? "Open" : "Open"}
             </span>
           </button>
         ))}
@@ -33,9 +33,9 @@ const AdminSidebar = ({
     </div>
 
     <div className="rounded-[28px] border border-[#ded3c3] bg-[#17363f] p-5 text-white shadow-[0_18px_40px_rgba(13,33,38,0.16)]">
-      <div className="text-xs uppercase tracking-[0.22em] text-[#f6ddb0]">Bộ lọc nhanh</div>
+      <div className="text-xs uppercase tracking-[0.22em] text-[#f6ddb0]">Quick filters</div>
       <label className="mt-4 block">
-        <span className="mb-2 block text-sm text-white/72">Hotel đang xem</span>
+        <span className="mb-2 block text-sm text-white/72">Current hotel</span>
         <select
           value={selectedHotelId}
           onChange={(event) => setSelectedHotelId(event.target.value)}
@@ -60,11 +60,11 @@ const AdminSidebar = ({
     </div>
 
     <div className="rounded-[28px] border border-[#ded3c3] bg-[#f5ecde] p-5">
-      <div className="text-xs uppercase tracking-[0.22em] text-accent">Quy ước vận hành</div>
+      <div className="text-xs uppercase tracking-[0.22em] text-accent">Operating notes</div>
       <div className="mt-3 space-y-3 text-sm leading-6 text-gray-700">
-        <p>Base price là giá gốc theo room type trước khi cộng seasonal uplift.</p>
-        <p>Facilities là dịch vụ add-on khi booking, còn amenities là tiện nghi hiển thị trên phòng.</p>
-        <p>Holiday rules áp dụng theo hotel và theo category hoặc toàn bộ room type.</p>
+        <p>Base price is the base price for a room type before seasonal uplift.</p>
+        <p>Facilities are booking add-ons, while amenities are room features shown to guests.</p>
+        <p>Holiday rules apply by hotel and by category or across all room types.</p>
       </div>
     </div>
   </aside>

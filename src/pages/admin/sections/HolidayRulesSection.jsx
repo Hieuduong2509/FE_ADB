@@ -44,17 +44,17 @@ const HolidayRulesSection = ({
             Pricing rules
           </div>
           <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
-            Tạo pricing theo đơn ngày hoặc dải ngày
+            Create pricing by single date or date range
           </h2>
           <p className="mt-3 text-sm text-gray-600">
-            Đơn ngày dùng phần trăm tăng hoặc giảm dựa trên base price của room type. Dải ngày
-            dùng seasonal multiplier để áp trên toàn khoảng ngày.
+            Single date uses increase/decrease percentage from room type base price. Date range
+            uses seasonal multiplier across the full range.
           </p>
 
           <form onSubmit={submitPricing} className="mt-6 space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Loại pricing</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Pricing type</span>
                 <select
                   value={pricingDraft.type}
                   onChange={(event) =>
@@ -65,8 +65,8 @@ const HolidayRulesSection = ({
                   }
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 >
-                  <option value="single_day">Đơn ngày</option>
-                  <option value="date_range">Dải ngày</option>
+                  <option value="single_day">Single date</option>
+                  <option value="date_range">Date range</option>
                 </select>
               </label>
 
@@ -124,7 +124,7 @@ const HolidayRulesSection = ({
 
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-600">
-                      Ngày áp dụng
+                      Applied date
                     </span>
                     <input
                       type="date"
@@ -142,7 +142,7 @@ const HolidayRulesSection = ({
 
                 <div className="grid gap-4 md:grid-cols-[180px_minmax(0,1fr)]">
                   <label className="block">
-                    <span className="mb-2 block text-sm font-medium text-gray-600">Hướng áp giá</span>
+                    <span className="mb-2 block text-sm font-medium text-gray-600">Pricing direction</span>
                     <select
                       value={pricingDraft.specificDirection}
                       onChange={(event) =>
@@ -153,14 +153,14 @@ const HolidayRulesSection = ({
                       }
                       className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                     >
-                      <option value="increase">Tăng giá</option>
-                      <option value="decrease">Giảm giá</option>
+                      <option value="increase">Increase price</option>
+                      <option value="decrease">Decrease price</option>
                     </select>
                   </label>
 
                   <label className="block">
                     <span className="mb-2 block text-sm font-medium text-gray-600">
-                      Phần trăm thay đổi theo base price
+                      Percent change from base price
                     </span>
                     <input
                       type="number"
@@ -189,7 +189,7 @@ const HolidayRulesSection = ({
                       </div>
                     </div>
                     <div className="rounded-[18px] bg-white px-4 py-3">
-                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Thay đổi</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Change</div>
                       <div
                         className={`mt-2 text-lg font-semibold ${
                           isDecreasePreview ? "text-[#1f7a4f]" : "text-[#8b5e34]"
@@ -201,7 +201,7 @@ const HolidayRulesSection = ({
                       </div>
                     </div>
                     <div className="rounded-[18px] bg-white px-4 py-3">
-                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Giá sau rule</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-gray-400">Price sau rule</div>
                       <div className="mt-2 text-lg font-semibold text-textPrimary">
                         {formatCurrency(estimatedSpecificRate)}
                       </div>
@@ -221,7 +221,7 @@ const HolidayRulesSection = ({
                       }))
                     }
                     className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
-                    placeholder="Ví dụ: đêm countdown, concert, lễ lớn"
+                    placeholder="Example: countdown night, concert, major holiday"
                   />
                 </label>
               </>
@@ -279,8 +279,8 @@ const HolidayRulesSection = ({
                     className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                   />
                   <div className="mt-2 text-sm text-gray-500">
-                    Tăng khoảng {Math.max(0, (Number(pricingDraft.multiplier) - 1) * 100).toFixed(0)}%
-                    so với base price.
+                    Increase about {Math.max(0, (Number(pricingDraft.multiplier) - 1) * 100).toFixed(0)}%
+                    compared to base price.
                   </div>
                 </label>
               </>
@@ -300,11 +300,11 @@ const HolidayRulesSection = ({
               >
                 {editingPricingId
                   ? editingPricingType === "single_day"
-                    ? "Lưu đơn ngày"
-                    : "Lưu dải ngày"
+                    ? "Save single date"
+                    : "Save date range"
                   : pricingDraft.type === "single_day"
-                    ? "Tạo đơn ngày"
-                    : "Tạo dải ngày"}
+                    ? "Create single date"
+                    : "Create date range"}
               </button>
               {editingPricingId ? (
                 <button
@@ -322,7 +322,7 @@ const HolidayRulesSection = ({
         <div className="space-y-6">
           <div>
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-textPrimary">Dải ngày</h3>
+              <h3 className="text-xl font-semibold text-textPrimary">Date range</h3>
               <div className="text-sm text-gray-500">{seasonalRules.length} rule</div>
             </div>
             <div className="mt-4 space-y-4">
@@ -370,7 +370,7 @@ const HolidayRulesSection = ({
                 ))
               ) : (
                 <div className="rounded-[28px] border border-dashed border-[#e3d6c1] bg-[#fffaf1] p-5 text-sm text-gray-500">
-                  Chưa có dải ngày nào cho khách sạn đang chọn.
+                  No date ranges for selected hotel.
                 </div>
               )}
             </div>
@@ -378,7 +378,7 @@ const HolidayRulesSection = ({
 
           <div>
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-xl font-semibold text-textPrimary">Đơn ngày</h3>
+              <h3 className="text-xl font-semibold text-textPrimary">Single date</h3>
               <div className="text-sm text-gray-500">{specificDatePricing.length} rule</div>
             </div>
             <div className="mt-4 space-y-4">
@@ -417,12 +417,12 @@ const HolidayRulesSection = ({
                         Base price: {formatCurrency(rule.basePrice)}
                       </div>
                       <div className="rounded-[18px] bg-white px-4 py-3 text-sm text-gray-700">
-                        {rule.specificDirection === "decrease" ? "Giảm" : "Tăng"}:{" "}
+                        {rule.specificDirection === "decrease" ? "Decrease" : "Increase"}:{" "}
                         {rule.specificDirection === "decrease" ? "-" : "+"}
                         {formatCurrency(rule.changeAmount)}
                       </div>
                       <div className="rounded-[18px] bg-white px-4 py-3 text-sm font-semibold text-textPrimary">
-                        Giá sau rule: {formatCurrency(rule.estimatedRate)}
+                        Price sau rule: {formatCurrency(rule.estimatedRate)}
                       </div>
                     </div>
 
@@ -452,7 +452,7 @@ const HolidayRulesSection = ({
                 ))
               ) : (
                 <div className="rounded-[28px] border border-dashed border-[#e3d6c1] bg-[#fffaf1] p-5 text-sm text-gray-500">
-                  Chưa có đơn ngày nào cho khách sạn đang chọn.
+                  No single-date rules for selected hotel.
                 </div>
               )}
             </div>

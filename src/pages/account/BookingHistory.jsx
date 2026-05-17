@@ -24,7 +24,7 @@ const BookingHistory = () => {
         setItems(Array.isArray(response?.items) ? response.items : []);
         setErrorMessage("");
       } catch (error) {
-        setErrorMessage(error.message || "Unable to load lịch sử booking.");
+        setErrorMessage(error.message || "Unable to load booking history.");
       } finally {
         setIsLoading(false);
       }
@@ -42,14 +42,14 @@ const BookingHistory = () => {
               Booking history
             </div>
             <h1 className="mt-2 text-3xl font-semibold text-textPrimary">
-              Lịch sử đặt phòng của bạn
+              Your booking history
             </h1>
           </div>
           <Link
             to={ROUTES.HOTELS}
             className="rounded-full border border-[#d9ccb8] px-4 py-2 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
           >
-            Đặt thêm phòng
+            Book another stay
           </Link>
         </div>
 
@@ -62,13 +62,13 @@ const BookingHistory = () => {
         <div className="mt-6 space-y-4">
           {isLoading ? (
             <div className="rounded-[24px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-              Loading lịch sử booking...
+              Loading booking history...
             </div>
           ) : null}
 
           {!isLoading && !items.length ? (
             <div className="rounded-[24px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-              Bạn chưa có booking nào.
+              You do not have any bookings yet.
             </div>
           ) : null}
 

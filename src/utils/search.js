@@ -2,7 +2,7 @@ export const DEFAULT_DESTINATION = "All";
 export const DEFAULT_ROOM_TYPE = "All";
 export const DEFAULT_AMENITY = "All";
 export const DEFAULT_SERVICE = "All";
-export const DEFAULT_GUESTS = "2 người";
+export const DEFAULT_GUESTS = "2 guests";
 
 export const getTodayDateValue = () => new Date().toISOString().split("T")[0];
 
@@ -65,18 +65,18 @@ export const buildSearchParams = (filters = {}) => {
 
 export const validateStayDates = (checkIn, checkOut) => {
   if (!checkIn || !checkOut) {
-    return "Please chọn đầy đủ ngày nhận và ngày trả phòng.";
+    return "Please select both check-in and check-out dates.";
   }
 
   const startDate = new Date(checkIn);
   const endDate = new Date(checkOut);
 
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
-    return "Ngày nhận phòng hoặc trả phòng không hợp lệ.";
+    return "Invalid check-in or check-out date.";
   }
 
   if (endDate <= startDate) {
-    return "Ngày trả phòng phải sau ngày nhận phòng.";
+    return "Check-out date must be after check-in date.";
   }
 
   return "";

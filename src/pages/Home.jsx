@@ -79,11 +79,10 @@ const Home = () => {
               Real booking catalog
             </div>
             <h1 className="mt-6 max-w-3xl font-serif text-4xl leading-tight md:text-5xl lg:text-6xl">
-              The home page now loads hotels, room types, and prices from the backend instead of mock data.
+              The Pullman homepage.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-white/78 md:text-lg">
-              Users can move from search to booking with one consistent live data source and
-              stay-date pricing logic.
+             
             </p>
 
             <div className="mt-8 flex flex-wrap gap-3">
@@ -217,7 +216,7 @@ const Home = () => {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Giá tối thiểu / đêm</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Minimum price / night</span>
                 <input
                   type="number"
                   min="0"
@@ -229,7 +228,7 @@ const Home = () => {
               </label>
 
               <label className="block">
-                <span className="mb-2 block text-sm font-medium text-gray-600">Hạng sao tối thiểu</span>
+                <span className="mb-2 block text-sm font-medium text-gray-600">Minimum star rating</span>
                 <select
                   value={searchForm.stars}
                   onChange={handleFieldChange("stars")}
@@ -240,7 +239,7 @@ const Home = () => {
                     .filter(Boolean)
                     .map((star) => (
                       <option key={star} value={star}>
-                        {star} sao trở lên
+                        {star} stars and above
                       </option>
                     ))}
                 </select>
@@ -263,21 +262,21 @@ const Home = () => {
               Spotlight Hotels
             </p>
             <h2 className="mt-3 font-serif text-3xl text-textPrimary md:text-4xl">
-              Danh sách khách sạn đang có giá và room type thật từ database.
+              
             </h2>
           </div>
           <Link
             to={ROUTES.HOTELS}
             className="inline-flex w-fit items-center rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-white"
           >
-            Xem toàn bộ kết quả tìm kiếm
+            Xem toàn bộ search results
           </Link>
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-3">
           {isLoading ? (
             <div className="rounded-[30px] border border-dashed border-[#d9ccb8] bg-white p-10 text-center xl:col-span-3">
-              Loading khách sạn...
+              Loading hotels...
             </div>
           ) : null}
 
@@ -306,13 +305,13 @@ const Home = () => {
 
                 <div className="space-y-5 p-6">
                   <p className="text-sm leading-6 text-gray-600">
-                    {hotel.description || "Hotel hiện đã được đồng bộ từ backend."}
+                    {hotel.description || "Hotel data is synced from the backend."}
                   </p>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="rounded-[22px] bg-[#f8f4ed] p-4">
                       <div className="text-xs uppercase tracking-[0.18em] text-gray-400">
-                        Giá trung bình / đêm
+                        Average price / night
                       </div>
                       <div className="mt-2 text-2xl font-semibold text-textPrimary">
                         {formatCurrency(hotel.priceFrom)}
@@ -326,10 +325,10 @@ const Home = () => {
                       {hotel.matchedRoomTypes.length}
                     </div>
                     <div className="mt-1 text-sm text-white/70">
-                      Tổng kỳ nghỉ từ {formatCurrency(hotel.stayTotalFrom)}
+                      Total stay từ {formatCurrency(hotel.stayTotalFrom)}
                     </div>
                     <div className="mt-1 text-sm text-white/70">
-                      Còn {hotel.availableRoomCountTotal || 0} phòng
+                      {hotel.availableRoomCountTotal || 0} rooms left
                     </div>
                   </div>
                 </div>
@@ -345,7 +344,7 @@ const Home = () => {
                         }).toString()}`}
                         className="rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#102d34]"
                       >
-                        Xem loại phòng
+                        View room types
                       </Link>
                     ) : null}
                     <Link
@@ -355,7 +354,7 @@ const Home = () => {
                       }).toString()}`}
                       className="rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-[#faf6ef]"
                     >
-                      Tìm trong khách sạn này
+                      Search within this hotel
                     </Link>
                   </div>
                 </div>
