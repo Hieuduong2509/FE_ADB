@@ -372,7 +372,7 @@ const Hotels = () => {
                   {hotels.length} available hotels {filters.checkIn} → {filters.checkOut}
                 </div>
                 <div className="mt-1 text-sm text-gray-500">
-                  Trang {safeCurrentPage}/{totalPages}
+                  Page {safeCurrentPage}/{totalPages}
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -383,7 +383,7 @@ const Hotels = () => {
                 ) : null}
                 {filters.stars ? (
                   <span className="rounded-full bg-[#f3ebdc] px-3 py-2 text-xs font-medium text-[#17363f]">
-                    {filters.stars}+ sao
+                    {filters.stars}+ stars
                   </span>
                 ) : null}
                 {filters.minPrice || filters.maxPrice ? (
@@ -414,7 +414,7 @@ const Hotels = () => {
                         {hotel.countryName}
                       </span>
                       <span className="rounded-full border border-white/15 px-3 py-1 text-xs">
-                        {hotel.starRating} sao
+                        {hotel.starRating} stars
                       </span>
                     </div>
                     <p className="mt-10 text-sm uppercase tracking-[0.22em] text-white/68">
@@ -422,6 +422,9 @@ const Hotels = () => {
                     </p>
                     <h2 className="mt-3 text-3xl font-semibold leading-tight">{hotel.name}</h2>
                     <p className="mt-4 text-sm leading-7 text-white/76">{hotel.description}</p>
+                    {hotel.imageUrl ? (
+                      <img src={hotel.imageUrl} alt={hotel.name} className="mt-4 h-32 w-full rounded-xl object-cover" />
+                    ) : null}
                   </div>
 
                   <div className="p-6">
@@ -434,7 +437,7 @@ const Hotels = () => {
                           From {formatCurrency(hotel.priceFrom)}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
-                          Total stay từ {formatCurrency(hotel.stayTotalFrom)}
+                          Total stay from {formatCurrency(hotel.stayTotalFrom)}
                         </div>
                         <div className="mt-1 text-sm text-gray-500">
                           Total {hotel.availableRoomCountTotal || 0} rooms available
@@ -468,13 +471,20 @@ const Hotels = () => {
                             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                               <div>
                                 <div className="text-xs uppercase tracking-[0.18em] text-accent">
-                                  {roomType.availableRoomCount} rooms left trống
+                                  {roomType.availableRoomCount} rooms left
                                 </div>
                                 <h3 className="mt-2 text-xl font-semibold text-textPrimary">
                                   {roomType.name}
                                 </h3>
+                                {roomType.imageUrl ? (
+                                  <img
+                                    src={roomType.imageUrl}
+                                    alt={roomType.name}
+                                    className="mt-3 h-28 w-full rounded-xl object-cover"
+                                  />
+                                ) : null}
                                 <p className="mt-2 text-sm leading-7 text-gray-600">
-                                  {roomType.servicesText || "Room type đang dùng dữ liệu thật từ DB."}
+                                  {roomType.servicesText || "This room type is loaded from live database data."}
                                 </p>
                               </div>
 
@@ -553,7 +563,7 @@ const Hotels = () => {
                 onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                 className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary transition hover:bg-[#faf6ef] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Sau
+                Next
               </button>
             </div>
           ) : null}

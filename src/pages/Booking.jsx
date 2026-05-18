@@ -226,7 +226,7 @@ const Booking = () => {
             <div className="text-xs uppercase tracking-[0.2em] text-white/60">Subtotal</div>
             <div className="mt-2 text-3xl font-semibold">{formatCurrency(quote?.totalAmount || 0)}</div>
             <div className="mt-2 text-sm text-white/72">
-              {quote?.stayNights || 0} đêm · {filters.guests}
+              {quote?.stayNights || 0} nights · {filters.guests}
             </div>
           </div>
         </div>
@@ -259,6 +259,9 @@ const Booking = () => {
               <div className="rounded-[24px] bg-[#faf5ec] p-4">
                 <div className="text-xs uppercase tracking-[0.18em] text-gray-400">Selected room type</div>
                 <div className="mt-2 text-xl font-semibold text-textPrimary">{selectedRoomType.name}</div>
+                {selectedRoomType.imageUrl ? (
+                  <img src={selectedRoomType.imageUrl} alt={selectedRoomType.name} className="mt-3 h-28 w-full rounded-xl object-cover" />
+                ) : null}
                 <div className="mt-2 text-sm text-gray-600">{selectedRoomType.servicesText}</div>
               </div>
               <div className="rounded-[24px] bg-[#17363f] p-4 text-white">
@@ -308,6 +311,9 @@ const Booking = () => {
                           {roomType.availableRoomCount} rooms left
                         </div>
                         <h3 className="mt-2 text-xl font-semibold">{roomType.name}</h3>
+                        {roomType.imageUrl ? (
+                          <img src={roomType.imageUrl} alt={roomType.name} className="mt-3 h-24 w-full rounded-xl object-cover" />
+                        ) : null}
                         <p className={`mt-3 text-sm leading-7 ${isSelected ? "text-white/78" : "text-gray-600"}`}>
                           {roomType.servicesText}
                         </p>
@@ -358,6 +364,7 @@ const Booking = () => {
                             {service.pricingType}
                           </div>
                           <h3 className="mt-2 text-xl font-semibold">{service.name}</h3>
+                          {service.icon ? <img src={service.icon} alt={service.name} className="mt-2 h-4 w-4 object-contain" /> : null}
                         </div>
                         <div className="text-lg font-semibold">{formatCurrency(service.price)}</div>
                       </div>
@@ -379,7 +386,7 @@ const Booking = () => {
                   type="text"
                   value={guestForm.fullName}
                   onChange={handleGuestFieldChange("fullName")}
-                  placeholder="Nguyễn Văn A"
+                  placeholder="John Doe"
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10"
                 />
               </label>
@@ -526,7 +533,7 @@ const Booking = () => {
                       <div>
                         <div className="text-sm font-semibold text-textPrimary">{rule.name}</div>
                         <div className="mt-1 text-xs text-gray-500">
-                          {rule.actionSummary} · {rule.nightsApplied} đêm
+                          {rule.actionSummary} · {rule.nightsApplied} nights
                         </div>
                       </div>
                       <div className={`text-sm font-semibold ${Number(rule.impactAmount || 0) >= 0 ? "text-[#8b5e34]" : "text-[#1f7a4f]"}`}>

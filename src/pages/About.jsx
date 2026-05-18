@@ -5,12 +5,12 @@ const About = () => {
       <p className="text-gray-600 mb-6">A booking website dedicated to the Pullman brand.</p>
       <div className="max-w-2xl text-gray-600 space-y-4">
         <p>
-          Giao diện đang được xây theo hướng một brand duy nhất để trải nghiệm nhất quán hơn:
-          khách hàng chọn hotels Pullman, xem loại phòng và đi vào booking nhanh.
+          The interface is built around a single-brand experience for better consistency:
+          guests choose Pullman hotels, browse room types, and move to booking quickly.
         </p>
         <p>
-          Dự án dùng React, Tailwind CSS và backend Node.js/PostgreSQL. Previous mắt ưu tiên hoàn
-          thiện UI booking và luồng đăng nhập thử nghiệm.
+          The project uses React, Tailwind CSS, and a Node.js/PostgreSQL backend.
+          The current priority is polishing the booking UI and authentication flow.
         </p>
       </div>
     </div>

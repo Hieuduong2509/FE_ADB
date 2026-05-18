@@ -1,4 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "../../../utils";
+
+const ITEMS_PER_PAGE = 6;
 
 const RoomTypesSection = ({
   hotelOptions,
@@ -16,6 +19,23 @@ const RoomTypesSection = ({
   isSubmitting,
   errorMessage,
 }) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(filteredRoomTypes.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [filteredRoomTypes.length]);
+
+  const currentPage = Math.min(page, totalPages);
+  const pagedRoomTypes = useMemo(
+    () =>
+      filteredRoomTypes.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE,
+      ),
+    [filteredRoomTypes, currentPage],
+  );
+
   const availableFacilities = facilities.filter(
     (facility) => String(facility.hotelId) === String(roomTypeDraft.hotelId),
   );
@@ -111,7 +131,7 @@ const RoomTypesSection = ({
                   }
                   disabled={isSubmitting}
                   className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-                  placeholder="Ví dụ: Deluxe Ocean Panorama"
+                  placeholder="Example: Deluxe Ocean Panorama"
                 />
               </label>
             </div>
@@ -295,6 +315,23 @@ const RoomTypesSection = ({
               />
             </label>
 
+            <label className="block">
+              <span className="mb-2 block text-sm font-medium text-gray-600">Room type image URLs (one per line)</span>
+              <textarea
+                rows="4"
+                value={roomTypeDraft.imageUrlsText || ""}
+                onChange={(event) =>
+                  setRoomTypeDraft((currentDraft) => ({
+                    ...currentDraft,
+                    imageUrlsText: event.target.value,
+                  }))
+                }
+                disabled={isSubmitting}
+                className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+                placeholder="https://.../room-cover.jpg"
+              />
+            </label>
+
             {errorMessage ? (
               <div className="rounded-2xl border border-[#e7c5bf] bg-[#fff2ee] px-4 py-3 text-sm text-[#aa4f3d]">
                 {errorMessage}
@@ -340,7 +377,7 @@ const RoomTypesSection = ({
             </div>
           ) : null}
 
-          {filteredRoomTypes.map((roomType) => (
+          {pagedRoomTypes.map((roomType) => (
             <div
               key={roomType.id}
               className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
@@ -363,11 +400,19 @@ const RoomTypesSection = ({
                 <p className="mt-4 text-sm leading-7 text-gray-600">{roomType.description}</p>
               ) : null}
 
+              {Array.isArray(roomType.imageUrls) && roomType.imageUrls.length ? (
+                <img
+                  src={roomType.imageUrls[0]}
+                  alt={roomType.name}
+                  className="mt-4 h-40 w-full rounded-2xl object-cover"
+                />
+              ) : null}
+
               <div className="mt-4 grid gap-4 md:grid-cols-2">
                 <div className="rounded-[22px] bg-[#f7efe2] p-4">
                   <div className="text-xs uppercase tracking-[0.18em] text-accent">Capacity</div>
                   <div className="mt-3 text-sm text-textPrimary">
-                    {roomType.maxAdults} người lớn · {roomType.maxChildren} trẻ em
+                    {roomType.maxAdults} adults · {roomType.maxChildren} children
                   </div>
                 </div>
 
@@ -435,6 +480,30 @@ const RoomTypesSection = ({
               </div>
             </div>
           ))}
+
+          {!isLoading && filteredRoomTypes.length > ITEMS_PER_PAGE ? (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => setPage((value) => Math.max(1, value - 1))}
+                disabled={currentPage <= 1}
+                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600">
+                Page {currentPage}/{totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+                disabled={currentPage >= totalPages}
+                className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

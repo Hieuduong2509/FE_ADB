@@ -70,7 +70,7 @@ const SignUp = () => {
               type="text"
               value={formData.fullName}
               onChange={handleFieldChange("fullName")}
-              placeholder="Nguyễn Văn A"
+              placeholder="John Doe"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-accent/30 focus:border-accent outline-none"
             />
           </div>

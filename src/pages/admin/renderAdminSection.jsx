@@ -56,7 +56,7 @@ export const renderAdminSection = (activeSection, workspace) => {
           submitRoomType={workspace.submitRoomType}
           editingRoomTypeId={workspace.editingRoomTypeId}
           resetRoomTypeEditor={workspace.resetRoomTypeEditor}
-          filteredRoomTypes={workspace.filteredManagerRoomTypes}
+          filteredRoomTypes={workspace.filteredRoomTypes}
           startRoomTypeEdit={workspace.startRoomTypeEdit}
           deleteRoomType={workspace.deleteRoomType}
           isLoading={workspace.isRoomTypesLoading}

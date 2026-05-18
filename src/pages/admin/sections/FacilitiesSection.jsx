@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { formatCurrency } from "../../../utils";
 
 const pricingTypeLabels = {
@@ -5,6 +6,8 @@ const pricingTypeLabels = {
   per_night: "Per night",
   one_time: "One-time",
 };
+
+const ITEMS_PER_PAGE = 6;
 
 const FacilitiesSection = ({
   hotelOptions,
@@ -19,7 +22,21 @@ const FacilitiesSection = ({
   isLoading,
   isSubmitting,
   errorMessage,
-}) => (
+}) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(facilities.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [facilities.length]);
+
+  const currentPage = Math.min(page, totalPages);
+  const pagedFacilities = useMemo(
+    () => facilities.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [facilities, currentPage],
+  );
+
+  return (
   <section
     id="facilities"
     className="rounded-[32px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
@@ -128,6 +145,23 @@ const FacilitiesSection = ({
           </label>
 
           <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Icon URL</span>
+            <input
+              type="text"
+              value={facilityDraft.icon || ""}
+              onChange={(event) =>
+                setFacilityDraft((currentDraft) => ({
+                  ...currentDraft,
+                  icon: event.target.value,
+                }))
+              }
+              disabled={isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              placeholder="https://.../spa-icon.svg"
+            />
+          </label>
+
+          <label className="block">
             <span className="mb-2 block text-sm font-medium text-gray-600">Description</span>
             <textarea
               rows="3"
@@ -205,7 +239,7 @@ const FacilitiesSection = ({
           </div>
         ) : null}
 
-        {facilities.map((facility) => (
+        {pagedFacilities.map((facility) => (
           <div
             key={facility.id}
             className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
@@ -217,6 +251,9 @@ const FacilitiesSection = ({
                 </div>
                 <h3 className="mt-3 text-xl font-semibold text-textPrimary">{facility.name}</h3>
                 <div className="mt-2 text-sm text-gray-500">{facility.hotelName}</div>
+                {facility.icon ? (
+                  <img src={facility.icon} alt={facility.name} className="mt-2 h-6 w-6 object-contain" />
+                ) : null}
                 <div className="mt-2 text-sm text-gray-500">
                   {pricingTypeLabels[facility.pricingType] || facility.pricingType}
                 </div>
@@ -248,10 +285,35 @@ const FacilitiesSection = ({
             </div>
           </div>
         ))}
+
+        {!isLoading && facilities.length > ITEMS_PER_PAGE ? (
+          <div className="md:col-span-2 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              disabled={currentPage <= 1}
+              className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage}/{totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              disabled={currentPage >= totalPages}
+              className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default FacilitiesSection;
 

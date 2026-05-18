@@ -269,7 +269,7 @@ const Home = () => {
             to={ROUTES.HOTELS}
             className="inline-flex w-fit items-center rounded-full border border-[#d8ccb8] px-5 py-3 text-sm font-medium text-textPrimary transition hover:bg-white"
           >
-            Xem toàn bộ search results
+            View all search results
           </Link>
         </div>
 
@@ -287,12 +287,20 @@ const Home = () => {
                 className="overflow-hidden rounded-[30px] border border-[#e5dbc9] bg-white shadow-[0_18px_48px_rgba(27,37,37,0.08)]"
               >
                 <div className="relative h-64 bg-[linear-gradient(160deg,_#1d4247_0%,_#335b56_44%,_#d5b37b_100%)] p-6 text-white">
+                  {hotel.imageUrl ? (
+                    <img
+                      src={hotel.imageUrl}
+                      alt={hotel.name}
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  ) : null}
+                  <div className="absolute inset-0 bg-black/30" />
                   <div className="flex items-start justify-between gap-3">
                     <span className="rounded-full bg-white/12 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[#f8deb0]">
                       {hotel.countryName || "Destination"}
                     </span>
                     <span className="rounded-full border border-white/15 bg-black/10 px-3 py-1 text-xs">
-                      {hotel.starRating} sao
+                      {hotel.starRating} stars
                     </span>
                   </div>
                   <div className="mt-16 max-w-xs">
@@ -319,13 +327,13 @@ const Home = () => {
                     </div>
                     <div className="rounded-[22px] bg-[#17363f] p-4 text-white">
                       <div className="text-xs uppercase tracking-[0.18em] text-[#f8deb0]">
-                        Room types phù hợp
+                        Matching room types
                       </div>
                     <div className="mt-2 text-2xl font-semibold">
                       {hotel.matchedRoomTypes.length}
                     </div>
                     <div className="mt-1 text-sm text-white/70">
-                      Total stay từ {formatCurrency(hotel.stayTotalFrom)}
+                      Total stay from {formatCurrency(hotel.stayTotalFrom)}
                     </div>
                     <div className="mt-1 text-sm text-white/70">
                       {hotel.availableRoomCountTotal || 0} rooms left

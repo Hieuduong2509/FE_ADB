@@ -1,6 +1,23 @@
+import { useEffect, useMemo, useState } from "react";
 import { formatCurrency, formatDateLabel } from "../../../utils";
 
-const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
+const ITEMS_PER_PAGE = 6;
+
+const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(bookings.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [bookings.length]);
+
+  const currentPage = Math.min(page, totalPages);
+  const pagedBookings = useMemo(
+    () => bookings.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [bookings, currentPage],
+  );
+
+  return (
   <section
     id="booking-history"
     className="rounded-[32px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
@@ -33,7 +50,7 @@ const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
         </div>
       ) : null}
 
-      {bookings.map((booking) => (
+      {pagedBookings.map((booking) => (
         <div
           key={booking.id}
           className="rounded-[24px] border border-[#ece2d3] bg-[#fffcf7] p-5"
@@ -71,9 +88,34 @@ const BookingHistorySection = ({ bookings, isLoading, errorMessage }) => (
           </div>
         </div>
       ))}
+
+      {!isLoading && bookings.length > ITEMS_PER_PAGE ? (
+        <div className="flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPage((value) => Math.max(1, value - 1))}
+            disabled={currentPage <= 1}
+            className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="text-sm text-gray-600">
+            Page {currentPage}/{totalPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+            disabled={currentPage >= totalPages}
+            className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      ) : null}
     </div>
   </section>
-);
+  );
+};
 
 export default BookingHistorySection;
 

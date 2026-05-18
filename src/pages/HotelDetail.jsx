@@ -69,7 +69,7 @@ const HotelDetail = () => {
             to={ROUTES.HOTELS}
             className="mt-6 inline-flex rounded-full bg-[#17363f] px-5 py-3 text-sm font-semibold text-white"
           >
-            Quay lại trang tìm kiếm
+            Back to search page
           </Link>
         </div>
       </div>
@@ -82,7 +82,7 @@ const HotelDetail = () => {
         to={`${ROUTES.HOTELS}?${buildSearchParams(filters).toString()}`}
         className="inline-flex items-center gap-2 text-sm font-medium text-accent transition hover:underline"
       >
-        ← Quay lại search results
+        ← Back to search results
       </Link>
 
       <section className="mt-4 overflow-hidden rounded-[34px] border border-[#dfd4c3] bg-white shadow-[0_22px_60px_rgba(28,34,31,0.1)]">
@@ -93,7 +93,7 @@ const HotelDetail = () => {
                 {hotel.countryName}
               </span>
               <span className="rounded-full border border-white/15 px-3 py-1 text-xs">
-                {hotel.starRating} sao
+                {hotel.starRating} stars
               </span>
             </div>
             <p className="mt-10 text-sm uppercase tracking-[0.24em] text-white/68">
@@ -101,6 +101,9 @@ const HotelDetail = () => {
             </p>
             <h1 className="mt-3 font-serif text-4xl leading-tight">{hotel.name}</h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/78">{hotel.description}</p>
+            {hotel.imageUrl ? (
+              <img src={hotel.imageUrl} alt={hotel.name} className="mt-4 h-44 w-full max-w-2xl rounded-2xl object-cover" />
+            ) : null}
           </div>
 
           <div className="p-6 md:p-8">
@@ -188,13 +191,16 @@ const HotelDetail = () => {
                         {roomType.availableRoomCount} rooms left
                       </div>
                       <h3 className="mt-2 text-xl font-semibold">{roomType.name}</h3>
+                      {roomType.imageUrl ? (
+                        <img src={roomType.imageUrl} alt={roomType.name} className="mt-3 h-28 w-full rounded-xl object-cover" />
+                      ) : null}
                     </div>
                     <div className="text-lg font-semibold">
                       {formatCurrency(roomType.averageNightlyRate)}
                     </div>
                   </div>
                   <p className={`mt-3 text-sm leading-7 ${isSelectedRoom ? "text-white/78" : "text-gray-600"}`}>
-                    {roomType.servicesText || "Room type này có thể được đặt trực tiếp từ booking flow."}
+                    {roomType.servicesText || "This room type can be booked directly from the booking flow."}
                   </p>
                 </Link>
               );
@@ -212,12 +218,17 @@ const HotelDetail = () => {
             </h2>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              {(selectedRoomType?.amenities || []).map((amenity) => (
+              {(selectedRoomType?.amenityItems?.length
+                ? selectedRoomType.amenityItems
+                : (selectedRoomType?.amenities || []).map((name) => ({ id: name, name, icon: "" }))).map((amenity) => (
                 <div
-                  key={amenity}
+                  key={amenity.id}
                   className="rounded-[22px] border border-[#ece2d3] bg-[#fffcf7] px-4 py-4 text-sm font-medium text-gray-700"
                 >
-                  {amenity}
+                  <span className="inline-flex items-center gap-2">
+                    {amenity.icon ? <img src={amenity.icon} alt={amenity.name} className="h-4 w-4 object-contain" /> : null}
+                    {amenity.name}
+                  </span>
                 </div>
               ))}
             </div>
@@ -233,6 +244,7 @@ const HotelDetail = () => {
                   key={service.id}
                   className="rounded-full bg-[#f3ebdc] px-4 py-2 text-sm font-medium text-[#17363f]"
                 >
+                  {service.icon ? <img src={service.icon} alt={service.name} className="mr-2 inline h-4 w-4 object-contain" /> : null}
                   {service.name} · {formatCurrency(service.price)}
                 </span>
               ))}

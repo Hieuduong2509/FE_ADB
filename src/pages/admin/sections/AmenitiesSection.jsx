@@ -1,3 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
+
+const ITEMS_PER_PAGE = 6;
+
 const AmenitiesSection = ({
   amenityDraft,
   setAmenityDraft,
@@ -10,7 +14,21 @@ const AmenitiesSection = ({
   isLoading,
   isSubmitting,
   errorMessage,
-}) => (
+}) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(amenities.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [amenities.length]);
+
+  const currentPage = Math.min(page, totalPages);
+  const pagedAmenities = useMemo(
+    () => amenities.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [amenities, currentPage],
+  );
+
+  return (
   <section
     id="amenities"
     className="rounded-[32px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
@@ -137,7 +155,7 @@ const AmenitiesSection = ({
           </div>
         ) : null}
 
-        {amenities.map((amenity) => (
+        {pagedAmenities.map((amenity) => (
           <div
             key={amenity.id}
             className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5"
@@ -146,7 +164,13 @@ const AmenitiesSection = ({
               {amenity.code || "amenity"}
             </div>
             <h3 className="mt-3 text-xl font-semibold text-textPrimary">{amenity.name}</h3>
-            {amenity.icon ? <div className="mt-2 text-sm text-gray-500">Icon: {amenity.icon}</div> : null}
+            {amenity.icon ? (
+              <div className="mt-2 flex items-center gap-2 text-sm text-gray-500">
+                <span>Icon:</span>
+                <img src={amenity.icon} alt={amenity.name} className="h-5 w-5 object-contain" />
+                <span className="truncate">{amenity.icon}</span>
+              </div>
+            ) : null}
             {amenity.description ? (
               <p className="mt-3 text-sm leading-7 text-gray-500">{amenity.description}</p>
             ) : null}
@@ -170,10 +194,35 @@ const AmenitiesSection = ({
             </div>
           </div>
         ))}
+
+        {!isLoading && amenities.length > ITEMS_PER_PAGE ? (
+          <div className="md:col-span-2 flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              disabled={currentPage <= 1}
+              className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage}/{totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              disabled={currentPage >= totalPages}
+              className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default AmenitiesSection;
 

@@ -12,8 +12,12 @@ import {
   createAdminAmenityApi,
   createAdminFacilityApi,
   createAdminHotelApi,
+  createAdminHotelImageApi,
   createAdminPricingRuleApi,
   createAdminRoomTypeApi,
+  createAdminRoomTypeImageApi,
+  deleteAdminHotelImageApi,
+  deleteAdminRoomTypeImageApi,
   deleteAdminAmenityApi,
   getAdminBookingHistoryApi,
   deleteAdminFacilityApi,
@@ -23,9 +27,11 @@ import {
   getAdminAmenitiesApi,
   getAdminFacilitiesApi,
   getAdminHotelsApi,
+  getAdminHotelImagesApi,
   getAdminPricingRulesApi,
   getAdminUsersApi,
   getAdminRoomTypesApi,
+  getAdminRoomTypeImagesApi,
   readAuthSession,
   removeReceptionistRoleApi,
   setReceptionistHotelApi,
@@ -185,12 +191,13 @@ const formatHotelOption = (hotel) => ({
   timeZone: hotel.timezone || "Asia/Ho_Chi_Minh",
   totalRooms: Number(hotel.total_rooms) || 0,
   status: hotel.status || "active",
+  imageUrls: Array.isArray(hotel.image_urls) ? hotel.image_urls : [],
 });
 
 const formatRoomTypeOption = (roomType, hotelsById) => ({
   id: roomType.id,
   hotelId: roomType.hotel_id,
-  hotelName: hotelsById.get(roomType.hotel_id)?.name || "Hotel chưa xác định",
+  hotelName: hotelsById.get(roomType.hotel_id)?.name || "Unknown hotel",
   code: roomType.code || "",
   name: roomType.name || "",
   description: roomType.description || "",
@@ -205,15 +212,17 @@ const formatRoomTypeOption = (roomType, hotelsById) => ({
   category: roomType.code || "",
   capacity: Number(roomType.max_adults) + Number(roomType.max_children || 0),
   size: roomType.room_size ? `${roomType.room_size} m2` : "",
+  imageUrls: Array.isArray(roomType.image_urls) ? roomType.image_urls : [],
 });
 
 const formatFacilityRecord = (facility, hotelsById) => ({
   id: facility.id,
   hotelId: facility.hotel_id,
-  hotelName: hotelsById.get(facility.hotel_id)?.name || "Hotel chưa xác định",
+  hotelName: hotelsById.get(facility.hotel_id)?.name || "Unknown hotel",
   code: facility.code || "",
   name: facility.name || "",
   description: facility.description || "",
+  icon: facility.icon || facility.icon_url || "",
   facilityType: facility.facility_type || "service",
   pricingType: facility.price_type || "per_use",
   price: Number(facility.base_price) || 0,
@@ -226,7 +235,7 @@ const formatAmenityRecord = (amenity) => ({
   name: amenity.name || "",
   icon: amenity.icon || "",
   description: amenity.description || "",
-  hotelName: "Catalog toàn hệ thống",
+  hotelName: "System-wide catalog",
 });
 
 const formatPricingRuleRecord = (rule, hotelsById, roomTypesById) => {
@@ -252,9 +261,9 @@ const formatPricingRuleRecord = (rule, hotelsById, roomTypesById) => {
   id: rule.id,
   type: rule.type || "single_day",
   hotelId: rule.hotel_id,
-  hotelName: hotelsById.get(rule.hotel_id)?.name || "Hotel chưa xác định",
+  hotelName: hotelsById.get(rule.hotel_id)?.name || "Unknown hotel",
   roomTypeId: rule.room_type_id || "",
-  roomTypeName: roomType?.name || "Room type chưa xác định",
+  roomTypeName: roomType?.name || "Unknown room type",
   basePrice,
   priority: Number(rule.priority) || 100,
   active: rule.active !== false,
@@ -438,8 +447,24 @@ export const useAdminWorkspace = () => {
     setIsHotelsLoading(true);
 
     try {
-      const hotelsResponse = await getAdminHotelsApi();
-      const nextHotels = hotelsResponse.map((hotel) => formatHotelOption(hotel));
+      const [hotelsResponse, hotelImagesResponse] = await Promise.all([
+        getAdminHotelsApi(),
+        getAdminHotelImagesApi({ limit: 5000 }),
+      ]);
+      const imagesByHotelId = hotelImagesResponse.reduce((map, item) => {
+        const key = String(item.hotel_id || "");
+        if (!key) return map;
+        const current = map.get(key) || [];
+        current.push(item);
+        map.set(key, current.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)));
+        return map;
+      }, new Map());
+      const nextHotels = hotelsResponse.map((hotel) =>
+        formatHotelOption({
+          ...hotel,
+          image_urls: (imagesByHotelId.get(String(hotel.id)) || []).map((item) => item.image_url).filter(Boolean),
+        }),
+      );
 
       setManagerHotels(nextHotels);
       setHotelsError("");
@@ -479,8 +504,27 @@ export const useAdminWorkspace = () => {
 
     try {
       const hotelsById = new Map(managerHotels.map((hotel) => [hotel.id, hotel]));
-      const response = await getAdminRoomTypesApi();
-      const nextRoomTypes = response.map((roomType) => formatRoomTypeOption(roomType, hotelsById));
+      const [response, roomTypeImagesResponse] = await Promise.all([
+        getAdminRoomTypesApi(),
+        getAdminRoomTypeImagesApi({ limit: 5000 }),
+      ]);
+      const imagesByRoomTypeId = roomTypeImagesResponse.reduce((map, item) => {
+        const key = String(item.room_type_id || "");
+        if (!key) return map;
+        const current = map.get(key) || [];
+        current.push(item);
+        map.set(key, current.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)));
+        return map;
+      }, new Map());
+      const nextRoomTypes = response.map((roomType) =>
+        formatRoomTypeOption(
+          {
+            ...roomType,
+            image_urls: (imagesByRoomTypeId.get(String(roomType.id)) || []).map((item) => item.image_url).filter(Boolean),
+          },
+          hotelsById,
+        ),
+      );
 
       setRoomTypes(nextRoomTypes);
       setManagerRoomTypes(nextRoomTypes);
@@ -652,6 +696,7 @@ export const useAdminWorkspace = () => {
       timeZone: hotel.timeZone,
       totalRooms: hotel.totalRooms,
       status: hotel.status,
+      imageUrlsText: Array.isArray(hotel.imageUrls) ? hotel.imageUrls.join("\n") : "",
     });
   };
 
@@ -671,6 +716,10 @@ export const useAdminWorkspace = () => {
       total_rooms: Number(hotelDraft.totalRooms) || 0,
       status: String(hotelDraft.status || "active").trim(),
     };
+    const nextImageUrls = String(hotelDraft.imageUrlsText || "")
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
 
     if (!normalized.name || !normalized.country || !normalized.city || !normalized.address) {
       setHotelsError("Please enter hotel name, country, city, and address.");
@@ -683,8 +732,40 @@ export const useAdminWorkspace = () => {
     try {
       if (editingHotelId) {
         await updateAdminHotelApi(editingHotelId, normalized, accessToken);
+        const existingImages = await getAdminHotelImagesApi({ hotel_id: editingHotelId, limit: 1000 });
+        await Promise.all(existingImages.map((image) => deleteAdminHotelImageApi(image.id, accessToken)));
+        await Promise.all(
+          nextImageUrls.map((imageUrl, index) =>
+            createAdminHotelImageApi(
+              {
+                hotel_id: editingHotelId,
+                image_url: imageUrl,
+                sort_order: index,
+                is_cover: index === 0,
+                alt_text: normalized.name || "Hotel image",
+              },
+              accessToken,
+            ),
+          ),
+        );
       } else {
-        await createAdminHotelApi(normalized, accessToken);
+        const createdHotel = await createAdminHotelApi(normalized, accessToken);
+        if (createdHotel?.id) {
+          await Promise.all(
+            nextImageUrls.map((imageUrl, index) =>
+              createAdminHotelImageApi(
+                {
+                  hotel_id: createdHotel.id,
+                  image_url: imageUrl,
+                  sort_order: index,
+                  is_cover: index === 0,
+                  alt_text: normalized.name || "Hotel image",
+                },
+                accessToken,
+              ),
+            ),
+          );
+        }
       }
 
       await refreshHotels();
@@ -737,6 +818,7 @@ export const useAdminWorkspace = () => {
       totalInventory: roomType.totalInventory,
       amenities: [...(roomType.amenities || [])],
       facilities: [...(roomType.facilities || [])],
+      imageUrlsText: Array.isArray(roomType.imageUrls) ? roomType.imageUrls.join("\n") : "",
     });
   };
 
@@ -762,6 +844,10 @@ export const useAdminWorkspace = () => {
         ? roomTypeDraft.facilities.map((item) => String(item))
         : [],
     };
+    const nextImageUrls = String(roomTypeDraft.imageUrlsText || "")
+      .split("\n")
+      .map((item) => item.trim())
+      .filter(Boolean);
 
     if (!normalized.hotel_id || !normalized.name) {
       setRoomTypesError("Please select a hotel and enter room type name.");
@@ -774,8 +860,40 @@ export const useAdminWorkspace = () => {
     try {
       if (editingRoomTypeId) {
         await updateAdminRoomTypeApi(editingRoomTypeId, normalized, accessToken);
+        const existingImages = await getAdminRoomTypeImagesApi({ room_type_id: editingRoomTypeId, limit: 1000 });
+        await Promise.all(existingImages.map((image) => deleteAdminRoomTypeImageApi(image.id, accessToken)));
+        await Promise.all(
+          nextImageUrls.map((imageUrl, index) =>
+            createAdminRoomTypeImageApi(
+              {
+                room_type_id: editingRoomTypeId,
+                image_url: imageUrl,
+                sort_order: index,
+                is_cover: index === 0,
+                alt_text: normalized.name || "Room type image",
+              },
+              accessToken,
+            ),
+          ),
+        );
       } else {
-        await createAdminRoomTypeApi(normalized, accessToken);
+        const createdRoomType = await createAdminRoomTypeApi(normalized, accessToken);
+        if (createdRoomType?.id) {
+          await Promise.all(
+            nextImageUrls.map((imageUrl, index) =>
+              createAdminRoomTypeImageApi(
+                {
+                  room_type_id: createdRoomType.id,
+                  image_url: imageUrl,
+                  sort_order: index,
+                  is_cover: index === 0,
+                  alt_text: normalized.name || "Room type image",
+                },
+                accessToken,
+              ),
+            ),
+          );
+        }
       }
 
       await refreshRoomTypes();
@@ -835,6 +953,7 @@ export const useAdminWorkspace = () => {
       pricingType: facility.pricingType,
       facilityType: facility.facilityType,
       description: facility.description,
+      icon: facility.icon || "",
     });
   };
 
@@ -846,6 +965,7 @@ export const useAdminWorkspace = () => {
       code: String(facilityDraft.code || "").trim() || ensureCode("facility", facilityDraft.name),
       name: String(facilityDraft.name || "").trim(),
       description: String(facilityDraft.description || "").trim() || null,
+      icon: String(facilityDraft.icon || "").trim() || null,
       facility_type: String(facilityDraft.facilityType || "service").trim(),
       price_type: String(facilityDraft.pricingType || "per_use").trim(),
       base_price: Number(facilityDraft.price) || 0,

@@ -326,8 +326,8 @@ const DashboardSection = ({ stats, selectedHotel, bookingHistory = [], managerHo
     [bookingHistory, managerHotels, activeRange.days, selectedHotelId],
   );
 
-  const trendTitle = "Booking trend theo khach san da chon";
-  const trendSubtitle = `Hien thi booking trend cua ${selectedHotel?.name || "khach san duoc chon"} trong ${activeRange.label}.`;
+  const trendTitle = "Booking trend follow by hotel";
+  const trendSubtitle = `Booking trend of ${selectedHotel?.name || "khach san duoc chon"} in ${activeRange.label}.`;
 
   return (
     <section className="space-y-6">
@@ -341,10 +341,10 @@ const DashboardSection = ({ stats, selectedHotel, bookingHistory = [], managerHo
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Revenue" value={formatCurrency(stats.totalRevenue)} note="Tong final amount" />
-          <StatCard label="Bookings" value={stats.totalBookings} note="Tong booking hien co" />
-          <StatCard label="Avg booking value" value={formatCurrency(stats.averageBookingValue)} note="Gia tri trung binh / booking" />
-          <StatCard label="Paid ratio" value={`${stats.paidRatio}%`} note="Ty le booking da thanh toan" />
+          <StatCard label="Revenue" value={formatCurrency(stats.totalRevenue)} note="Total final amount" />
+          <StatCard label="Bookings" value={stats.totalBookings} note="Total booking hien co" />
+          <StatCard label="Avg booking value" value={formatCurrency(stats.averageBookingValue)} note="Average / booking" />
+          <StatCard label="Paid ratio" value={`${stats.paidRatio}%`} note="percent successful booking " />
         </div>
       </div>
 

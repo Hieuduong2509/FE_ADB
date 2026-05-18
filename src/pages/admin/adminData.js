@@ -68,6 +68,7 @@ export const createRoomTypeDraft = () => ({
   totalInventory: 10,
   amenities: [],
   facilities: [],
+  imageUrlsText: "",
 });
 
 export const createFacilityDraft = () => ({
@@ -77,6 +78,7 @@ export const createFacilityDraft = () => ({
   price: 250000,
   pricingType: "per_use",
   facilityType: "service",
+  icon: "",
   description: "",
 });
 
@@ -92,6 +94,7 @@ export const createHotelDraft = () => ({
   timeZone: "Asia/Ho_Chi_Minh",
   totalRooms: 100,
   status: "active",
+  imageUrlsText: "",
 });
 
 export const createAmenityDraft = () => ({

@@ -33,6 +33,8 @@ const ReceptionistDashboard = () => {
   const ITEMS_PER_PAGE = 8;
 
   const normalizeStatus = (value) => String(value || "").toUpperCase();
+  const isOccupyingStatus = (status) =>
+    !["CANCELLED", "CHECKED_OUT", "NO_SHOW"].includes(normalizeStatus(status));
 
   const loadData = async () => {
     if (!session?.accessToken) return;
@@ -70,7 +72,7 @@ const ReceptionistDashboard = () => {
       await checkInBookingApi(bookingId, session.accessToken);
       await loadData();
     } catch (error) {
-      setErrorMessage(error.message || "Check-in thất bại.");
+      setErrorMessage(error.message || "Check-in failed.");
     } finally {
       setActingBookingId("");
     }
@@ -82,7 +84,7 @@ const ReceptionistDashboard = () => {
       await checkOutBookingApi(bookingId, session.accessToken);
       await loadData();
     } catch (error) {
-      setErrorMessage(error.message || "Check-out thất bại.");
+      setErrorMessage(error.message || "Check-out failed.");
     } finally {
       setActingBookingId("");
     }
@@ -94,7 +96,7 @@ const ReceptionistDashboard = () => {
       await markBookingPaidApi(bookingId, session.accessToken);
       await loadData();
     } catch (error) {
-      setErrorMessage(error.message || "Xác nhận thanh toán thất bại.");
+      setErrorMessage(error.message || "Payment confirmation failed.");
     } finally {
       setActingBookingId("");
     }
@@ -106,7 +108,7 @@ const ReceptionistDashboard = () => {
       await markBookingNoShowApi(bookingId, session.accessToken);
       await loadData();
     } catch (error) {
-      setErrorMessage(error.message || "Đánh dấu no-show thất bại.");
+      setErrorMessage(error.message || "Marking no-show failed.");
     } finally {
       setActingBookingId("");
     }
@@ -162,6 +164,9 @@ const ReceptionistDashboard = () => {
   const pagedItems = visibleItems.slice((safePage - 1) * ITEMS_PER_PAGE, safePage * ITEMS_PER_PAGE);
 
   const bookingsByRoomType = items.reduce((accumulator, booking) => {
+    if (!isOccupyingStatus(booking.booking_status)) {
+      return accumulator;
+    }
     const key = String(booking.room_type_id || "");
     if (!key) return accumulator;
     const current = accumulator[key] || [];
@@ -263,7 +268,7 @@ const ReceptionistDashboard = () => {
                 onClick={handleLookup}
                 className="rounded-lg bg-[#17363f] px-4 py-2 text-sm font-semibold text-white"
               >
-                Tìm
+                Search
               </button>
             </div>
             {lookupResult ? (
@@ -275,7 +280,7 @@ const ReceptionistDashboard = () => {
           </div>
 
           <div className="mb-4 rounded-xl border border-[#ece2d3] bg-white p-3">
-            <div className="mb-2 text-xs uppercase tracking-[0.2em] text-accent">Bộ lọc thao tác</div>
+            <div className="mb-2 text-xs uppercase tracking-[0.2em] text-accent">Action filters</div>
             <div className="grid gap-2 md:grid-cols-3">
               <input
                 type="text"
@@ -331,7 +336,7 @@ const ReceptionistDashboard = () => {
                   <div className="text-sm font-semibold text-textPrimary">{roomType.room_type_name}</div>
                   <div className="mt-2 text-xs text-gray-600">Total: {roomType.total_inventory}</div>
                   <div className="text-xs text-[#8b3f32]">Booked: {roomType.occupied_count}</div>
-                  <div className="text-xs text-[#1f7a4f]">Trống: {roomType.available_count}</div>
+                  <div className="text-xs text-[#1f7a4f]">Available: {roomType.available_count}</div>
                 </div>
               ))}
             </div>
@@ -362,7 +367,7 @@ const ReceptionistDashboard = () => {
               <div className="mb-3 flex flex-wrap gap-3 text-xs">
                 <span className="inline-flex items-center gap-2">
                   <span className="h-3 w-3 rounded bg-[#1f7a4f]" />
-                  Trống
+                  Available
                 </span>
                 <span className="inline-flex items-center gap-2">
                   <span className="h-3 w-3 rounded bg-[#aa4f3d]" />
@@ -395,7 +400,7 @@ const ReceptionistDashboard = () => {
                                       ? "border-[#e9b8b0] bg-[linear-gradient(180deg,#ffd9d2_0%,#f6b5a8_100%)] text-[#8f3427]"
                                       : "border-[#b8dec9] bg-[linear-gradient(180deg,#ddf8e9_0%,#b8eccf_100%)] text-[#176644]"
                                   }`}
-                                  title={tile.status === "occupied" ? "Đã được đặt/đang sử dụng" : "Sẵn sàng nhận khách"}
+                                  title={tile.status === "occupied" ? "Booked/in use" : "Ready for check-in"}
                                 >
                                   {tile.roomNo}
                                 </button>
@@ -502,7 +507,7 @@ const ReceptionistDashboard = () => {
                     Previous
                   </button>
                   <span className="text-xs text-gray-600">
-                    Trang {safePage}/{totalPages}
+                    Page {safePage}/{totalPages}
                   </span>
                   <button
                     type="button"
@@ -510,13 +515,13 @@ const ReceptionistDashboard = () => {
                     onClick={() => setCurrentPage((page) => Math.min(totalPages, page + 1))}
                     className="rounded-full border border-[#d8ccb8] px-3 py-1 text-xs disabled:opacity-50"
                   >
-                    Sau
+                    Next
                   </button>
                 </div>
               ) : null}
             </div>
           ) : (
-            <div className="text-sm text-gray-600">None booking phù hợp với bộ lọc hiện tại.</div>
+            <div className="text-sm text-gray-600">No bookings match the current filters.</div>
           )}
         </div>
       </div>

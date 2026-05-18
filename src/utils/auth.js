@@ -80,6 +80,8 @@ const normalizeCatalogHotel = (hotel = {}) => ({
   description: hotel.description || "Hotel data is synced from the backend.",
   starRating: Number(hotel.star_rating) || 0,
   timezone: hotel.timezone || "Asia/Ho_Chi_Minh",
+  imageUrl: hotel.image_url || "",
+  imageUrls: Array.isArray(hotel.image_urls) ? hotel.image_urls : [],
 });
 
 const normalizeSearchRoomType = (item = {}, catalog = {}) => {
@@ -91,6 +93,16 @@ const normalizeSearchRoomType = (item = {}, catalog = {}) => {
         .map((amenityId) => amenitiesById.get(String(amenityId))?.name || "")
         .filter(Boolean)
     : [];
+  const amenityItems = Array.isArray(roomTypeCatalog?.amenity_ids)
+    ? roomTypeCatalog.amenity_ids
+        .map((amenityId) => amenitiesById.get(String(amenityId)))
+        .filter(Boolean)
+        .map((amenity) => ({
+          id: amenity.id,
+          name: amenity.name || "",
+          icon: amenity.icon || "",
+        }))
+    : [];
   const services = Array.isArray(roomTypeCatalog?.facility_ids)
     ? roomTypeCatalog.facility_ids
         .map((facilityId) => facilitiesById.get(String(facilityId)))
@@ -100,6 +112,7 @@ const normalizeSearchRoomType = (item = {}, catalog = {}) => {
           name: facility.name || "",
           price: Number(facility.base_price || 0),
           pricingType: facility.price_type || facility.pricing_type || facility.facility_type || "",
+          icon: facility.icon || facility.icon_url || "",
         }))
     : [];
 
@@ -112,7 +125,10 @@ const normalizeSearchRoomType = (item = {}, catalog = {}) => {
   averageNightlyRate: Number(item.average_rate) || 0,
   stayTotal: Number(item.stay_total) || 0,
   servicesText: "This room type uses live availability data from the database.",
+  imageUrl: roomTypeCatalog?.image_url || "",
+  imageUrls: Array.isArray(roomTypeCatalog?.image_urls) ? roomTypeCatalog.image_urls : [],
   amenities,
+  amenityItems,
   services,
   });
 };
@@ -176,6 +192,7 @@ const mergeHotelsWithAvailability = (
     catalogHotels.map((hotel) => [String(hotel.id), normalizeCatalogHotel(hotel)]),
   );
   const groupedRoomTypes = new Map();
+  const hotelImagesByHotelId = catalog.hotelImagesByHotelId || new Map();
 
   for (const item of availabilityItems) {
     const hotelId = String(item.hotel_id);
@@ -200,8 +217,11 @@ const mergeHotelsWithAvailability = (
       (firstRoomType, secondRoomType) => firstRoomType.averageNightlyRate - secondRoomType.averageNightlyRate,
     );
 
+    const hotelImages = hotelImagesByHotelId.get(String(hotel.id)) || [];
     return {
       ...hotel,
+      imageUrl: hotelImages[0]?.image_url || hotel.imageUrl || "",
+      imageUrls: hotelImages.map((image) => image.image_url).filter(Boolean),
       matchedRoomTypes: normalizedRoomTypes,
       roomTypes: normalizedRoomTypes,
       priceFrom: normalizedRoomTypes[0]?.averageNightlyRate || 0,
@@ -323,18 +343,45 @@ export const getClientProfileApi = async (accessToken) =>
   });
 
 export const getClientHotelsApi = async (filters = {}) => {
-  const [catalogHotels, searchResponse, roomTypes, facilities, amenities] = await Promise.all([
+  const [catalogHotels, searchResponse, roomTypes, facilities, amenities, hotelImages, roomTypeImages] = await Promise.all([
     listRequest("/api/hotels?limit=100"),
     requestJson(`/api/search?${buildSearchQuery(filters)}`),
     listRequest("/api/room-types?limit=500"),
     listRequest("/api/facilities?limit=500"),
     listRequest("/api/amenities?limit=500"),
+    listRequest("/api/hotel-images?limit=2000"),
+    listRequest("/api/room-type-images?limit=5000"),
   ]);
 
+  const hotelImagesByHotelId = hotelImages.reduce((map, image) => {
+    const key = String(image.hotel_id || "");
+    if (!key) return map;
+    const current = map.get(key) || [];
+    current.push(image);
+    map.set(key, current.sort((a, b) => Number(a.sort_order || 0) - Number(b.sort_order || 0)));
+    return map;
+  }, new Map());
+
+  const roomTypeImagesById = roomTypeImages.reduce((map, image) => {
+    const key = String(image.room_type_id || "");
+    if (!key) return map;
+    const current = map.get(key) || [];
+    current.push(image.image_url);
+    map.set(key, current.filter(Boolean));
+    return map;
+  }, new Map());
+
+  const mappedRoomTypes = roomTypes.map((roomType) => ({
+    ...roomType,
+    image_urls: roomTypeImagesById.get(String(roomType.id)) || [],
+    image_url: (roomTypeImagesById.get(String(roomType.id)) || [])[0] || "",
+  }));
+
   const catalog = {
-    roomTypesById: new Map(roomTypes.map((roomType) => [String(roomType.id), roomType])),
+    roomTypesById: new Map(mappedRoomTypes.map((roomType) => [String(roomType.id), roomType])),
     facilitiesById: new Map(facilities.map((facility) => [String(facility.id), facility])),
     amenitiesById: new Map(amenities.map((amenity) => [String(amenity.id), amenity])),
+    hotelImagesByHotelId,
   };
 
   return mergeHotelsWithAvailability(
@@ -346,18 +393,36 @@ export const getClientHotelsApi = async (filters = {}) => {
 };
 
 export const getClientHotelDetailApi = async (hotelId, filters = {}) => {
-  const [catalogHotel, searchResponse, roomTypes, facilities, amenities] = await Promise.all([
+  const [catalogHotel, searchResponse, roomTypes, facilities, amenities, hotelImages, roomTypeImages] = await Promise.all([
     requestJson(`/api/hotels/${hotelId}`),
     requestJson(`/api/search?${buildSearchQuery({ ...filters, hotelId })}`),
     listRequest(`/api/room-types?limit=500&hotel_id=${hotelId}`),
     listRequest(`/api/facilities?limit=500&hotel_id=${hotelId}`),
     listRequest("/api/amenities?limit=500"),
+    listRequest(`/api/hotel-images?limit=2000&hotel_id=${hotelId}`),
+    listRequest("/api/room-type-images?limit=5000"),
   ]);
 
+  const roomTypeImagesById = roomTypeImages.reduce((map, image) => {
+    const key = String(image.room_type_id || "");
+    if (!key) return map;
+    const current = map.get(key) || [];
+    current.push(image.image_url);
+    map.set(key, current.filter(Boolean));
+    return map;
+  }, new Map());
+
+  const mappedRoomTypes = roomTypes.map((roomType) => ({
+    ...roomType,
+    image_urls: roomTypeImagesById.get(String(roomType.id)) || [],
+    image_url: (roomTypeImagesById.get(String(roomType.id)) || [])[0] || "",
+  }));
+
   const catalog = {
-    roomTypesById: new Map(roomTypes.map((roomType) => [String(roomType.id), roomType])),
+    roomTypesById: new Map(mappedRoomTypes.map((roomType) => [String(roomType.id), roomType])),
     facilitiesById: new Map(facilities.map((facility) => [String(facility.id), facility])),
     amenitiesById: new Map(amenities.map((amenity) => [String(amenity.id), amenity])),
+    hotelImagesByHotelId: new Map([[String(hotelId), hotelImages]]),
   };
 
   const hotels = mergeHotelsWithAvailability(
@@ -646,6 +711,54 @@ export const getAdminPricingRulesApi = async (query = {}) => {
   const queryString = searchParams.toString();
   return listRequest(`/api/pricing-rules${queryString ? `?${queryString}` : ""}`);
 };
+
+export const getAdminHotelImagesApi = async (query = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  return listRequest(`/api/hotel-images${queryString ? `?${queryString}` : ""}`);
+};
+
+export const createAdminHotelImageApi = async (payload, accessToken) =>
+  requestJson("/api/hotel-images", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminHotelImageApi = async (id, accessToken) =>
+  requestJson(`/api/hotel-images/${id}`, {
+    method: "DELETE",
+    headers: withAuthHeaders(accessToken),
+  });
+
+export const getAdminRoomTypeImagesApi = async (query = {}) => {
+  const searchParams = new URLSearchParams();
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      searchParams.set(key, String(value));
+    }
+  });
+  const queryString = searchParams.toString();
+  return listRequest(`/api/room-type-images${queryString ? `?${queryString}` : ""}`);
+};
+
+export const createAdminRoomTypeImageApi = async (payload, accessToken) =>
+  requestJson("/api/room-type-images", {
+    method: "POST",
+    headers: withAuthHeaders(accessToken),
+    body: JSON.stringify(payload),
+  });
+
+export const deleteAdminRoomTypeImageApi = async (id, accessToken) =>
+  requestJson(`/api/room-type-images/${id}`, {
+    method: "DELETE",
+    headers: withAuthHeaders(accessToken),
+  });
 
 export const createAdminPricingRuleApi = async (payload, accessToken) =>
   requestJson("/api/pricing-rules", {

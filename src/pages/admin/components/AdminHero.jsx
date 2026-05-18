@@ -18,11 +18,10 @@ const AdminHero = ({ totalBookings, totalRevenue, pendingPaymentCount }) => (
             Pullman admin workspace
           </div>
           <h1 className="mt-5 max-w-4xl font-serif text-4xl leading-tight md:text-5xl">
-            Trang admin tap trung vao gia phong, cau hinh ngay le va quan tri inventory phong.
+            Super admin
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-7 text-white/78 md:text-lg">
-            Luong nay uu tien thao tac van hanh: chinh base price, them room type moi,
-            quan ly amenities va theo doi KPI booking theo tung khach san.
+            
           </p>
         </div>
 
@@ -30,17 +29,17 @@ const AdminHero = ({ totalBookings, totalRevenue, pendingPaymentCount }) => (
           <StatCard
             label="Bookings"
             value={String(totalBookings).padStart(2, "0")}
-            hint="Tong booking theo bo loc hien tai."
+            hint="Total booking"
           />
           <StatCard
             label="Revenue"
             value={new Intl.NumberFormat("vi-VN").format(totalRevenue)}
-            hint="Tong doanh thu final amount."
+            hint="Total final amount."
           />
           <StatCard
             label="Pending payment"
             value={String(pendingPaymentCount).padStart(2, "0")}
-            hint="Booking dang cho thanh toan."
+            hint="Pending booking payment"
           />
         </div>
       </div>

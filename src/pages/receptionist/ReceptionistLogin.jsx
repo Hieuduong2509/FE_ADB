@@ -39,7 +39,7 @@ const ReceptionistLogin = () => {
       <div className="mx-auto max-w-md rounded-2xl border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]">
         <div className="text-xs uppercase tracking-[0.2em] text-accent">Receptionist Portal</div>
         <h1 className="mt-2 text-2xl font-semibold text-textPrimary">Receptionist sign in</h1>
-        <p className="mt-2 text-sm text-gray-600">Quản lý check-in/check-out theo hotels được phân công.</p>
+        <p className="mt-2 text-sm text-gray-600">Manage check-in/check-out for assigned hotels.</p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           <label className="block">

@@ -1,3 +1,7 @@
+import { useEffect, useMemo, useState } from "react";
+
+const ITEMS_PER_PAGE = 4;
+
 const HotelsSection = ({
   hotelDraft,
   setHotelDraft,
@@ -10,7 +14,21 @@ const HotelsSection = ({
   isLoading,
   isSubmitting,
   errorMessage,
-}) => (
+}) => {
+  const [page, setPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(hotels.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [hotels.length]);
+
+  const currentPage = Math.min(page, totalPages);
+  const pagedHotels = useMemo(
+    () => hotels.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE),
+    [hotels, currentPage],
+  );
+
+  return (
   <section
     id="hotels"
     className="rounded-[32px] border border-[#e5dbc9] bg-white p-6 shadow-[0_18px_42px_rgba(34,27,18,0.06)]"
@@ -53,7 +71,7 @@ const HotelsSection = ({
                 }
                 disabled={isSubmitting}
                 className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
-                placeholder="Ví dụ: Pullman Saigon Centre"
+                placeholder="Example: Pullman Saigon Centre"
               />
             </label>
           </div>
@@ -139,6 +157,23 @@ const HotelsSection = ({
               }
               disabled={isSubmitting}
               className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium text-gray-600">Hotel image URLs (one per line)</span>
+            <textarea
+              rows="4"
+              value={hotelDraft.imageUrlsText || ""}
+              onChange={(event) =>
+                setHotelDraft((currentDraft) => ({
+                  ...currentDraft,
+                  imageUrlsText: event.target.value,
+                }))
+              }
+              disabled={isSubmitting}
+              className="w-full rounded-2xl border border-[#e7dcc8] bg-[#fcfaf6] px-4 py-3 text-sm outline-none transition focus:border-[#17363f] focus:ring-4 focus:ring-[#17363f]/10 disabled:cursor-not-allowed disabled:opacity-60"
+              placeholder="https://.../hotel-cover.jpg"
             />
           </label>
 
@@ -233,11 +268,11 @@ const HotelsSection = ({
 
         {!isLoading && !hotels.length ? (
           <div className="rounded-[28px] border border-dashed border-[#d8ccb8] bg-[#fffcf7] p-5 text-sm text-gray-600">
-            No hotels available nào trong hệ thống.
+            No hotels are available in the system.
           </div>
         ) : null}
 
-        {hotels.map((hotel) => (
+        {pagedHotels.map((hotel) => (
           <div key={hotel.id} className="rounded-[28px] border border-[#ece2d3] bg-[#fffcf7] p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -247,12 +282,20 @@ const HotelsSection = ({
                 <h3 className="mt-2 text-2xl font-semibold text-textPrimary">{hotel.name}</h3>
               </div>
               <div className="rounded-full bg-[#17363f] px-4 py-2 text-sm font-semibold text-white">
-                {hotel.starRating} sao
+                {hotel.starRating} stars
               </div>
             </div>
 
             {hotel.address ? (
               <div className="mt-4 text-sm text-gray-600">{hotel.address}</div>
+            ) : null}
+
+            {Array.isArray(hotel.imageUrls) && hotel.imageUrls.length ? (
+              <img
+                src={hotel.imageUrls[0]}
+                alt={hotel.name}
+                className="mt-4 h-40 w-full rounded-2xl object-cover"
+              />
             ) : null}
 
             {hotel.timeZone ? (
@@ -281,10 +324,35 @@ const HotelsSection = ({
             </div>
           </div>
         ))}
+
+        {!isLoading && hotels.length > ITEMS_PER_PAGE ? (
+          <div className="flex items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              disabled={currentPage <= 1}
+              className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {currentPage}/{totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPage((value) => Math.min(totalPages, value + 1))}
+              disabled={currentPage >= totalPages}
+              className="rounded-full border border-[#d8ccb8] px-4 py-2 text-sm text-textPrimary disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default HotelsSection;
 

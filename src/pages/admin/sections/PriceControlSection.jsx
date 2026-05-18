@@ -16,7 +16,7 @@ const PriceControlSection = ({
     <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
       <div>
         <div className="text-sm font-semibold uppercase tracking-[0.2em] text-accent">
-          Price loại phòng
+          Room pricing
         </div>
         <h2 className="mt-2 text-3xl font-semibold text-textPrimary">
           Edit base price and preview selling rate
@@ -27,7 +27,7 @@ const PriceControlSection = ({
           Pricing engine preview
         </div>
         <div className="mt-2 text-lg font-semibold">
-          `Single date` override `dải ngày`, còn lại fallback về base price
+          `Single date` overrides `date range`; otherwise it falls back to base price
         </div>
       </div>
     </div>
@@ -82,7 +82,7 @@ const PriceControlSection = ({
                 </div>
                 <h3 className="mt-2 text-2xl font-semibold text-textPrimary">{roomType.name}</h3>
                 <div className="mt-2 text-sm text-gray-600">
-                  {roomType.category} · {roomType.size} · {roomType.capacity} khách
+                  {roomType.category} · {roomType.size} · {roomType.capacity} guests
                 </div>
               </div>
               <button
@@ -115,10 +115,10 @@ const PriceControlSection = ({
                 </div>
                 <div className="mt-3 text-3xl font-semibold">{holidayPercent}%</div>
                 <div className="mt-2 text-sm text-white/74">
-                  Price trung bình: {formatCurrency(sellingPrice)}
+                  Average price: {formatCurrency(sellingPrice)}
                 </div>
                 <div className="mt-2 text-sm text-white/74">
-                  Total {pricingPreview.nights} đêm: {formatCurrency(pricingPreview.total)}
+                  Total {pricingPreview.nights} nights: {formatCurrency(pricingPreview.total)}
                 </div>
                 <div className="mt-2 text-xs text-[#f6ddb0]">
                   {pricingPreview.hasSpecificDate
